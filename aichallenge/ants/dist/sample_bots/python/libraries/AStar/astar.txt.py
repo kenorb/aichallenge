@@ -3,6 +3,7 @@
 # Licensed under the MIT license.
 # http://brandon.sternefamily.net/files/mit-license.txt
 # Python A-Star (A*) Implementation
+# URL: http://brandon.sternefamily.net/posts/2005/02/a-star-algorithm-in-python/
 
 import sys
 import heapq
