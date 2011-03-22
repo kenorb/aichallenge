@@ -1,0 +1,8 @@
+*.pyc
+*~
+*.project
+*.pydevproject
+*.settings
+.metadata
+*.buildpath
+submissions/*

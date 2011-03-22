@@ -1,0 +1,626 @@
+v ants 1
+players 4
+loadtime 3000
+turntime 1000
+rows 82
+cols 62
+turns 100
+viewradius2 96
+attackradius2 5
+spawnradius2 2
+seed 42
+m %%%............%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%............%%%
+m %%%............%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%........*...%%%
+m %%%............%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%............%%%
+m %%%............%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%....a.......%%%
+m %%%..*.........a..%%%%%%%%%%%%%%%%%%%%%%%%%%...............%%%
+m %%%...............%%%%%%%%%%%%%%%%%%%%%%%%%%.........a.....%%%
+m %%%...............%%%%%%%%%%%%%%%%%%%%%%%%%%.....a....a....%%%
+m %...........................%%%%%%..................a.aa.....%
+m %...........................%%%%%%...............a.a.........%
+m %.................a..a......%%%%%%...........................%
+m %%%.....a.......a...aa.a...*%%%%%%.a.......................%%%
+m %%%.....a.............a.....%%%%%%.........................%%%
+m %%%%%%%%%%%%%%%%%...........%%%%%%...........%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%.....a.....%%%%%%......*...a%%%%%%%%%%%%%%%%%
+m %%%%%%%%........%......a....%%%%%%...........%.......a%%%%%%%%
+m %%%%%%%%........%...........%%%%%%...........%........%%%%%%%%
+m %%%%%%%%....a...%...........%%%%%%...........%.......a%%%%%%%%
+m %%%%%%%%........%...........%%%%%%...........%........%%%%%%%%
+m %%%%%%%%.....aa...........aa%%%%%%...........a........%%%%%%%%
+m %%%%%%%%....................%%%%%%.........a....a.....%%%%%%%%
+m %%%%%%%%*..a......a.a................................a%%%%%%%%
+m %%%%%%%%...a...a.a.a...........a......................%%%%%%%%
+m %%%%%%%%%%%%%.a..a.........a.....................%%%%%%%%%%%%%
+m %%%%%%%%%%%%%...a.....................a.a.....a..%%%%%%%%%%%%%
+m %%%%a..a...........................a......a.a.............%%%%
+m %%%%..a............a.....a..a............................b%%%%
+m %%%%....a................a.a......aa.a.........b..........%%%%
+m %%%%..........%%%%%%%%...a...a........a.%%%%%%%%..........%%%%
+m %%%%....a.....%%%%%%%%.....aa...........%%%%%%%%..........%%%%
+m %%%%..a.......%%%%.....a.....a.a..........aa%%%%b.........%%%%
+m %%%%a..aa.....%%%%....a...a.......a.a.....aa%%%%..........%%%%
+m %%%%a........a%%%%..a..a............a.a...aa%%%%b.........%%%%
+m %%%%aa.......a%%%%..........................%%%%..........%%%%
+m %%%%.........a%%%%......a..a................%%%%b.........%%%%
+m %%%%aaa....aaa%%%%.....a..a....aaaaaaaa...aa%%%%..........%%%%
+m %%%%.....aaaaa%%%%...............a.........a%%%%b..b.....b%%%%
+m %%%%%%%%%%%%%%%%%%......a..a.a...a....a.....%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%..........................%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%.......a.a...........a....%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%.%%%%%..............%%%%%.%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%.%%%%%...a..........%%%%%.%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%.%%%%%.............a%%%%%.%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%a%%%%%....a.........%%%%%.%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%a.................a.......%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%a.........................%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%%a...................a.....%%%%%%%%%%%%%%%%%%
+m %%%%.........c%%%%aa.................a......%%%%..........%%%%
+m %%%%.......ccc%%%%aa...................a....%%%%d......d.d%%%%
+m %%%%........cc%%%%aa........................%%%%..........%%%%
+m %%%%......cccc%%%%.....................a....%%%%....*....d%%%%
+m %%%%..........%%%%a.........................%%%%..........%%%%
+m %%%%.......ccc%%%%aaa.......*...a...........%%%%.........d%%%%
+m %%%%........cc%%%%aaa.......................%%%%..d.......%%%%
+m %%%%.......c.c%%%%%%%%................aa%%%%%%%%..........%%%%
+m %%%%.........c%%%%%%%%..................%%%%%%%%.........d%%%%
+m %%%%.......c...c.ccc......................................%%%%
+m %%%%......c...c..ccc................................d.....%%%%
+m %%%%...........c..cc........*..d................d.d..d.d.d%%%%
+m %%%%%%%%%%%%%..cc................................%%%%%%%%%%%%%
+m %%%%%%%%%%%%%...........................d.......d%%%%%%%%%%%%%
+m %%%%%%%%..........c..............................d...d%%%%%%%%
+m %%%%%%%%...............c....d....d.......d.d.d........%%%%%%%%
+m %%%%%%%%....................%%%%%%d...................%%%%%%%%
+m %%%%%%%%....................%%%%%%.....*......d.......%%%%%%%%
+m %%%%%%%%........%...........%%%%%%........d..%.......d%%%%%%%%
+m %%%%%%%%c.......%...........%%%%%%.......d...%d....d..%%%%%%%%
+m %%%%%%%%c.......%...........%%%%%%...........%.......d%%%%%%%%
+m %%%%%%%%c...c...%...........%%%%%%...........%....d...%%%%%%%%
+m %%%%%%%%%%%%%%%%%...........%%%%%%...........%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%%%%%%...........%%%%%%...........%%%%%%%%%%%%%%%%%
+m %%%....aa...................%%%%%%..............a.aaa......%%%
+m %%%.....a...................%%%%%%d..............aaaa......%%%
+m %.......................cc..%%%%%%.....d...........aaa.......%
+m %...........................%%%%%%....d..........aa.a........%
+m %...................c....c..%%%%%%............a....aa........%
+m %%%...............%%%%%%%%%%%%%%%%%%%%%%%%%%..........a....%%%
+m %%%...........a...%%%%%%%%%%%%%%%%%%%%%%%%%%...............%%%
+m %%%....a..........%%%%%%%%%%%%%%%%%%%%%%%%%%......a........%%%
+m %%%........a...%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%............%%%
+m %%%.....a......%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%............%%%
+m %%%............%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%............%%%
+m %%%..a.a.......%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%.........*..%%%
+
+a 18 16 0 0 101 0 -swnn-wwnwwwss-snss----w---ns-nnsseeeew-nesee-seeeeees-sss--s----ee-ssssswnwsn-ns-esnwesens-wnensswe
+a 18 45 0 0 40 1 sssssssswwwwwwssseeeesss-ww-ssssssw-nnnn
+a 63 16 0 0 62 2 nnwwwwswwseses-nnnseesesswnss---e----nnnwweneeweeeeweneennnnee
+a 63 45 0 0 101 3 wwwwww-sssssssssssw-nnnnnnnnnnnnnn-wwww-ssss-eeeeeeee-nnnnnnnnneeeeeennnnnnnnneeeeeeeeesssssssssssww
+a 19 10 0 14 101 0 sse-w----w-------ns-eeeew--eweens-eeeeeee-ssse--seeeeewssw--wesewwnwesnnsses--wnsnssnw
+a 1 58 0 63 67 0 nnnn
+a 49 21 0 35 39 2 -n-n
+a 75 51 0 56 67 3 -ss-eeeeeee
+a 34 10 0 25 101 0 eesnnss-nwnewwnsnwess-------wnwwees-ewweeee--------nsnswes-----------------
+a 32 38 0 29 31 1 -w
+a 50 12 0 52 101 2 nnwwnn-eee--------------------------------------
+a 55 52 0 27 101 3 eeeeessw-nnnn-wwww-sss-eeeeeswwwwwwwwwssseeeeess--ssssswww-nnnnnn-wwwwwww
+a 31 29 0 19 101 0 -wwsseneeeeesssewsssee-eesswe--nnneennnes-nwnenweeneswwsseewwsswneeeen-s---------
+a 17 43 0 45 87 0 sesssnnneeeeneeswwssese-wwswweess--eessese
+a 56 23 0 29 50 2 -eeeennnennneese-enee
+a 52 43 0 43 54 3 wwwws-wwwww
+a 4 17 0 41 45 0 wwwn
+a 5 47 0 54 97 0 eee-neesewewwww--ennnnnen-wwwnnnwewnwnnwnnw
+a 81 10 0 41 48 2 esesees
+a 77 58 0 63 65 3 ss
+a 2 14 0 46 101 2 s
+a 26 46 0 7 83 1 nnnnnnnnnnnneeeeeeessssssswwwwwsssee-sssss-eeeeeeess-ww-sssswww--wwwwnnnnnnn
+a 42 18 0 36 101 0 sses-sssn----------------ssssw----------------------------------
+a 48 37 0 46 54 0 snwsswws
+a 32 13 0 24 101 0 ss-snnss-nnnnwnnssnssnssss---nn-wenn-----s--s------nnsnssnss---ns---ns------
+a 33 43 0 24 38 1 ww-sssssww-nnn
+a 53 23 0 30 35 2 ennnn
+a 66 43 0 37 101 3 ssssss-e-nnnnnnnnn--ssssssssssssssnn---nwwwwwwwwww-nnnnnnnnnnnn
+a 26 18 0 13 101 0 w-wwwwwwwwswww-ssn-ensensn-we-www--------sss-eww-ne--w-n---nnneewwnsss--ns----s----nnnn
+a 5 46 0 53 101 0 -neee-nenewe-wwweesnnnnnnn-wwwewnnenwnnnneewwen
+a 60 16 0 2 55 2 wwww-ssweesssnnneeeneeennen-seeees--eennnnneeeeewwnen
+a 52 40 0 40 47 3 -wwwwww
+a 30 11 0 21 101 0 -esw--ewwesnn-n-snn-swnnnws--w--sseweeeee-we-ss----wnnnnneewewwe-sssss-ns----ns
+a 34 40 0 26 48 1 nnnnneeessssssssssssss
+a 54 6 0 55 101 2 wsnnnsssssn-nssnse----nnennnewssssseeennn--en
+a 58 41 0 30 76 3 sssssssssssss-ee-nnnnnn--s-esssseeeeeee-ssssss
+a 26 23 0 11 101 0 eeesenee-eesssewsesenssews-sesssessw--wwnwwwwwweeennnnnnnnsewseennnennnsswewnwsswwnensees
+a 3 47 0 55 101 0 neeee-n-----ww-neennnnnnswwnsnnnsnw-nenen-we-
+a 70 18 0 26 76 2 w-wwwwwwwwwwwswww---------------------s--s-n-ss-ss
+a 69 34 0 26 46 3 -nnnnnnnnnnnnnnnnnnn
+a 20 23 0 7 101 0 sss-e-nweneneenwswwneee-------nnnwwnnswswwsssswns-ss----sensssewswwn--nsnnssnswseeeenwewwwwns
+a 13 38 0 44 101 0 nnenneneeeeesw-seennwsnnenwenwwsnn--e-eeswsnwneseeseesse
+a 55 23 0 29 51 2 nesseneeennnseeneeenen
+a 46 37 0 45 81 0 s-wwsswwwssssnewnwsneessswssnsessssw
+a 30 10 0 21 101 0 wsssseswnsewwenewwesens---------wwnwese-ewweee------nnnnsnswesss---------------
+a 1 52 0 59 70 0 en-nsnnewnn
+a 60 26 0 30 31 3 n
+a 69 36 0 27 96 3 eeee-nnnnnnnnnnnnnneeeeeeeennnn-eeeeeeeeesssss-wwwwwwwwwwwwwwwwwwwwww
+a 32 29 0 20 38 0 sneeneese-esss-see
+a 35 50 0 53 87 1 -nnnnnnnnnnne-ss-eeeee-nnesss-wwww
+a 76 7 0 37 74 2 nnwnwn-w------------------ss--w--ssss
+a 61 43 0 44 61 3 wwwwwwwwwwwwwwwww
+a 4 4 0 53 82 0 wss----------nnnne-nnnwnnnnnn
+a 18 39 0 38 94 0 sennns-esswssne--w--wseswwwwssseeees-ee--eee--nnwsseee-e
+a 47 27 0 33 38 3 ww-ss
+a 71 57 0 55 80 3 w-sssss-e-nnnnnnesseessww
+a 21 8 0 15 101 0 e------w--------ns--eeewe--w--e-e--eeeeesesse-es--eessssswnwww-e-w-esnweesessnnn-sewe
+a 38 38 0 34 37 1 nnn
+a 65 25 0 35 101 2 e-ssssssnessnnwwwwsswweennnewwneneweeees-ssssnnnnnsnsss-sss-www-n
+a 79 50 0 56 62 3 eee-n-
+a 19 9 0 14 101 0 s-------w----ns-nnss-eeewe-ewse-e--eeeeeee-ssess--eeessew--wwnnnsnesewsnssseennnnese-s
+a 33 55 0 52 101 1 -s-e-n-wwwwwwwwnnnnn-eeeeeeeeessssssswwwwwwwww--
+a 46 20 0 36 37 0 w
+a 43 35 0 42 76 0 es-nne--ssswswswsswwswnssssssssnse
+a 15 8 0 11 101 0 sssssne----w---nnn---ssseeewennwwneww-------ewseeeensnsswewwwseessnsns-nseeeeeeeswsennwww
+a 35 55 0 54 74 1 wwwww-wwnnnnnnnnnwww
+a 66 17 0 23 101 2 sss---ssssssneeeee--nwswnnwnwe--wwennwnnensenneenen-eennwssswnwwnwwwwnnennnn-
+a 73 52 0 65 74 3 -nnn-ssss
+a 8 2 0 53 101 0 sew-----nn------sn-esensenwwnneeennesnwnnewn-nw
+a 19 41 0 40 68 0 nnnsessswenne-eeeeessssswsse
+a 72 13 0 31 74 2 wwwwnw-ws-w---w--------eeewww---ss--snwssss
+a 54 33 0 18 101 3 -eeeeeese-sss-eeeeeeeesseeeeesssssssw-nnnnnn-wwww--eeee--wwwwwwwwwwwww-sssssssssss
+a 28 26 0 15 101 0 eesseww-wsenseeenssseessessseswse-ewwswwswwssssssnwnnnneseennwsennsewssnneesneensness
+a 4 48 0 55 101 0 n-eee-eeweenwnwesnnnwneenwnnsnn-ewnw-w--eennn
+a 47 24 0 35 37 3 -n
+a 56 35 0 17 82 3 sssssssssssssssssswnnnnn-eeeeeeeeeeseeeeeeeee-ss--nneeeeesseessww
+a 9 1 0 54 101 0 -------nn------sn--sen--ennnenn-nwnnnnenenesen
+a 26 32 0 22 40 0 eessssseeneeenesss
+a 41 25 0 29 36 0 sssswws
+a 53 39 0 24 101 3 wwwwwww--eeeeeeesseeeeeee-sss-eesseeeeesss-www--ee-nnnesssssssw-nnnnnnnessss
+a 10 4 0 55 96 0 w------ennnnneenwnsswneeneeenneneeennnnnn
+a 33 49 0 55 69 1 wnnnnnnnwwwwww
+a 49 28 0 41 42 2 n
+a 60 40 0 31 101 3 n-wwwwww--eeeeeeeeeeee--www--eeeeeseeeeesss--sssswwww-nnnnnn-wwwwwwww
+a 18 17 0 1 101 0 seeeeeesssennsnne-ene--nwnnwwnnwnw-wwnneneeswssssssss-ssss-neese-sss-w-www--nsnnsewsessssenwenneeew
+a 40 35 0 40 96 0 -es-wwwesewnssssswsewswwessesennnsessnwswnesssseswnww-ee
+a 73 11 0 32 64 2 s-wwsnnww---wwww--------------ss
+a 54 50 0 25 101 3 nnnnnnnneeeeeeesssssssssssww-nnnnnnnnnn-wwwwwwwneeeeeeeeessssssssssswwwww-n
+a 12 27 0 25 68 0 wnnwwwwww--wnnnw--ewwwnwwnnwnwwwnnwwnwnnnnn
+a 34 54 0 53 78 1 -w--eeeeswwwwwwwwwnnnnnnn
+a 52 10 0 53 101 2 nnn-nweee-------------------------snss--------n
+a 43 34 0 42 101 0 se-nwsswwsswssswwwwwsswnwwwwnswsw--------ew---------------
+a 20 17 0 2 101 0 e--e-wsss--wess----------ensnnnsswwwswwwsenneneneeesnesssnss----e--esewnwwwweenseesesse--nnnnnseew
+a 26 52 0 44 101 1 nneeeeess-wwwwwwww-ssss-eeeee-nnnnnneeessssss-wwwwwwwwwn
+a 57 21 0 27 37 2 -eeessesee
+a 71 51 0 49 79 3 wwwwwwwwwwwwwwwwwnnnnnnnnnnwww
+a 29 4 0 25 101 0 n--ssnn-n-ew-ns--sn-----------essnwsnnsss---n----nn-sss--n---n---s-------ee
+a 28 55 0 51 95 1 ssss---wwwwww--eeeeeee--wwwwwww-ssswnnnnnnnn
+a 60 11 0 6 101 2 wwssnwn--seeseennwweswn-----------eeennnnswwwwwnnnsnnnesenenee--------------------------------
+a 72 60 0 59 70 3 sswwss-www-
+a 21 19 0 3 101 0 nesnswsssssw------------e---nwwnwwwssws--nnneeennee-sses-s------e--w-n----nsnnswwess-eennsenwnnnn
+a 35 43 0 29 46 1 -sssssssssss-ssss
+a 71 17 0 27 68 2 -wwwwwww--wsw--w---w------eeeewwww--ss-es
+a 41 35 0 41 50 0 seese-eee
+a 7 22 0 32 101 0 wwwwwwennww-nwn
+a 9 53 0 59 101 0 ee-nnnnnnnsw-nnwnwenw-enwwnnenn-wwe-e-nn-
+a 72 2 0 41 82 2 w-------------------------s-n---------ss-
+a 73 53 0 65 71 3 -sssss
+a 22 21 0 6 101 0 esseseee-nnnssewnnnweeeeeeeeneennennnew-eeennesswwennnessw-nsssseeess-wswwwssnesnwssesewsnnnse
+a 24 51 0 43 101 1 ssssssssss-e-nnnnnnnnnnee--eeessssssssssswwwwww-nnnn-www-
+a 49 20 0 36 37 2 n
+a 74 37 0 19 63 3 wwwnnnn-eeeeee-nnnnnnnnnnnn-wwwwwwwwwwwwwwww
+a 14 15 0 6 101 0 wewe----------------------------www-ww-sn--------ssseeen-snesesnwssswwsesnwenssessennsseennwww
+a 33 54 0 52 90 1 -nnnnnnnnneeessssssssssswwwwwwwwwnnnnn
+a 73 5 0 39 80 2 wwww---------------------s-----n-s-n-snse
+a 63 38 0 6 75 3 -nnnnnnn-ww-sssssssssssssssssswwnnnn-eeeeeeeee-nnn-wwwwwwwwwnnnnnnwww
+a 29 8 0 22 101 0 wwwnn-ssn--eseesnnwe-wwww-------sssew----en----n-ss------sew-wn-s--n----------
+a 19 35 0 36 95 0 ennenennwwneneeneeeenwnsssss-nesssesseeesessee--wwnssss-s-s
+a 74 26 0 43 93 2 ns-weewweennnsnn--nnn--nwewe-n--nssswwnenen-nnnnee
+a 49 49 0 29 94 3 -sss-eeeeeeeessssswww---wwwwwwssseeeeessssssswwwwwwwnnnnwwsssssss
+a 16 15 0 5 101 0 nsnww-wswssnssss-eeeennneennnnnnn--nwwwew-nwwwswwwnwwww-ne-nnnnnnennnwnnnwnnnssnneneenwnnewee--
+a 5 44 0 52 101 0 e-n-s-wneeseeswnn-wennnn-n-e-nw----ew--nennnnwnw
+a 68 26 0 37 76 2 ww--seee-sn-wensnss-nnsnnnnnnswnweennen
+a 50 51 0 28 101 3 ss-eeeeeessssswwwwwwwwwssseeeeessssssswwwwwwwnnnnwws-wwwwwwwwww-eeeeeeee
+a 20 21 0 5 101 0 snssssssweesesssswwwwws-ew--sss--ses-w-ssssss-eeee---sssswwsnnwn-sw----------------------------
+a 27 57 0 53 101 1 wwwwwwww-ssss-eeeeeeeess-wwwwwwww-sswnnnnnnnnnw
+a 70 24 0 38 101 2 ssssenswwnnewnwsww-newnnnsnweeen-ewneseeswnn-wessssseessswwwee
+a 53 53 0 32 98 3 wwwwwnnnnnnneeeeeeeeessssssssssswwwwwwwwws-wwwwwwwwwwwwwwwwwwwwwww
+a 16 13 1 7 101 0 nw-ww-ss-nsss---w--nnnnn------------------------s-sneeeewnsnw---wsseneensn--w--ee---sssnnswss
+a 5 53 1 58 78 0 nenenewennnwnnenenen
+a 48 29 1 42 49 2 eeeeesn
+a 74 55 1 58 66 3 sss-eees
+a 32 18 2 26 101 0 s-sewsss--ss-sss--sss--------------ew-ennwewnnnsss------------------------
+a 5 51 2 57 101 0 ennn-ewenenwn-snnnwnnnsnnwsnewsnnewwenenew-
+a 66 9 2 10 101 2 --eeeee------swnns---wwwww-----nnnnnn----------eweeeeeennnenene---------------------------
+a 70 56 2 54 69 3 eesse--esswwsss
+a 26 11 3 18 101 0 ssswssseeewweswenwnsnns-w--essss---nnwwneeee-wsss----------e--we------------------
+a 2 49 3 56 75 0 nee-e---nnn--ennnnn
+a 62 12 3 5 101 2 wswssseeeee-------s-w-w---wwwww-----enwnnn-n--------eweeee--swensnnwewwwsssssse-ee-nnnnwswswws-
+a 55 38 3 14 101 3 eeeeeeeeeeeee-nn-wwwnnnnnnneeeeeeeeesssssssssssww-nnnnnnnnnn-wwwwwwwneeeeeeeeessssssss
+a 34 28 4 21 37 0 sswswsssssseswws
+a 2 56 4 61 66 0 nennn
+a 77 11 4 34 48 2 wwwsseswwsssss
+a 55 35 4 17 46 3 wwwwwwww-sssss-eeeeee-nnnnnnn
+a 32 23 5 22 101 0 wwwwsss-sss-wss-sssewsss---------------ew-----nn---s--------------------------
+a 11 41 5 46 101 0 en-neeeeeeee-snnen-wn-w--e-wwwwnwee-www-ewn-sseseeee-n
+a 68 24 5 37 81 2 swesssswwwnnwnwnwswwe-ww--ewwwwwesnwewwswwsw
+a 69 35 5 26 57 3 --eeee-nnnnnnnnnnnnnn-wwwwwwwww
+a 23 17 6 10 101 0 seswwwwwnwwwssswwwssnnnneseews----wew--w---sssseeen--sss-se---nnnnnnswsessss-ns---ns------
+a 40 37 6 42 101 0 s--sn----nswwsnnssswenwwsnwnseswenwsneweswssseneenee-ssese
+a 61 29 6 33 37 3 --nn
+a 74 46 6 46 73 3 nnnneeeeeeeeeeeesseesswwsss
+a 10 17 7 36 52 0 n-n--wnwsnnnwnnn
+a 0 48 7 57 74 0 -enennsenwwwnnwnw
+a 55 26 7 25 36 3 -nnnnnnn-ww
+a 65 42 7 36 90 3 eessssseeeeeeeeeee-sss--nn-w-s-ee-n-wwwwwwwwwwwwww-sss
+a 15 11 8 9 101 0 wwsss-sn-----w-nnn---------------------------------eewsessssnwwssee-nsns-nwws--neneseeewwew
+a 19 37 8 37 85 0 e--nn-neennsneneseswnnewssen-ssssssseessss-eeses
+a 47 12 8 54 101 2 w--ee-----------------------------------------
+a 66 51 8 55 101 3 swwwwwnnnn-ee-nnnn-w-sss-eeeeeessssswwwwwwwnn
+a 26 16 9 14 101 0 wwwwsss-eswse-nweswn-nnew--e---we-nnssss-wsn-------wes-se-w-nnnnsnwsnwewnwswswnww-nnen
+a 6 48 9 55 101 0 e-n-eesewnwwwn-nsnnnnnnwewn-----ew-nnennennnn
+a 54 4 9 56 101 2 snnns-----s--n-ssesneennneee-swwneeee---se--
+a 47 43 9 41 46 1 wwwww
+a 36 26 10 24 42 0 wssss-eseswwssssse
+a 6 50 10 56 80 0 eeeeeeennnnnnwnennen--nn
+a 49 9 10 55 101 2 -nnn-eese------------------------------------
+a 62 44 10 55 101 3 nn--ssssssssssssss--n-wwwwwwwwwwnnnnnnnnnnnnw
+a 18 24 11 17 101 0 enenennnw-nnnnwssnwswnwnneewwssssssswss-sweneeeeeesswwsw-nwseeweeeesesswws---nnnnnn
+a 35 42 11 28 50 1 -nnnnnnessssssssssssss
+a 45 18 11 38 101 0 sesswss--------nn---------------------------------ss--------ns
+a 81 48 11 57 61 0 nene
+a 19 26 12 18 101 0 enn--nnnw-nnwnwwwnsnnwn-new---ww--esessewweeeeseeewwnssnnnwwnwenw--wwewsswwwssneee
+a 16 35 12 39 97 0 nennenn-eennneneewssssssswnsesseesssssnww-sseeenssseessees
+a 58 25 12 30 31 2 e
+a 50 37 12 47 50 0 snw
+a 11 19 13 34 80 0 nw-w-n-wwwewn-wwwwwwwwnnww--snnnnnnnsnnnnnnnnn
+a 30 54 13 50 85 1 nnnnnneeessssssssssswwwwwwwwwnnnnnn
+a 51 9 13 54 101 2 w-swnwwws----sn--n--sene---eeeswwsn-eeee--wee-
+a 49 48 13 30 101 3 -nnneeee-ssssss-eeeeesss-w-sswwwwwwwwssseeeees--ssssssww-nnnnnn-wwwwww
+a 21 23 14 15 96 0 nn-nnnnssssnnnnnwwnnnwnnwnne----wwsnwwwsnn-sswsnnswnnw-nnwsseennwnnsnnennnnennewn
+a 1 48 14 56 90 0 --eeneew--wnnwewnnennnnnnwwnwnw--w
+a 71 23 14 39 99 2 sss-eww-nwwwnew--weewnww--swenenneweeeswenewwsnwwsnsswwssssw
+a 68 41 14 31 82 3 sssssswwwwwwwnnnnnnnnnn-eeeeeeeeeesssssseeeeeeeeeee
+a 27 4 15 26 101 0 ---ew-nnn-eeeswsewww--------e-esnnwssess-wn---neneewwwnss--nssss--------ee
+a 23 36 15 34 101 0 nennn-nnn-w-e--eeeeee-wwnnwwswwssseeesseessnwwnssneenweeeeeseswwes
+a 61 13 15 18 63 2 eeneenene---sseeee--nwnenenwwwwssnwweee--nees
+a 79 57 15 61 64 3 -ss
+a 15 9 16 17 101 0 ss---wnnn--------------------------------eeeewsnswnwew-swnseeeen-wwe--ee--sssnnwwes
+a 10 40 16 47 101 0 nneneeeeeesesennnns-wwewewww-nn-eennewssenwseeeesesee
+a 72 17 16 28 52 2 wwwswsewwnwssssseessesss
+a 51 32 16 45 46 2 e
+a 24 9 17 22 101 0 wsswwwes-wnnneee-ewsewwnswsw---e-sssessws--n-ssss-nn-ssnsnsnsns--n-snn-ssnnnss
+a 31 39 17 28 30 1 ww
+a 63 15 17 19 100 2 eess-snnseeeeeeess-wsssseswwnnnswnssww--wnnwsnsw--ennewnnnnseeewwwssssnssw--sssww
+a 45 37 17 44 86 0 ---ww-swsswss-senwswneeseswnnseswwssweswsw
+a 9 23 18 30 92 0 wnwwwwww-nenwww---wweewswnwwwwwwsnnnnennennnnnnsewneenenn-ee-e
+a 8 53 18 58 101 0 -eee-nnnnnnsnwnnnenwnnennwwnwenwnnnwne---w
+a 45 26 18 32 34 0 es
+a 73 58 18 58 71 3 e--wwwww-ssss
+a 26 28 19 20 81 0 -eeesewnenenee-nenwnnennn--eeeesewwsswwsnsswsseeeeeeeeeseeess
+a 7 50 19 56 101 0 esseeennnwnwwwnennnnnnn-wwwennne-nnw--eeen--
+a 56 21 19 28 38 2 ennnnnnnne
+a 65 51 19 57 101 3 www-sswwnn-eeee-nn-wwwwwwwwwwwwwwwwnnwwwwww
+a 34 18 20 27 101 0 ssnssssss-ssssss-------------------------ewew----------------------------
+a 18 50 20 57 70 0 nssswwswswwss
+a 60 18 20 23 50 2 enene-eesseseneeenneeeneeee
+a 55 41 20 27 101 3 -ss-eeeeeeeee-nnnnnnnnnnn-sss-eeee-nnneeessssssssssswwwwwwwwwssseee-sssss
+a 30 26 21 22 101 0 sswwnsswwssssswwew---weeenneeneswwwsnnwnens-ssessewwwweewwenesewnneeesen-sensn
+a 39 33 21 39 88 0 esssewwwssew--wss-wsswwswenwnnwsnessssessssnwesws
+a 75 11 21 33 78 2 swwwnn-wwnwwww-----------------s-----n-s-n-se
+a 53 31 21 31 35 3 wwww
+a 21 23 22 26 101 0 nnnnnwnwnnwwnwneenwnwnw-ww-ssn--ss--nwsewnnwnneswessnennnnnwe-seen--ssssse
+a 31 34 22 27 30 0 ese
+a 71 7 22 37 68 2 ws-ww-w-------------------ss-ss
+a 77 51 22 54 67 3 -s-eeeeee--ww
+a 9 16 23 37 101 0 wwnnwe-----wwe-sssnwwseeewwenwnnwwnwwwesnenensnneeeesee-weew--w
+a 1 47 23 56 74 0 nne--ee-e-n--nnnnn
+a 58 22 23 28 35 2 eesssee
+a 43 39 23 46 48 0 ee
+a 6 12 24 42 72 0 nwwwwswwnnwnsswwn---ewnnnnnnnn
+a 11 43 24 47 101 0 nenn-eeeeee-eeenwnw---we-nnnnn---wwwe-nweww-eessnesse
+a 71 5 24 38 79 2 sww-w------------------------s-n-------se
+a 79 54 24 59 65 3 ee--ww
+a 9 26 25 28 101 0 wwnnsswwwnwneeeeww-sssssswsss-wnseesneseswwesswnnnsweswnsnssnnnswennenne
+a 10 36 25 46 101 0 eennne---ess--swwwse-eennenwwws-swwssseeeswnneeeessene
+a 64 14 25 27 101 2 ws--wwwww----eenwnnwn---------eweeee-esseeennwwwwwneeneewwnnwesssee-eewnn
+a 73 43 25 43 73 3 w-swwwwwwwwnnnnnnnnnnnnnwwwwww
+a 30 30 26 27 101 0 se-ssese--sseeseeeennnnnseeee---nnnwween---sn----snsns-ns-nss----nn------
+a 35 51 26 53 70 1 --nnnnnnnnnn-wwww
+a 47 10 26 55 101 2 wwnwe-esee----------wwee---------------------
+a 51 40 26 41 46 3 eeesw
+a 5 7 27 47 48 0 w
+a 15 41 27 43 101 0 nnneeenn-eeeeseeennewnwwwneee-wwwwwwee-wsssees-nenneeeeen
+a 61 26 27 31 35 3 ee-n
+a 45 34 27 43 75 0 eesewwwswsw-ss-s-wnwsnsssssssses
+a 30 7 28 30 101 0 wne-seesnnwsewwewwnww--ssssssnn--ewn----sn-----s-nsnss--n---n---sn----
+a 30 50 28 48 55 1 -wwnnnn
+a 62 24 28 33 61 2 essewweennwwsewwwwssennnneee
+a 57 55 28 35 101 3 wwww--nnnnnnnnnnneeeeeesssssssssssww-nnnnnnnnnn-wwwwwwwneeeeeee-s
+a 33 19 29 30 101 0 w-sss--sse--wssssss------neeesssw-nennsnswnssws-----------------------
+a 23 33 29 32 90 0 eennenwnnneeeweneeeeee----nnwessnnssssessesssssee--ewwsess
+a 56 28 29 34 36 2 ne
+a 55 40 29 41 98 3 eeeeeee--sssssssssssswnnn-eeeeeeessswwwwwwwnnnnwwssssssse
+a 8 15 30 38 48 0 nnwwen---n
+a 3 53 30 59 101 0 n-n--eennnnwnnnnwwneewnnnnww-eewwwew--we-
+a 45 22 30 35 39 0 wwwe
+a 77 46 30 50 78 3 eeee-nnnnnnneeeeeeeesseessww
+a 7 6 31 49 79 0 -wwwe-n--nw--ew-nnnnnsnnnnnnnn
+a 6 58 31 63 73 0 nnnnnnnnnn
+a 76 17 31 35 45 2 wwwsssssss
+a 54 54 31 42 101 3 -wwwwwwnnnnnnnneeeeeeeeessssssssssswwwwwwwwwssseeeeessssss
+a 24 7 32 34 101 0 eeeewewesn-----eennsnsssnnneeseeeessw-w--wwnseseww-wee--eenn-ennww
+a 2 54 32 60 69 0 en-enennn
+a 66 26 32 36 82 2 sw-ssssnwssnnnww-ss-wennnnnswenen-nnnneneeenen
+a 54 32 32 33 36 3 -ww
+a 24 13 33 38 101 0 wswesnn---enenesnssswnn-sweneesseswnwwwnsewewnswwwswwwewwsnenn
+a 19 45 33 47 93 0 ssseneneenesees------w--e-wwwwss--s-ewnss---ss
+a 52 18 33 44 49 0 ---ee
+a 68 42 33 38 99 3 nnnnnn-wwwwwwww-eeeeeeeeeeeeeeeeee--wwww-ssssswwnnnnwwsssssss
+a 30 10 34 35 101 0 n-snnws-wwewnww---ssss-w-----n-----n-s----------n---n-s----------
+a 34 35 34 35 101 0 -essssee-e--eeennn---nnss-nnnn--nn-sn----snsns-ns-nss--snnns-n---
+a 49 8 34 56 101 2 n-weeee------------wwee--------snss--------n
+a 43 37 34 43 101 0 s-ewwwwswwsswswswwswwsnwnwnwwww--------ssss--------------
+a 28 10 35 36 101 0 ennswesn-eeneeeeeeee---essseeeeeewswsssnseneeesnneswwwsseseeeeew
+a 11 52 35 60 101 0 nennewnnnnnsnn--nenwwe-wnnwennnwwewennn-
+a 49 7 35 56 101 2 nwww-s--s--n------neseneeee----snss--------n
+a 68 34 35 41 101 3 nnn--eeeeeeee-nnnnnnnnnneeeeeennnnnnnnneeeeeeeeesssssssssss
+a 11 18 36 37 101 0 -nnn-eewnwwwww---snnwes--wnsnwnwsnwwwweeennenwnesneeenn-nn--nnn
+a 20 53 36 61 101 0 s-------------------------------nnnnsss
+a 49 29 36 41 49 2 -eeeseee
+a 56 50 36 39 101 3 nnnnnnnnnneeeeeeessssssssssswww-nnnnnnnnnnneeessssssssssswwww
+a 33 8 37 38 101 0 nnwee-snses-ennswnwene---sssees-----nnnsnssns---------------we
+a 16 51 37 58 101 0 sseses-w-e------------------------nnnnn--s
+a 57 16 37 46 101 2 ww-wwwwwnwwwnwwnsssn-nssns-e---nnnenn-sssss--ew--eeene
+a 79 49 37 56 58 3 ww
+a 25 8 38 39 101 0 sweewwewsw-----sssee----wnssssss-enenewnwenswnwssssee--------
+a 7 44 38 51 94 0 ne--en-ennenennwwnsn--n-nnnwnennnn-nwswsenw
+a 50 8 38 55 101 2 -wnwwsw-s------n----ee-eseeee---ns-------we--
+a 46 53 38 39 83 3 sssssssssss--wwwwwwwwww-sssssssssssssss-eeee
+a 27 12 39 40 101 0 --snnn-eenenesnesse-s-------ew---n--wnsewewws-e--een-nnnn---
+a 38 39 39 43 101 0 enseeesnnnn--n--s-nnnn--n-s-snn-s----------s-------n-----
+a 49 19 39 42 60 0 ssw---------seee--
+a 57 47 39 40 62 3 wwwwwwwwwwwwwwwwwwwwww
+a 7 25 40 44 101 0 seen----wsses-nswwse-ssswnnswnnwwnwsesweewe-wwwssenwneen
+a 31 52 40 49 77 1 eeeee-wwww--e-nnnnnn-wwwwwww
+a 59 13 40 42 101 2 eeenwww--nwnwwweneseseenneeee-----------------------------
+a 72 41 40 43 72 3 sswwwwwwwnnnnnnnnnnnnnwwwwwww
+a 31 13 41 42 101 0 nssnssss---nn--nn-----ssss-------nnsns--------------------
+a 7 39 41 49 101 0 e--eeeewssssesswneswnsesnwnssswsseennnsssseeeewswee
+a 57 28 41 42 51 2 eeneneeee
+a 73 35 41 42 101 3 wnnnnnnnnnn-eeeeeeeeeee-nnnnnnnneeennnnnn-eeeeeeee-nnnesss
+a 28 9 42 43 101 0 -wew--ww--ssssnewws---n---ssn-----s--ew-s--n---n---snns--
+a 34 56 42 53 80 1 nn---es-wwwwww-sswwwnnnnnnn
+a 57 7 42 53 101 2 nnw-nnnsssssn-nssnes----nennneewwsssee-ennnsee-
+a 72 45 42 45 80 3 sss-eee-nnnn-wwwwwwwwwwwwwwnnnnnnnn
+a 21 22 43 53 101 0 snssss--ssneeeew----w-e-nsneeeswesewwsnn-snssns
+a 32 55 43 51 77 1 -eessswwwwwww-nn-wwnnnnnnn
+a 55 24 43 45 49 2 wwnn
+a 54 39 43 46 55 3 --wwwwwww
+a 10 18 44 45 101 0 wwnnww--ssn-wess-wwewwnnsnnww-ssenennnwenneesseenssesss
+a 10 45 44 49 90 0 nnnene-nennnene--wwwsnn--n-nnnewnnswwwnnn
+a 74 19 44 47 76 2 nwwnn-swwwwwenn-snwswswwsssss
+a 41 31 44 47 101 0 esesw-w-sswwwsswsnwnnnnsnsswsnewswsswwww-sss-------ns
+a 20 12 45 46 101 0 eeeeeeeens--weeenenesssewewww-n-ewewsesesweesesnnnnnnn
+a 31 39 45 51 69 0 nenesewsennwwwnnne
+a 55 13 45 47 101 2 nwnnnw-nnnee----------------------------sns--------n-
+a 64 43 45 53 101 3 --nnnn--s-eeee-nnnnnnennnnnnn-eeeeeeee-nnesssss
+a 8 6 46 50 101 0 wwwes-w----nn----nnsennsswneennnsneeennenwnnennsee
+a 23 44 46 50 55 0 eeees
+a 46 4 46 59 101 2 s--s--eewwns--n-eeeeee---------------see-
+a 56 48 46 48 101 3 n--sssssssss-eeeeessswwwwwwwnnn-e-nnnnnnnnnennnnnnnn
+a 3 3 47 54 68 0 ewnnns---nnnnn
+a 1 54 47 60 70 0 ns-nnenenn
+a 63 20 47 51 101 2 ss-nennnswwwwweeewenenewwnnnn----ew--------------
+a 75 49 47 52 61 3 -sss-eee-
+a 29 29 48 69 101 0 -ewsssewseesenewennsnseessewe--
+a 21 40 48 49 101 0 swennwwwwwsws-sesswwes-eeenwwnnwseswews-senewseweee
+a 70 17 48 52 78 2 esswwwwen--ewswsseswsswwsn
+a 76 45 48 49 80 3 swnnnwwwwwwwwwwnn-eeeeeeeeeeeee
+a 35 26 49 53 101 0 ssswwwnnnneeenwsswssneeneees-newewwwnwwss-s-esw
+a 7 52 49 57 82 0 e-eeee-nnnnnsnsennnnnnnnn
+a 68 24 49 50 86 2 nssnnwwnnneennwnseeweneweneeeeewwnnn
+a 57 52 49 50 101 3 -nnnnnnn-wwwwnnnneeeeeeeeessssssssssswwwwwwwwwssse
+a 30 21 50 63 101 0 neeeewewewwwweewnewesnesssnssneensenw
+a 9 56 50 61 101 0 en--nwnnnww-wn-weewwenwwwwnwwssseeseeee
+a 53 29 50 53 55 2 ne
+a 50 32 50 53 55 0 w-
+a 38 22 51 58 101 0 wnnenewsssees--sssnewsnsewswweeenneeesnews
+a 37 32 51 52 101 0 wwwwwwneewnennnnnswsesseweesseennewnnnwwesens-ss
+a 47 7 51 57 101 2 ww-sssssss--n-sesenneeneeee----------------
+a 52 31 51 56 57 0 s
+a 26 29 52 68 101 0 sweseeenn-nnnssesnwssswwnnsneeee
+a 32 49 52 56 73 1 ssswnnnnnnnnnwwww
+a 69 20 52 53 101 2 sw-weewnnwsnsnnnnnnewnwwnnenennn---------------
+a 48 51 52 54 101 3 ssssssss-ee-nnnnnnnnnneeeessssssssssswwwwwwwww
+a 33 6 53 57 101 0 -swn-senwn-sssnn--ssnsnsns----n-snn-ssnn--s
+a 20 34 53 59 101 0 wssweseess-seeeewnwwwwesswns-ssewsssewess
+a 72 11 53 57 75 2 -wwww-sseewwwwssss
+a 76 53 53 61 75 3 -eee-nnn-www-s
+a 18 21 54 55 101 0 -s-weeeesesesssws-w-eeneenseewnwswswe---newnn
+a 22 31 54 63 101 0 swwss-seeeeenwnnnnesnseeswsswswsnseen
+a 57 22 54 57 60 2 nnn
+a 51 31 54 55 76 0 --wsewwww-ssseeswsesw
+a 30 9 55 56 101 0 we-----swnssssseennnnwnwe-wnwwn-ss---n-see--
+a 33 55 55 56 96 1 wwwwww-sswn-eeeeeeeeeswwwwwww-nnnnnnnnnn
+a 50 25 55 62 64 0 ss
+a 50 50 55 56 101 3 -wwnnnneeeeeeeeessssssssssswwwwwwwwwssseeeee
+a 35 6 56 57 101 0 wewwnsewnn--ssnn--ssnsnsns----n-snn-ssnn--s
+a 10 41 56 58 101 0 ws--wsweweeeenswnwwswswssneeesnweeee-sssss
+a 55 7 56 57 101 2 nnnsssssn-nsse------enennenswsweesennnessee
+a 64 51 56 58 101 3 sssww-nnnn----nnnee-ssssss-ees-wwwwwwwnnnn
+a 30 13 57 58 101 0 -------ss--s---nnnnnsnssss--------------we
+a 33 41 57 58 101 0 ss-nnnnnwen-sn-ssseesn-sn--s-----sn--n-wss
+a 56 21 57 58 64 2 n-eeen
+a 81 53 57 61 62 0 n
+a 15 14 58 62 101 0 sseseesnessssssnennwwwsweeeenessnnnw-w
+a 9 39 58 59 101 0 ssswssnssssseswnnsswwsssnsenwwsssewsnssee
+a 81 4 58 59 64 0 wnnnn
+a 52 35 58 60 78 0 wwwseeeesseeeeeeee
+a 23 22 59 60 101 0 -wseensseswew-n-ensneesewnss-ssnn-snssnw
+a 24 48 59 64 65 0 s
+a 62 15 59 65 101 2 nnneenesennnn------ew--------------
+a 70 54 59 62 76 3 eeeesseesswwss
+a 16 24 60 63 101 0 eneseswssssweeeneesensssssssnnneneese
+a 20 40 60 61 92 0 wwwnseseessseseeseee---nnsseess
+a 61 13 60 63 101 2 sesse-snnwwn-weessneweeeewsnwennennnn
+a 66 40 60 61 76 3 nnnnnnn-wwwwwww
+a 33 23 61 63 101 0 nnneewewesssns-wwsnesnsn-eew-wessenew
+a 25 36 61 66 78 0 eeeeeeseeeee
+a 48 20 61 62 101 0 sssnnweneww---------------sss-------ns
+a 73 51 61 66 75 3 wwwwww-ss
+a 7 5 62 63 81 0 nnnnnnnewnnnnnnnnn
+a 30 39 62 64 101 0 wwnwwnenesssnessssweeeeens---nn--we-
+a 52 20 62 65 101 0 ww---------------------------------
+a 57 54 62 63 101 3 -nnnnnnnnnnneeessssssssssswwwwwwwwwss
+a 31 6 63 64 101 0 n---nnsseennnsewsennwnsswwsw----eeen
+a 0 50 63 64 80 0 -nnwwsnwn-nnnwnn
+a 71 18 63 64 96 2 nswneeesennesswenewwswwswswww-ss
+a 58 40 63 68 101 3 nnneeeeeeeennnnn-eeeeeeee-nnnnes
+a 11 27 64 65 101 0 sssswnswnwnnwewswweewesnnwewsnwnene
+a 14 37 64 65 101 0 wessssssnnnwwwssseeeeewesessweneess
+a 43 22 64 67 101 0 eseweewswsewwww----------------sw
+a 47 33 64 65 90 0 sesesnnnwssswsssnewwwwwsw
+a 22 26 65 66 101 0 eeswewwsweeenenesnwesssssnwwsnse--
+a 10 45 65 66 101 0 ennewenwwsnn-ee-wwwsewwweeseeeee--
+a 74 10 65 67 74 2 snwssss
+a 56 36 65 70 80 0 eewwssssss
+a 39 18 66 73 101 0 -sss-----------------------
+a 27 38 66 67 83 0 n-eee--eeeeee-es
+a 65 27 66 67 85 2 wewen--nnneeeeweee
+a 80 47 66 69 75 0 -nn-nn
+a 38 25 67 70 101 0 s--eeeweneeeswnswwnnwsssnsnesw
+a 24 55 67 68 98 1 sssssss-eesssswwwwwww-nnnnnnnn
+a 66 24 67 68 94 2 ewnnwneneenws-nnnnennnneee
+a 70 35 67 68 85 3 sssswnnnnnnnnnnnn
+a 28 24 68 69 101 0 ewewww-eeswewssewesens--esneesw
+a 27 51 68 69 75 1 wwwnww
+a 44 20 68 69 101 0 wnwnss-------------------------
+a 65 51 68 71 90 3 -sswwwwwnnnnwwsssss
+a 11 10 69 70 101 0 nnwwnssseeenwwneensssnsweewwww
+a 4 49 69 70 101 0 nsnnnnnneeww---nsennewwn-n-nnn
+a 65 22 69 70 101 2 nnnn-nwwnnwn--ew--------sn----
+a 57 53 69 70 78 3 wwwwwwww
+a 1 9 70 71 78 0 nnnnnne
+a 27 51 70 71 76 1 wwwnw
+a 47 23 70 71 101 0 wwww-----------------------s-
+a 44 34 70 73 101 0 wenwsenws-sssesnn-nnensesse
+a 38 25 71 72 101 0 -eennseee-enwewwnwsweeeeeeew
+a 6 52 71 72 101 0 nnnnn-nwwwwen-wennnnn-e--nnn
+a 61 8 71 77 101 2 -sssssnnnnneesewwwss--s
+a 57 56 71 72 101 3 ewwwwwwwwwssseeeeessssssswww
+a 25 12 72 77 101 0 nsnssswenwswwssewwsnnnn
+a 35 39 72 76 101 0 eewswwn--eeennnnnns-ns-e
+a 59 22 72 74 84 2 nenwnnnnnw
+a 54 51 72 96 101 3 sssw
+a 8 5 73 75 101 0 seeneeewweennseeswwseswww
+a 8 37 73 76 101 0 swwwseneesewwwsseeswnnwn
+a 63 12 73 74 101 2 nwwseesnessss-nnnneeneenne
+a 55 31 73 74 82 0 -seewwww
+a 9 22 74 78 101 0 w-ewnnwwwweesnwwseesee
+a 30 50 74 81 84 1 nnn
+a 62 8 74 77 101 2 sssss--nnnnne--swssss--
+a 59 46 74 75 98 3 --wwwwwwwwwwwwwwwwwwwww
+a 15 14 75 78 101 0 newsn-wee----sssnnssws
+a 25 32 75 77 101 0 nnnnssesnsssssweweewses
+a 50 7 75 77 101 2 seeeee----ns-----------
+a 70 44 75 76 101 3 nnnnn-wwwwwwwwww-eeeeeee
+a 34 25 76 77 101 0 sneese-wewnnnssssesenew
+a 20 32 76 81 101 0 esnseewsweseweeenes
+a 73 27 76 80 95 2 wwswwwwwwwwwwws
+a 71 40 76 87 101 3 -nnnnnnnnnnnn
+a 3 14 77 79 95 0 wnnwnneennnneenw
+a 27 53 77 78 81 1 www
+a 44 30 77 78 101 0 eewe-wswssennsssessesw
+a 73 55 77 80 82 0 wn
+a 30 20 78 79 101 0 nswesnsesenseweensews
+a 36 37 78 82 101 0 n---eeneee-e---ns-
+a 71 19 78 79 98 2 eeewwwwnswsww---sws
+a 70 41 78 86 101 3 sssswwwwwwwnnn
+a 20 21 79 80 101 0 -wnnswesnwnsssnnwssw
+a 31 49 79 80 101 1 --eeeeeeeesssswwwwww
+a 66 23 79 81 98 2 nennsnewwwwennnee
+a 78 51 79 80 101 0 -ewwnnn-nnenwenne-w-
+a 35 10 80 81 101 0 -------------------
+a 37 31 80 81 101 0 eenwennwnssseennns-
+a 76 12 80 85 91 0 nnee-e
+a 81 47 80 81 101 0 -----sn---enenenwne
+a 30 18 81 82 101 0 ssnsee-nssnnnnssns
+a 25 36 81 82 101 0 seenewewswsssswsee
+a 63 25 81 82 92 2 senennnnee
+a 49 33 81 82 101 0 ewwssseewwseeee-ee
+a 5 9 82 83 100 0 nnneneeennnnnnnne
+a 33 36 82 83 101 0 nnswnwnseessewes-
+a 74 15 82 89 90 0 e
+a 44 34 82 83 101 0 ssesewn-eensssees
+a 1 4 83 84 101 0 eseneenwnnewewne
+a 13 44 83 87 101 0 -ssnns--sssse
+a 64 14 83 84 101 2 sses-nnwss----ww
+a 80 50 83 84 101 0 nnne-nnww-e-nnen
+a 27 25 84 85 101 0 nsess-ewne-e-ns
+a 22 45 84 86 98 0 neeess-s-ees
+a 57 7 84 88 101 2 eeeeenenwsee
+a 62 38 84 87 101 3 nnnnn-wwwwwww
+a 2 14 85 86 98 0 nnnn--nn--nn
+a 34 54 85 86 101 1 nnnnnnnnnneees
+a 69 17 85 87 96 2 swwswss-s
+a 62 43 85 87 97 3 ssssssssss
+a 32 26 86 89 101 0 nsseneeeess
+a 7 47 86 87 101 0 nwneeeseessen
+a 58 27 86 87 90 2 nnn
+a 55 42 86 88 101 3 eeeeeeee-nnn
+a 33 23 87 88 101 0 nesswseseeww
+a 27 33 87 88 101 0 ssswsesn-eee
+a 50 13 87 88 101 2 -----------n
+a 76 55 87 88 101 0 nwnwnwnen-w-
+a 12 19 88 91 101 0 sssnn-eee
+a 29 55 88 90 101 1 --eessssss
+a 62 13 88 92 101 2 ennnwnee
+a 42 34 88 90 101 0 ennewewees
+a 30 26 89 90 101 0 wsnneeeens
+a 30 32 89 90 101 0 wnewseeeee
+a 64 18 89 90 101 2 nneeeennse
+a 43 35 89 91 101 0 eenwseses
+a 38 25 90 92 101 0 eensensw
+a 8 55 90 99 101 0 n
+a 70 6 90 94 101 0 ewee--
+a 54 31 90 93 94 0 w
+a 24 28 91 92 101 0 s-ewesnw
+a 40 37 91 94 101 0 nsnnee
+a 74 27 91 94 101 2 --wwnn
+a 71 49 91 93 99 0 n--www
+a 25 15 92 93 101 0 eeewnnw
+a 14 53 92 97 101 0 ---
+a 60 23 92 95 97 2 en
+a 70 35 92 93 101 3 sss-eee
+a 24 28 93 94 101 0 eneenn
+a 36 35 93 95 101 0 eweee
+a 74 22 93 98 101 2 ww
+a 53 37 93 97 98 0 e
+a 12 19 94 96 101 0 neen
+a 30 43 94 95 101 0 --we-
+a 60 21 94 95 98 2 nee
+a 55 36 94 95 98 3 eee
+a 10 27 95 101
+a 22 44 95 98 101 0 ss
+a 71 5 95 96 101 0 nee-
+a 76 53 95 96 101 0 --ne
+a 20 8 96 101
+a 32 33 96 97 101 0 -ss
+a 55 10 96 97 101 2 sne
+a 49 52 96 101
+a 0 7 97 98 101 0 n-
+a 32 38 97 98 101 0 ss
+a 57 13 97 98 101 2 ee
+a 53 39 97 100 101 0 
+a 21 12 98 99 101 0 w
+a 34 48 98 99 101 1 n
+a 48 18 98 99 101 0 -
+a 71 51 98 99 101 0 -
+a 34 23 99 100 101 0 
+a 1 55 99 101
+a 51 28 99 101
+a 81 56 99 101
+a 4 5 100 101
+a 13 40 100 101
+a 57 28 100 101
+a 63 39 100 101
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 2 2 2 2 2 2 5 6 7 8 8 9 9 9 10 11 11 14 17 19 20 21 21 22 24 24 25 26 26 27 28 29 29 32 34 35 37 39 41 43 45 45 47 52 57 64 66 71 72 77 79 83 85 87 88 89 90 90 90 94 94 94 94 96 98 102 103 107 109 110
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 3 3 3 3 3 3 4 4 5 5 6 6 6 6 6 7 7 7 7 7 7 7 7 7 7 8 8 8 9 10 11 11 11 11 11 11 11 11 12 12 12 13 13 14 14 15 15 16 16 16 17 17 18 19 20 21 21 22 23 23 23
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 3 4 6 7 8 8 8 9 9 9 10 12 13 15 16 17 17 18 18 18 20 20 20 20 20 21 22 23 24 26 26 26 26 28 28 28 28 30 31 31 31 32 32 33 35 36 38 40 40 40 41 42 42 43 43 45 46 47 47 48 49 51 51 54 54 55
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 2 4 6 8 9 9 9 9 9 9 9 9 11 11 11 11 12 13 13 13 14 15 15 16 16 16 16 18 20 21 21 21 22 23 23 24 26 26 26 27 29 32 33 33 35 35 38 38 40 40 40 41 41 41 41 41 43 43 44 45 46 46 47 49 52 53 53
