@@ -1,4 +1,3 @@
-#!/usr/bin/env -vd python
 
 import pygame
 from pygame.locals import *
@@ -6,12 +5,15 @@ from pygame.locals import *
 import string
 import pprint
 
-ANTS = 0
 LAND = -1
 FOOD = -2
 WATER = -3
 CONFLICT = -4
 UNSEEN = -5
+PLAYER1 = 0
+PLAYER2 = 1
+PLAYER3 = 2
+PLAYER4 = 3
 
 PLAYER_CHARS = string.ascii_lowercase
 MAP_RENDER = PLAYER_CHARS + '?!%*.'
@@ -21,14 +23,30 @@ AIM = {'n': (-1, 0),
        's': (1, 0),
        'w': (0, -1)}
 
-BSIZE = 5 # block size
+BSIZE = 10 # block size
 MSIZE = 100 # menu size
 MSTATUS = 40 # menu size
 
 class mapViewer():
 
     #           -1        1           2            3            4        Start    Finish    Find path         Reset
-    colors = [(0,0,0),(0,255,0),(0,255-20,0),(0,255-40,0),(0,255-60,0),(0,0,255),(255,0,0),(100,150,100),(150,100,100)]
+    ant = pygame.color.Color('black')
+    land = pygame.color.Color('lightgray')
+    food = pygame.color.Color('white')
+    water = pygame.color.Color('blue')
+    red = pygame.color.Color('red')
+    darkgray = pygame.color.Color('darkgray')
+    colors = {
+      PLAYER1: 'yellow',
+      PLAYER2: 'blue',
+      PLAYER3: 'darkgreen',
+      PLAYER4: 'magenta',
+      LAND: 'lightgray',
+      FOOD: 'white',
+      WATER: 'black',
+      CONFLICT: 'red',
+      UNSEEN: 'darkgray',
+    }
 
     def __init__(self, game):
 
@@ -81,12 +99,16 @@ class mapViewer():
         x = 0
         y = 0
         rect = [0,0,BSIZE,BSIZE]
+        # print game.map
+        fnt = pygame.font.Font(pygame.font.get_default_font(),8)
         for row, squares in enumerate(game.map):
           for col, square in enumerate(squares):
-            value = game.map[row][col]
             rect[0] = col*BSIZE
             rect[1] = row*BSIZE
-            self.screen.fill(self.colors[abs(value)],rect)
+            value = game.map[row][col]
+            color = self.colors[value]
+            self.screen.fill(pygame.color.Color(color),rect)
+            # ts=fnt.render('a', 1, (255,255,255))
 
     def updateMap(self, game):
         self.drawMenu();

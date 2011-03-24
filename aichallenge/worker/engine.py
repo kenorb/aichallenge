@@ -7,7 +7,9 @@ import sys
 from mapviewer import *
 
 def run_game(game, botcmds, options, gameid=0):
-    mapview = mapViewer(game) # HACK: bro
+    visualizer = bool('visualizer' in options)
+    if visualizer:
+      mapview = mapViewer(game)
     output_json = bool('output_json' in options)
     error = ''
     if 'output_dir' in options:
@@ -131,7 +133,8 @@ def run_game(game, botcmds, options, gameid=0):
                                     bot_output_log[b].flush()
                                     of.write(tmp)
                                     of.flush()
-                            mapview.updateMap(game) # HACK: bro
+                            if visualizer:
+                              mapview.updateMap(game)
 
                     game.finish_turn()
                     
