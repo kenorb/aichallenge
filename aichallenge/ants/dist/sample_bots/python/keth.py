@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from random import shuffle
 from ants import *
+from functions import *
 
 class HunterBot():
     def do_turn(self, ants):
