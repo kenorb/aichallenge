@@ -60,50 +60,6 @@ class mapViewer():
         pp = pprint.PrettyPrinter (indent=2)
         pp.pprint(obj)
 
-    def load_map(self, game):
-        """ Parse the map_text and initialise the map data """
-        players = []
-        self.map = []
-        row = 0
-        water_area = 0
-
-        map_text = game.render_map()
-        for line in map_text.split('\n'):
-            line = line.strip().lower()
-            if not line:
-                continue # ignore blank lines
-            key, value = line.split(' ')
-            if key == 'cols':
-                game.width = int(value)
-            elif key == 'rows':
-                game.height = int(value)
-            elif key == 'm':
-                if len(value) != game.width:
-                    raise Exception('map',
-                                    'Incorrect number of cols in row %s. Got %s, expected %s.' % (
-                                    row, len(value), game.width))
-                self.map.append([LAND]*game.width)
-                for col, c in enumerate(value):
-                    if c in PLAYER_CHARS:
-                        if not c in players:
-                            players.append(c)
-                        game.add_ant((row, col), players.index(c))
-                    elif c == '*':
-                        game.add_food((row, col))
-                    elif c == '%':
-                        game.map[row][col] = WATER
-                        water_area += 1
-                    elif c != '.':
-                        raise Exception("map", "Invalid character in map: %s" % c)
-                row += 1
-
-        if game.height != row:
-                raise Exception("map", "Incorrect number of rows.  Expected %s, got %s" % (game.height, row))
-
-        self.land_area = game.width*game.height - water_area
-        self.num_players = len(players)
-
-
     def initMap(self,w,h):
         self.mapdata = []
         self.mapw = w
