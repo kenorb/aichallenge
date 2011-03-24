@@ -26,6 +26,11 @@ def main(argv):
                       default=200, type="int",
                       help="Number of turns in the game")
     
+    # show visualizer
+    parser.add_option("-x", "--show", dest="visualizer",
+                      action="store_true", default=False,
+                      help="Show game in visualizer (pygame library required)")
+    
     # the output directory will contain the replay file used by the visualizer
     # it will also contain the bot input/output logs, if requested
     parser.add_option("-o", "--output_dir", dest="output_dir",
@@ -105,6 +110,7 @@ def main(argv):
             "log_input": opts.log_input,
             "log_output": opts.log_output,
             "serial": opts.serial,
+            "visualizer": opts.visualizer,
             "verbose": opts.verbose }
         random.seed(opts.seed)
         for round in range(opts.rounds):
