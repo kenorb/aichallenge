@@ -157,20 +157,38 @@ Ants.viewTurn = function (turn) {
 }
 
 Ants.viewNext = function () {
+
+ 
     this.clearIlks(this.changes[this.turn], false);
+
+    this.dc.fillStyle = "#000";
+    this.dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.turn++;
+
     if (this.turn > this.max_turns) {
         this.turn = 0;
     }
+
+    this.viewTurn(this.turn);
+
     this.showIlks(this.changes[this.turn]);
 }
 
 Ants.viewPrevious = function () {
     this.clearIlks(this.changes[this.turn]);
+
+    this.dc.fillStyle = "#000";
+    this.dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.turn--;
+
     if (this.turn < 0) {
         this.turn = this.max_turns;
     }
+
+    this.viewTurn(this.turn);
+
     this.showIlks(this.changes[this.turn]);
 }
 
@@ -210,7 +228,11 @@ var init = function () {
     $('#replay_form')[0].reset();
     $.get('0.stream', function (response) {
         Ants.init({data: response, canvas: $('#map')[0]});
-        Ants.viewTurn(0);
+        //for (var i=0;i<=30;i++)
+        //{
+            Ants.viewTurn(0);
+        //}
+        
         animate();
     });
     /*
