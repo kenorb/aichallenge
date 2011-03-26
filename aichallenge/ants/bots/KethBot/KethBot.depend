@@ -1,0 +1,37 @@
+# depslib dependency file v1.0
+1189864956 source:c:\[work]\c++\kethbot\main.cpp
+	<iostream>
+
+1301154119 source:c:\[work]\c++\kethbot\ai\state.cc
+	"State.h"
+
+1300823793 c:\[work]\c++\kethbot\ai\state.h
+	<iostream>
+	<stdio.h>
+	<cstdlib>
+	<cmath>
+	<string>
+	<vector>
+	<queue>
+	<stack>
+	"Timer.h"
+	"Bug.h"
+	"Location.h"
+
+1300823793 c:\[work]\c++\kethbot\ai\timer.h
+	<sys/time.h>
+
+1300823793 c:\[work]\c++\kethbot\ai\bug.h
+	<fstream>
+
+1300823793 c:\[work]\c++\kethbot\ai\location.h
+
+1300823793 source:c:\[work]\c++\kethbot\ai\bot.cc
+	"Bot.h"
+
+1300823793 c:\[work]\c++\kethbot\ai\bot.h
+	"State.h"
+
+1301151497 source:c:\[work]\c++\kethbot\ai\mybot.cc
+	"Bot.h"
+
