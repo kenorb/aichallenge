@@ -156,6 +156,21 @@ Ants.viewTurn = function (turn) {
     }
 }
 
+Ants.jumpTo = function (x) {
+
+ 
+    this.clearIlks(this.changes[this.turn], false);
+
+    this.dc.fillStyle = "#000";
+    this.dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.turn = x;
+
+    this.viewTurn(this.turn);
+
+    this.showIlks(this.changes[this.turn]);
+}
+
 Ants.viewNext = function () {
 
  
@@ -212,6 +227,7 @@ Ants.clearIlks = function (changes, clear_dead) {
 Ants.showIlks = function (changes) {
     var x_offset = this.canvas.width / 2 - this.x_offset
     var y_offset = this.canvas.height / 2 - this.y_offset
+
     for (var c = 0, clen = changes.length; c < clen; ++c) {
         var row = changes[c][0];
         var col = changes[c][1];
@@ -228,21 +244,8 @@ var init = function () {
     $('#replay_form')[0].reset();
     $.get('0.stream', function (response) {
         Ants.init({data: response, canvas: $('#map')[0]});
-        //for (var i=0;i<=30;i++)
-        //{
-            Ants.viewTurn(0);
-        //}
-        
-        animate();
-    });
-    /*
-    $("#replay_file").change(function (evt) {
-        var response = evt.target.files[0].getAsText('utf-8');
-        Ants.init({data: response, canvas: $('#map')[0]});
         Ants.viewTurn(0);
-        animate();
     });
-    */
 
     var running = true;
     var speed = 500;
@@ -279,6 +282,13 @@ var init = function () {
         $('#turn').html(Ants.turn);
         show_turn();
     };
+
+    var jumpTo = function (x) {
+        Ants.jumpTo(x);
+        $('#turn').html(Ants.turn);
+        show_turn();
+    };
+
     
     $(document.documentElement).keydown(function (evt) {
         if (evt.keyCode == '37') { // Left Arrow
@@ -289,13 +299,10 @@ var init = function () {
             running = false;
             forward();
             return false;
-        } else if (evt.keyCode == '38') { // Up Arrow
-            speed -= 50;
-            if (speed <= 0) {
-                speed = 50;
-            }
-        } else if (evt.keyCode == '40') { // Down Array
-            speed += 50;
+        } else if(evt.keyCode == '36') { // Home
+          jumpTo(0);
+        } else if(evt.keyCode == '35') { // End
+          jumpTo(Ants.max_turns);
         } else if (evt.keyCode == '32') { // Space
             running = !running;
             if (running && timer == null) {
