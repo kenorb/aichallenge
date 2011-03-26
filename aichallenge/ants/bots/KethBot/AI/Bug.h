@@ -24,26 +24,20 @@ struct Bug
     //opens the specified file
     inline void open(const std::string &filename)
     {
-        #if DEBUG
             file.open(filename.c_str());
-        #endif
     };
 
     //closes the ofstream
     inline void close()
     {
-        #if DEBUG
             file.close();
-        #endif
     };
 };
 
 //output function for endl
 inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
 {
-    #if DEBUG
         bug.file << manipulator;
-    #endif
 
     return bug;
 };
@@ -52,9 +46,9 @@ inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
 template <class T>
 inline Bug& operator<<(Bug &bug, const T &t)
 {
-    #if DEBUG
+
         bug.file << t;
-    #endif
+
 
     return bug;
 };
