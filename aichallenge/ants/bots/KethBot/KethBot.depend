@@ -2,10 +2,10 @@
 1189864956 source:c:\[work]\c++\kethbot\main.cpp
 	<iostream>
 
-1301154119 source:c:\[work]\c++\kethbot\ai\state.cc
+1301159661 source:c:\[work]\c++\kethbot\ai\state.cc
 	"State.h"
 
-1300823793 c:\[work]\c++\kethbot\ai\state.h
+1301159661 c:\[work]\c++\kethbot\ai\state.h
 	<iostream>
 	<stdio.h>
 	<cstdlib>
@@ -18,20 +18,20 @@
 	"Bug.h"
 	"Location.h"
 
-1300823793 c:\[work]\c++\kethbot\ai\timer.h
+1301159661 c:\[work]\c++\kethbot\ai\timer.h
 	<sys/time.h>
 
-1300823793 c:\[work]\c++\kethbot\ai\bug.h
+1301159661 c:\[work]\c++\kethbot\ai\bug.h
 	<fstream>
 
-1300823793 c:\[work]\c++\kethbot\ai\location.h
+1301159661 c:\[work]\c++\kethbot\ai\location.h
 
-1300823793 source:c:\[work]\c++\kethbot\ai\bot.cc
+1301159661 source:c:\[work]\c++\kethbot\ai\bot.cc
 	"Bot.h"
 
-1300823793 c:\[work]\c++\kethbot\ai\bot.h
+1301159661 c:\[work]\c++\kethbot\ai\bot.h
 	"State.h"
 
-1301151497 source:c:\[work]\c++\kethbot\ai\mybot.cc
+1301159661 source:c:\[work]\c++\kethbot\ai\mybot.cc
 	"Bot.h"
 
