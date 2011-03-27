@@ -1,3 +1,7 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #ifndef LOCATION_H_
 #define LOCATION_H_
 
@@ -14,6 +18,13 @@ struct Location
     {
         row = r;
         col = c;
+    };
+
+    std::string str()
+    {
+        std::stringstream s;
+        s << (int)row << " x " << (int)col;
+        return s.str();
     };
 };
 

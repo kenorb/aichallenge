@@ -3,9 +3,6 @@
 
 #include "State.h"
 
-#ifdef __DEBUG
-#include "json/json.h"
-#endif
 
 struct Bot
 {

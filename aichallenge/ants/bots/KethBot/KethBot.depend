@@ -2,10 +2,11 @@
 1189864956 source:c:\[work]\c++\kethbot\main.cpp
 	<iostream>
 
-1301202815 source:c:\[work]\c++\kethbot\ai\state.cc
+1301214074 source:c:\[work]\c++\kethbot\ai\state.cc
 	"State.h"
+	"Ant.h"
 
-1301202816 c:\[work]\c++\kethbot\ai\state.h
+1301211649 c:\[work]\c++\kethbot\ai\state.h
 	<iostream>
 	<stdio.h>
 	<cstdlib>
@@ -17,6 +18,8 @@
 	"Timer.h"
 	"Bug.h"
 	"Location.h"
+	"Ant.h"
+	"Logger.h"
 
 1301163261 c:\[work]\c++\kethbot\ai\timer.h
 	<sys/time.h>
@@ -24,18 +27,21 @@
 1301178002 c:\[work]\c++\kethbot\ai\bug.h
 	<fstream>
 
-1301163261 c:\[work]\c++\kethbot\ai\location.h
+1301211496 c:\[work]\c++\kethbot\ai\location.h
+	<iostream>
+	<fstream>
+	<sstream>
 
-1301202750 source:c:\[work]\c++\kethbot\ai\bot.cc
+1301214653 source:c:\[work]\c++\kethbot\ai\bot.cc
 	"Bot.h"
+	"Ant.h"
 	<iostream>
 	<fstream>
 	<sstream>
 	"Logger.h"
 
-1301202690 c:\[work]\c++\kethbot\ai\bot.h
+1301206944 c:\[work]\c++\kethbot\ai\bot.h
 	"State.h"
-	"json/json.h"
 
 1301200759 source:c:\[work]\c++\kethbot\ai\mybot.cc
 	"Bot.h"
@@ -153,12 +159,54 @@
 1301201449 source:c:\[work]\c++\kethbot\logger.cc
 	"AI/State.h"
 
-1301197169 source:c:\[work]\c++\kethbot\ai\ant.cc
+1301212316 source:c:\[work]\c++\kethbot\ai\ant.cc
 	"Ant.h"
+	"Logger.h"
+	"Location.h"
 
-1301191125 c:\[work]\c++\kethbot\ai\ant.h
+1301208962 c:\[work]\c++\kethbot\ai\ant.h
+	"State.h"
 
-1301202106 c:\[work]\c++\kethbot\logger.h
+1301207464 c:\[work]\c++\kethbot\logger.h
+	"json/json.h"
+	"AI/State.h"
 
-1301202816 c:\[work]\c++\kethbot\\logger.h
+1301207464 c:\[work]\c++\kethbot\\logger.h
+	"json/json.h"
+	"AI/State.h"
+
+1301211649 c:\[work]\c++\kethbot\\ai\state.h
+	<iostream>
+	<stdio.h>
+	<cstdlib>
+	<cmath>
+	<string>
+	<vector>
+	<queue>
+	<stack>
+	"Timer.h"
+	"Bug.h"
+	"Location.h"
+	"Ant.h"
+	"Logger.h"
+
+1301163261 c:\[work]\c++\kethbot\\ai\timer.h
+	<sys/time.h>
+
+1301178002 c:\[work]\c++\kethbot\\ai\bug.h
+	<fstream>
+
+1301211496 c:\[work]\c++\kethbot\\ai\location.h
+	<iostream>
+	<fstream>
+	<sstream>
+
+1301208962 c:\[work]\c++\kethbot\\ai\ant.h
+	"State.h"
+
+1301207499 source:c:\[work]\c++\kethbot\logger.cpp
+	"Logger.h"
+	<iostream>
+	<fstream>
+	<sstream>
 

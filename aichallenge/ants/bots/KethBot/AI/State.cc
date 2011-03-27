@@ -1,4 +1,5 @@
 #include "State.h"
+#include "Ant.h"
 
 State::State()
 {
@@ -13,10 +14,27 @@ State::~State()
     #endif
 };
 
+Ant* State::getAntAt(const Location &loc)
+{
+    if (ants_grid[loc.row][loc.col]) {
+        if (Ant* ant = (Ant*)ants_grid[loc.row][loc.col]) {
+            return ant;
+        }
+    }
+    return NULL;
+}
+
+Ant* State::setAntAt(const Location &loc, Ant* ant)
+{
+    ants_grid[loc.row][loc.col] = (int)ant;
+    return ant;
+}
+
 //sets the state up
 void State::setup()
 {
     grid = vector<vector<char> >(rows, vector<char>(cols, '.'));
+    ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
 
     #ifdef __DEBUG
     jsonLog.open("./viewer/debug.json");
@@ -40,6 +58,10 @@ void State::reset()
 //outputs move information to the engine
 void State::makeMove(const Location &loc, int direction)
 {
+    Location locMoveTo = getLocation(loc, direction);
+
+    changes.push_back(Changes(loc, locMoveTo, "antmoved"));
+
     cout << "o " << loc.row << " " << loc.col << " " << CDIRECTIONS[direction] << endl;
 };
 
@@ -155,11 +177,17 @@ istream& operator>>(istream &is, State &state)
             {
                 is >> row >> col >> player;
                 state.grid[row][col] = 'a' + player;
-                if(player == 0)
+                if(player == 0) {
                     state.ants.push_back(Location(row, col));
+                    state.changes.push_back(Changes(Location(row, col), Location(row, col), "newant"));
+                }
             }
-            else if(inputType == "d") //dead ant square
+            else if(inputType == "d") { //dead ant square
                 is >> row >> col >> player;
+
+                state.changes.push_back(Changes(Location(row, col), Location(row, col), "antdies"));
+                //if (ant) delete ant;
+            }
             else if(inputType == "players") //player information
                 is >> state.players;
             else if(inputType == "scores") //score information
