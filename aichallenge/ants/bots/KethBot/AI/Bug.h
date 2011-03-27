@@ -27,6 +27,12 @@ struct Bug
             file.open(filename.c_str());
     };
 
+    inline void setText(const std::string &text)
+    {
+        file.seekp(0);
+        file << text;
+    };
+
     //closes the ofstream
     inline void close()
     {
@@ -48,8 +54,6 @@ inline Bug& operator<<(Bug &bug, const T &t)
 {
 
         bug.file << t;
-
-
     return bug;
 };
 

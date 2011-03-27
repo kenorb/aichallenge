@@ -1,4 +1,14 @@
 #include "Bot.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+// viewradius = 9
+
+
+#ifdef __DEBUG
+#include <json/json.h>
+#endif
 
 Bot::Bot()
 {
@@ -17,13 +27,37 @@ void Bot::playGame()
         makeMoves();
         endTurn();
     }
+
 };
+
+void Bot::debugData()
+{
+    #ifdef __DEBUG
+
+    char key[11];
+    std::stringstream os;
+
+    sprintf(key, "%03i", state.turn);
+    debugNode[key]["ants_alive"] = state.ants.size();
+
+    os << state;
+    debugNode[key]["map_visible"] = os.str();
+    os.str("");
+
+    os << (float)state.timer.getTime() << "ms";
+    debugNode[key]["time_taken"] = os.str();
+    os.str("");
+
+    std::string outputConfig = debugOutput.write(debugNode);
+    state.bug.setText(outputConfig);
+
+    #endif
+}
 
 //makes the bots moves for the turn
 void Bot::makeMoves()
 {
-    state.bug << "turn " << state.turn << ":" << endl;
-    state.bug << state << endl;
+    debugData();
 
     //picks out moves for each ant
     for(int ant=0; ant<(int)state.ants.size(); ant++)
@@ -39,8 +73,6 @@ void Bot::makeMoves()
             }
         }
     }
-
-    state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 };
 
 //finishes the turn

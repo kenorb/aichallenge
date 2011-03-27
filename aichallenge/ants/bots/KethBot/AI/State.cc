@@ -14,7 +14,7 @@ State::~State()
 void State::setup()
 {
     grid = vector<vector<char> >(rows, vector<char>(cols, '.'));
-    bug.open("./debug.txt");
+    bug.open("./viewer/debug.json");
 
     cout << "go" << endl;
     turn++;
@@ -56,11 +56,12 @@ Location State::getLocation(const Location &loc, int direction)
 //output function
 ostream& operator<<(ostream &os, const State &state)
 {
+    os << "<br>";
     for(int row=0; row<state.rows; row++)
     {
         for(int col=0; col<state.cols; col++)
             os << state.grid[row][col];
-        os << endl;
+        os << "<br>"; // removed endl
     }
 
     return os;

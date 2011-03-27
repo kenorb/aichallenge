@@ -2,7 +2,7 @@
 1189864956 source:c:\[work]\c++\kethbot\main.cpp
 	<iostream>
 
-1301166019 source:c:\[work]\c++\kethbot\ai\state.cc
+1301181701 source:c:\[work]\c++\kethbot\ai\state.cc
 	"State.h"
 
 1301159661 c:\[work]\c++\kethbot\ai\state.h
@@ -21,17 +21,124 @@
 1301159661 c:\[work]\c++\kethbot\ai\timer.h
 	<sys/time.h>
 
-1301166104 c:\[work]\c++\kethbot\ai\bug.h
+1301174402 c:\[work]\c++\kethbot\ai\bug.h
 	<fstream>
 
 1301159661 c:\[work]\c++\kethbot\ai\location.h
 
-1301163508 source:c:\[work]\c++\kethbot\ai\bot.cc
+1301178504 source:c:\[work]\c++\kethbot\ai\bot.cc
 	"Bot.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<json/json.h>
 
-1301159661 c:\[work]\c++\kethbot\ai\bot.h
+1301178517 c:\[work]\c++\kethbot\ai\bot.h
 	"State.h"
+	"json/json.h"
 
-1301166504 source:c:\[work]\c++\kethbot\ai\mybot.cc
+1301186097 source:c:\[work]\c++\kethbot\ai\mybot.cc
 	"Bot.h"
+
+1298660944 c:\[work]\c++\kethbot\ai\json\jansson.h
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<jansson_config.h>
+
+1298918852 c:\[work]\c++\kethbot\ai\json\\jansson_config.h
+
+1298660944 c:\[work]\c++\kethbot\ai\json\\jansson.h
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<jansson_config.h>
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\json.h
+	"autolink.h"
+	"value.h"
+	"reader.h"
+	"writer.h"
+	"features.h"
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\autolink.h
+	"config.h"
+	<cpptl/cpptl_autolink.h>
+	"autolink.h"
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\config.h
+	<cpptl/config.h>
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\value.h
+	"forwards.h"
+	<string>
+	<vector>
+	<map>
+	<cpptl/smallmap.h>
+	<cpptl/forwards.h>
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\forwards.h
+	"config.h"
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\reader.h
+	"features.h"
+	"value.h"
+	<deque>
+	<stack>
+	<string>
+	<iostream>
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\features.h
+	"forwards.h"
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\writer.h
+	"value.h"
+	<vector>
+	<string>
+	<iostream>
+
+1268379096 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp
+	<json/reader.h>
+	<json/value.h>
+	<utility>
+	<cstdio>
+	<cassert>
+	<cstring>
+	<iostream>
+	<stdexcept>
+
+1301177249 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp
+	<iostream>
+	<json/value.h>
+	<json/writer.h>
+	<utility>
+	<stdexcept>
+	<cstring>
+	<cassert>
+	<cpptl/conststring.h>
+	<cstddef>
+	"json_batchallocator.h"
+	"json_internalarray.inl"
+	"json_internalmap.inl"
+	"json_valueiterator.inl"
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_batchallocator.h
+	<stdlib.h>
+	<assert.h>
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalarray.inl
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalmap.inl
+
+1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl
+
+1268379096 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp
+	<json/writer.h>
+	<utility>
+	<assert.h>
+	<stdio.h>
+	<string.h>
+	<iostream>
+	<sstream>
+	<iomanip>
 
