@@ -43,7 +43,8 @@ struct State
     vector<Location> ants;
 
     Timer timer;
-    Bug bug;
+    Bug jsonLog;
+    Bug debugLog;
 
     /*
         Functions

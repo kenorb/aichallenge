@@ -1,13 +1,12 @@
 #include "Bot.h"
+#include "Ant.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-// viewradius = 9
-
 
 #ifdef __DEBUG
-#include <json/json.h>
+#include "Logger.h"
 #endif
 
 Bot::Bot()
@@ -15,49 +14,39 @@ Bot::Bot()
 
 };
 
-//plays a single game of Ants.
 void Bot::playGame()
 {
-    //reads the game parameters
     cin >> state;
 
-    //continues making moves while the game is not over
+    #ifdef __DEBUG
+    logState(&state, true);
+    #endif
+
     while(cin >> state)
     {
         makeMoves();
         endTurn();
     }
-
 };
 
-void Bot::debugData()
+void Bot::firstMove()
 {
     #ifdef __DEBUG
-
-    char key[11];
-    std::stringstream os;
-
-    sprintf(key, "%03i", state.turn);
-    debugNode[key]["ants_alive"] = state.ants.size();
-
-    os << state;
-    debugNode[key]["map_visible"] = os.str();
-    os.str("");
-
-    os << (float)state.timer.getTime() << "ms";
-    debugNode[key]["time_taken"] = os.str();
-    os.str("");
-
-    std::string outputConfig = debugOutput.write(debugNode);
-    state.bug.setText(outputConfig);
-
+    state.debugLog << "ACTION: firstMove()" << endl;
     #endif
+
+    new Ant();
 }
 
-//makes the bots moves for the turn
 void Bot::makeMoves()
 {
-    debugData();
+    #ifdef __DEBUG
+    logState(&state, false);
+    #endif
+
+    if (state.turn == 1) {
+        firstMove();
+    }
 
     //picks out moves for each ant
     for(int ant=0; ant<(int)state.ants.size(); ant++)
@@ -75,7 +64,6 @@ void Bot::makeMoves()
     }
 };
 
-//finishes the turn
 void Bot::endTurn()
 {
     state.reset();

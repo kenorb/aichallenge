@@ -11,18 +11,16 @@ struct Bot
 {
     State state;
 
-    #ifdef __DEBUG
-    Json::StyledWriter debugOutput;
-    Json::Value debugNode;
-    #endif
-
     Bot();
 
     void playGame();
 
     void debugData();
+    void firstMove();
     void makeMoves();
     void endTurn();
+
+    void Log(const std::string &text);
 };
 
 #endif //BOT_H_

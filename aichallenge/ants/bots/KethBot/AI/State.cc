@@ -7,14 +7,21 @@ State::State()
 
 State::~State()
 {
-    bug.close();
+    #ifdef __DEBUG
+    jsonLog.close();
+    debugLog.close();
+    #endif
 };
 
 //sets the state up
 void State::setup()
 {
     grid = vector<vector<char> >(rows, vector<char>(cols, '.'));
-    bug.open("./viewer/debug.json");
+
+    #ifdef __DEBUG
+    jsonLog.open("./viewer/debug.json");
+    debugLog.open("./kethbot/debug.log");
+    #endif
 
     cout << "go" << endl;
     turn++;

@@ -2,10 +2,10 @@
 1189864956 source:c:\[work]\c++\kethbot\main.cpp
 	<iostream>
 
-1301181701 source:c:\[work]\c++\kethbot\ai\state.cc
+1301202815 source:c:\[work]\c++\kethbot\ai\state.cc
 	"State.h"
 
-1301159661 c:\[work]\c++\kethbot\ai\state.h
+1301202816 c:\[work]\c++\kethbot\ai\state.h
 	<iostream>
 	<stdio.h>
 	<cstdlib>
@@ -18,27 +18,30 @@
 	"Bug.h"
 	"Location.h"
 
-1301159661 c:\[work]\c++\kethbot\ai\timer.h
+1301163261 c:\[work]\c++\kethbot\ai\timer.h
 	<sys/time.h>
 
-1301174402 c:\[work]\c++\kethbot\ai\bug.h
+1301178002 c:\[work]\c++\kethbot\ai\bug.h
 	<fstream>
 
-1301159661 c:\[work]\c++\kethbot\ai\location.h
+1301163261 c:\[work]\c++\kethbot\ai\location.h
 
-1301178504 source:c:\[work]\c++\kethbot\ai\bot.cc
+1301202750 source:c:\[work]\c++\kethbot\ai\bot.cc
 	"Bot.h"
 	<iostream>
 	<fstream>
 	<sstream>
-	<json/json.h>
+	"Logger.h"
 
-1301178517 c:\[work]\c++\kethbot\ai\bot.h
+1301202690 c:\[work]\c++\kethbot\ai\bot.h
 	"State.h"
 	"json/json.h"
 
-1301186097 source:c:\[work]\c++\kethbot\ai\mybot.cc
+1301200759 source:c:\[work]\c++\kethbot\ai\mybot.cc
 	"Bot.h"
+	<iostream>
+	<fstream>
+	<string>
 
 1298660944 c:\[work]\c++\kethbot\ai\json\jansson.h
 	<stdio.h>
@@ -54,22 +57,22 @@
 	<stdarg.h>
 	<jansson_config.h>
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\json.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\json.h
 	"autolink.h"
 	"value.h"
 	"reader.h"
 	"writer.h"
 	"features.h"
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\autolink.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\autolink.h
 	"config.h"
 	<cpptl/cpptl_autolink.h>
 	"autolink.h"
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\config.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\config.h
 	<cpptl/config.h>
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\value.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\value.h
 	"forwards.h"
 	<string>
 	<vector>
@@ -77,10 +80,10 @@
 	<cpptl/smallmap.h>
 	<cpptl/forwards.h>
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\forwards.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\forwards.h
 	"config.h"
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\reader.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\reader.h
 	"features.h"
 	"value.h"
 	<deque>
@@ -88,16 +91,16 @@
 	<string>
 	<iostream>
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\features.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\features.h
 	"forwards.h"
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\writer.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\include\\json\writer.h
 	"value.h"
 	<vector>
 	<string>
 	<iostream>
 
-1268379096 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp
+1268382696 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp
 	<json/reader.h>
 	<json/value.h>
 	<utility>
@@ -107,7 +110,7 @@
 	<iostream>
 	<stdexcept>
 
-1301177249 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp
+1301180849 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp
 	<iostream>
 	<json/value.h>
 	<json/writer.h>
@@ -122,17 +125,17 @@
 	"json_internalmap.inl"
 	"json_valueiterator.inl"
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_batchallocator.h
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_batchallocator.h
 	<stdlib.h>
 	<assert.h>
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalarray.inl
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalarray.inl
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalmap.inl
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_internalmap.inl
 
-1268379096 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl
+1268382696 c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl
 
-1268379096 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp
+1268382696 source:c:\[work]\c++\kethbot\ai\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp
 	<json/writer.h>
 	<utility>
 	<assert.h>
@@ -141,4 +144,21 @@
 	<iostream>
 	<sstream>
 	<iomanip>
+
+1301197169 source:c:\[work]\c++\kethbot\ant.cc
+	"Ant.h"
+
+1301191125 c:\[work]\c++\kethbot\ant.h
+
+1301201449 source:c:\[work]\c++\kethbot\logger.cc
+	"AI/State.h"
+
+1301197169 source:c:\[work]\c++\kethbot\ai\ant.cc
+	"Ant.h"
+
+1301191125 c:\[work]\c++\kethbot\ai\ant.h
+
+1301202106 c:\[work]\c++\kethbot\logger.h
+
+1301202816 c:\[work]\c++\kethbot\\logger.h
 

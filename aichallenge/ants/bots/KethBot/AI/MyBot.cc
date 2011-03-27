@@ -1,5 +1,9 @@
 #include "Bot.h"
 
+#include <iostream>
+#include <fstream>
+#include <string>
+
 /*
     This program will play a single game of Ants while communicating with
     the engine via standard input and output.
@@ -14,8 +18,27 @@ int main(int argc, char *argv[])
 {
     cout.sync_with_stdio(0);
 
-    Bot bot;
-    bot.playGame();
+    if (argc >= 3 && std::string(argv[1]) == "viewlog") {
+        string line;
+        ifstream f(argv[2]);
+        if (f.is_open()) {
+            while (f.good())
+            {
+                getline(f,line);
+                cout << line << endl;
+            }
+            f.close();
+        }
+
+        // Wait for a key
+        cin.ignore(1);
+    } else
+    if (argc >= 2 && std::string(argv[1]) == "compilation") {
+        return 0;
+    } else {
+        Bot bot;
+        bot.playGame();
+    }
 
     return 0;
 }
