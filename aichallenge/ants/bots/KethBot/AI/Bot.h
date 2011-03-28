@@ -11,15 +11,18 @@ struct Bot
     Bot();
 
     void playGame();
+    void onThink();
+    void endTurn();
 
-    void debugData();
     void firstMove();
+    void makeMoves();
 
     void validateAnts();
-    void updateMapChanges();
-    void onThink();
-    void makeMoves();
-    void endTurn();
+    void updateMap();
+
+    void debugData();
+
+
 
     void Log(const std::string &text);
 };

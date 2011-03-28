@@ -32,20 +32,55 @@ void Logger::logPreState(State* state, bool init)
         sprintf(key, "%03i", state->turn);
         debugNode[key]["ants_alive"] = state->ants.size();
 
-        debugNode[key]["a"] = state->structuralAnts.size();
-
         os << (*state);
-        debugNode[key]["map_visible"] = os.str();
+        debugNode[key]["visible_map"] = os.str();
         os.str("");
 
         os << (float)state->timer.getTime() << "ms";
         debugNode[key]["time_taken"] = os.str();
         os.str("");
 
+        if (state->structuralAnts.size() > 0) {
+
+            std::list<Ant*>::iterator iter_ant;
+            for (iter_ant = state->structuralAnts.begin(); iter_ant != state->structuralAnts.end(); iter_ant++)
+            {
+                Ant* ant = (*iter_ant);
+                if (ant) {
+                    char loc[32];
+                    sprintf(loc, "#%ix%i", ant->loc.row, ant->loc.col);
+                    debugNode[key][loc] = ant->id;
+                } else {
+                    state->logError("Found a removed structural ant");
+                }
+
+            }
+        }
+
         std::string outputData = debugOutput.write(debugNode);
         state->logger.jsonLog.setText(outputData);
     }
 }
+
+void Logger::logMapState(State* state)
+{
+    char key[11];
+    sprintf(key, "%03i", state->turn);
+
+    std::stringstream os;
+
+    os << (*state);
+    debugNode[key]["visible_map"] = os.str();
+    os.str("");
+
+    os << (double)state->visibilityCoverage;
+    debugNode[key]["visibility_coverage"] = os.str();
+    os.str("");
+
+    std::string outputData = debugOutput.write(debugNode);
+    state->logger.jsonLog.setText(outputData);
+}
+
 
 void Logger::logPostState(State* state)
 {
@@ -54,7 +89,7 @@ void Logger::logPostState(State* state)
 
     sprintf(key, "%03i", state->turn);
 
-    debugNode[key]["structural_ants"] = state->structuralAnts.size();
+    debugNode[key]["ants_structural"] = state->structuralAnts.size();
 
     std::string outputData = debugOutput.write(debugNode);
     state->logger.jsonLog.setText(outputData);

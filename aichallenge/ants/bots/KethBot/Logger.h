@@ -12,8 +12,10 @@ struct Logger
     Logger();
     ~Logger();
 
+
     void logPreState(State* state, bool init);
     void logPostState(State* state);
+    void logMapState(State* state);
 
     Json::StyledWriter debugOutput;
     Json::Value debugNode;

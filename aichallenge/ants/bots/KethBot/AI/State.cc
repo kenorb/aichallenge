@@ -9,19 +9,22 @@ State::State()
     warnings = 0;
 };
 
+#ifdef __DEBUG
 
 void State::logError(std::string error)
 {
-    logger.debugLog << "[ERROR] [Turn #" << (int)turn << "]: " << error << endl;
+    logger.debugLog << "[ERROR] [TURN #" << (int)turn << "]: " << error << endl;
     errors++;
 
 }
 
 void State::logWarning(std::string warning)
 {
-    logger.debugLog << "[ERROR WARNING] [Turn #" << (int)turn << "]: " << warning << endl;
+    logger.debugLog << "[ERROR WARNING] [TURN #" << (int)turn << "]: " << warning << endl;
     warnings++;
 }
+
+#endif
 
 Ant* State::getAntAt(const Location &loc)
 {
@@ -41,7 +44,7 @@ Ant* State::setAntAt(const Location &loc, Ant* ant)
 
 void State::setup()
 {
-    grid = vector<vector<char> >(rows, vector<char>(cols, '.'));
+    grid = vector<vector<char> >(rows, vector<char>(cols, '?'));
     ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
 
     cout << "go" << endl;
@@ -52,10 +55,39 @@ void State::reset()
 {
     ants.clear();
     for(int row=0; row<rows; row++)
-        for(int col=0; col<cols; col++)
-            if(grid[row][col] != '%')
-                grid[row][col] = '.';
+    for(int col=0; col<cols; col++)
+        if(grid[row][col] != '%') {
+            grid[row][col] = '?';
+        }
 };
+
+void State::updateFogOfWar()
+{
+    // TODO
+    //int areaCells = 0;
+    //areaCoverage = areaCells / (double)(rows * cols);
+
+    int visibleCells = 0;
+    for(int row=0; row<rows; row++)
+    for(int col=0; col<cols; col++)
+    {
+        if(grid[row][col] != '%' && grid[row][col] != 'a') {
+
+            for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++)
+            {
+                if (distance(ants[ant_id], Location(row, col)) < viewradius) {
+                    if (grid[row][col] == '?') {
+                        grid[row][col] = '.';
+                        visibleCells++;
+                    }
+                }
+            }
+        }
+    }
+
+    visibilityCoverage = visibleCells / (double)(rows * cols);
+
+}
 
 void State::makeMove(const Location &loc, int direction)
 {
@@ -141,7 +173,9 @@ istream& operator>>(istream &is, State &state)
         else //unknown line
             getline(is, junk);
     }
-
+    #ifdef __DEBUG
+    if (!state.gameover) state.logger.debugLog << "[TURN #" << (state.turn) << "]:" << endl;
+    #endif
     if(state.turn == 0)
     {
         //reads game parameters

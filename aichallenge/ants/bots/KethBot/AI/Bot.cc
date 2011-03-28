@@ -22,6 +22,7 @@ void Bot::playGame()
     #endif
     while(cin >> state)
     {
+
         onThink();
         endTurn();
     }
@@ -43,6 +44,8 @@ void Bot::validateAnts()
         for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
         {
             Ant* ant = (*iter_ant);
+            ant->hasMoved = false;
+
             if (state.grid[ant->loc.row][ant->loc.col] != 'a') {
                 Ant* foundAnt = state.getAntAt(ant->loc);
                 if (foundAnt) {
@@ -60,6 +63,9 @@ void Bot::validateAnts()
 void Bot::makeMoves()
 {
     if (state.turn == 1) firstMove();
+    #ifdef __DEBUG
+    state.logger.debugLog << "ACTION: makeMoves()" << endl;
+    #endif
 
     for(int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++)
     {
@@ -72,18 +78,24 @@ void Bot::makeMoves()
             #ifdef __DEBUG
             state.logError("Structural ant at location not found");
             #endif
+            }
         }
-    }
+}
+
+void Bot::updateMap()
+{
+    state.updateFogOfWar();
+    state.logger.logMapState(&state);
 }
 
 void Bot::onThink()
 {
     #ifdef __DEBUG
-    state.logger.debugLog << "[Turn #" << state.turn << "]:" << endl;
     state.logger.logPreState(&state, false);
     #endif
 
     validateAnts();
+    updateMap();
     makeMoves();
 
     #ifdef __DEBUG

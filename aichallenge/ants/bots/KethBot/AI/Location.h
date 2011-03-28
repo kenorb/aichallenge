@@ -5,6 +5,8 @@
 #ifndef LOCATION_H_
 #define LOCATION_H_
 
+using namespace std;
+
 struct Location
 {
     int row, col;
@@ -23,9 +25,9 @@ struct Location
     std::string str()
     {
         std::stringstream s;
-        s << (int)row << " x " << (int)col;
+        s << "[POS " << (int)row << " x " << (int)col << "]";
         return s.str();
     };
-};
 
+};
 #endif //LOCATION_H_

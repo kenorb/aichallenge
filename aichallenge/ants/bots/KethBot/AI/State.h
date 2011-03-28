@@ -29,26 +29,29 @@ struct State
     double loadtime, turntime;
     vector<double> scores;
     bool gameover;
-    int errors;
-    int warnings;
+    int errors, warnings;
+    double visibilityCoverage;
+    double areaCoverage;
 
     vector<vector<char> > grid;
     vector<vector<int> > ants_grid;
     vector<Location> ants;
     std::list<Ant*> structuralAnts;
 
-    #ifdef __DEBUG
-    Logger logger;
-    #endif
     Timer timer;
 
     State();
 
     void setup();
+    void updateFogOfWar();
+
     void reset();
 
+    #ifdef __DEBUG
+    Logger logger;
     void logError(std::string error);
     void logWarning(std::string warning);
+    #endif
 
     void makeMove(const Location &loc, int direction);
     Ant* getAntAt(const Location &loc);
