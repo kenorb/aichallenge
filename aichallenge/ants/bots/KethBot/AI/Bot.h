@@ -14,6 +14,10 @@ struct Bot
 
     void debugData();
     void firstMove();
+
+    void validateAnts();
+    void updateMapChanges();
+    void onThink();
     void makeMoves();
     void endTurn();
 

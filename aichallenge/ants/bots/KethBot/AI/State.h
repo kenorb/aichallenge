@@ -9,44 +9,24 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <list>
 
 #include "Timer.h"
 #include "Bug.h"
 #include "Location.h"
 #include "Ant.h"
+#include "const.h"
+
+#ifdef __DEBUG
 #include "Logger.h"
+#endif
 
 using namespace std;
 
 /*
     constants
 */
-const int TDIRECTIONS = 4;
-const char CDIRECTIONS[4] = {'N', 'E', 'S', 'W'};
-const int DIRECTIONS[4][2] = { {-1, 0}, {0, 1}, {1, 0}, {0, -1} };      //{N, E, S, W}
 
-struct Changes
-{
-    Location loc1;
-    Location loc2;
-    string type;
-
-    Changes()
-    {
-        type = "???";
-    };
-
-    Changes(const Location &_loc1, const Location &_loc2, string _type)
-    {
-        loc1.col = _loc1.col;
-        loc1.row = _loc1.row;
-
-        loc2.col = _loc2.col;
-        loc2.row = _loc2.row;
-
-        type = _type;
-    };
-};
 
 /*
     struct to store current state information
@@ -56,6 +36,7 @@ struct State
     /*
         Variables
     */
+
     int rows, cols,
         turn, turns,
         players,
@@ -67,12 +48,17 @@ struct State
     vector<vector<char> > grid;
     vector<vector<int> > ants_grid;
     vector<Location> ants;
-    vector<Changes> changes;
+    std::list<Ant*> structuralAnts;
 
+    #ifdef __DEBUG
     Logger logger;
+    #endif
     Timer timer;
-    Bug jsonLog;
-    Bug debugLog;
+
+
+
+    int errors;
+    int warnings;
 
     /*
         Functions
@@ -82,6 +68,9 @@ struct State
 
     void setup();
     void reset();
+
+    void logError(std::string error);
+    void logWarning(std::string warning);
 
     void makeMove(const Location &loc, int direction);
     Ant* getAntAt(const Location &loc);

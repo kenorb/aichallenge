@@ -1,18 +1,32 @@
 #include "State.h"
 #include "Ant.h"
+#include <time.h>
 
 State::State()
 {
     gameover = 0;
+    errors = 0;
+    warnings = 0;
 };
 
 State::~State()
 {
-    #ifdef __DEBUG
-    jsonLog.close();
-    debugLog.close();
-    #endif
+    logger.debugLog << "~state" << endl;
 };
+
+
+void State::logError(std::string error)
+{
+    logger.debugLog << "[ERROR] [Turn #" << (int)turn << "]: " << error << endl;
+    errors++;
+
+}
+
+void State::logWarning(std::string warning)
+{
+    logger.debugLog << "[ERROR WARNING] [Turn #" << (int)turn << "]: " << warning << endl;
+    warnings++;
+}
 
 Ant* State::getAntAt(const Location &loc)
 {
@@ -30,22 +44,15 @@ Ant* State::setAntAt(const Location &loc, Ant* ant)
     return ant;
 }
 
-//sets the state up
 void State::setup()
 {
     grid = vector<vector<char> >(rows, vector<char>(cols, '.'));
     ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
 
-    #ifdef __DEBUG
-    jsonLog.open("./viewer/debug.json");
-    debugLog.open("./kethbot/debug.log");
-    #endif
-
     cout << "go" << endl;
     turn++;
 };
 
-//resets all non-wall squares to land and clears the bots ant vector
 void State::reset()
 {
     ants.clear();
@@ -55,12 +62,32 @@ void State::reset()
                 grid[row][col] = '.';
 };
 
-//outputs move information to the engine
 void State::makeMove(const Location &loc, int direction)
 {
-    Location locMoveTo = getLocation(loc, direction);
+    #ifdef __DEBUG
+    if ((direction < 0) || (direction > 3)) {
+        logWarning("Ant trying to move into incorrect direction");
+    }
 
-    changes.push_back(Changes(loc, locMoveTo, "antmoved"));
+    Location locMoveTo = getLocation(loc, direction);
+    if (grid[locMoveTo.row][locMoveTo.col] == '%' || grid[locMoveTo.row][locMoveTo.col] == 'a') {
+        logWarning("Ant trying to move inside a wall or another ant");
+    }
+    #endif
+
+    grid[locMoveTo.row][locMoveTo.col] = 'a';
+    grid[loc.row][loc.col] = '.';
+
+    Ant* movingAnt = getAntAt(loc);
+
+    #ifdef __DEBUG
+    if (getAntAt(locMoveTo)) logError("Moving ant to a place where there is already an ant!");;
+    #endif
+
+    setAntAt(locMoveTo, movingAnt);
+    setAntAt(loc, NULL);
+
+    movingAnt->onMove(locMoveTo);
 
     cout << "o " << loc.row << " " << loc.col << " " << CDIRECTIONS[direction] << endl;
 };
@@ -82,7 +109,6 @@ Location State::getLocation(const Location &loc, int direction)
                      (loc.col + DIRECTIONS[direction][1] + cols) % cols );
 };
 
-//output function
 ostream& operator<<(ostream &os, const State &state)
 {
     os << "<br>";
@@ -96,7 +122,6 @@ ostream& operator<<(ostream &os, const State &state)
     return os;
 };
 
-//input function
 istream& operator>>(istream &is, State &state)
 {
     int row, col, player;
@@ -107,6 +132,9 @@ istream& operator>>(istream &is, State &state)
     {
         if(inputType == "end")
         {
+            #ifdef __DEBUG
+            state.logger.debugLog << "GAME END (errors: " << (int)state.errors << ", warnings: " << (int)state.warnings << ", structural ants: " << (int)state.structuralAnts.size() << ")" << endl;
+            #endif
             state.gameover = 1;
             break;
         }
@@ -178,15 +206,15 @@ istream& operator>>(istream &is, State &state)
                 is >> row >> col >> player;
                 state.grid[row][col] = 'a' + player;
                 if(player == 0) {
+                    Location loc = Location(row, col);
                     state.ants.push_back(Location(row, col));
-                    state.changes.push_back(Changes(Location(row, col), Location(row, col), "newant"));
+                    if (!state.getAntAt(loc)) state.setAntAt(loc, new Ant(state, loc));
                 }
             }
             else if(inputType == "d") { //dead ant square
                 is >> row >> col >> player;
+                state.grid[row][col] = 'd';
 
-                state.changes.push_back(Changes(Location(row, col), Location(row, col), "antdies"));
-                //if (ant) delete ant;
             }
             else if(inputType == "players") //player information
                 is >> state.players;

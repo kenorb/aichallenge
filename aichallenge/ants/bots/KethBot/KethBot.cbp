@@ -7,9 +7,8 @@
 		<Option compiler="gcc" />
 		<Option virtualFolders="AI\;" />
 		<Build>
-			<Target title="Debug">
+			<Target title="ShowLog">
 				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -20,13 +19,44 @@
 					<Add option="-D__DEBUG" />
 				</Compiler>
 				<ExtraCommands>
-					<Add after='cmd /C &quot;c:\[work]\C++\KethBot\PostCompile.bat DEBUG&quot;' />
+					<Add after='cmd /C &quot;c:\[work]\C++\KethBot\PostCompile.bat SHOWLOG&quot;' />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="RunTests">
+				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option parameters="compilation" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D__DEBUG" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after='cmd /C &quot;start c:\[work]\C++\KethBot\RunTests.bat&quot;' />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="Browser">
+				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option parameters="compilation" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D__DEBUG" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after='cmd /C &quot;c:\[work]\C++\KethBot\PostCompile.bat BROWSER&quot;' />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 			<Target title="Release">
 				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -43,33 +73,23 @@
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
-			<Target title="Browser">
-				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="" />
-				<Option object_output="obj\Debug\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option use_console_runner="0" />
-				<Option parameters="compilation" />
-				<Compiler>
-					<Add option="-g" />
-					<Add option="-D__DEBUG" />
-				</Compiler>
-				<ExtraCommands>
-					<Add after='cmd /C &quot;c:\[work]\C++\KethBot\PostCompile.bat BROWSER&quot;' />
-					<Mode after="always" />
-				</ExtraCommands>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add directory="c:\[work]\C++\KethBot\AI\jsoncpp-src-0.5.0\include\" />
 			<Add directory="c:\[work]\C++\KethBot\AI\jsoncpp-src-0.5.0\src\lib_json" />
+			<Add directory="C:\[work]\C++\KethBot\" />
 		</Compiler>
 		<Linker>
 			<Add directory="c:\[work]\C++\KethBot\AI\jsoncpp-src-0.5.0\src\lib_json" />
 		</Linker>
+		<Unit filename="AI\Ant.cc">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="AI\Ant.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
 		<Unit filename="AI\Bot.cc">
 			<Option virtualFolder="AI\" />
 		</Unit>
@@ -79,23 +99,28 @@
 		<Unit filename="AI\Bug.h" />
 		<Unit filename="AI\Location.h" />
 		<Unit filename="AI\MyBot.cc" />
-		<Unit filename="AI\State.cc" />
-		<Unit filename="AI\State.h" />
+		<Unit filename="AI\State.cc">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="AI\State.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
 		<Unit filename="AI\Timer.h" />
+		<Unit filename="AI\const.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp" />
-		<Unit filename="Ant.cc">
+		<Unit filename="Logger.cpp">
 			<Option virtualFolder="AI\" />
-		</Unit>
-		<Unit filename="Ant.h">
-			<Option virtualFolder="AI\" />
-		</Unit>
-		<Unit filename="Logger.cc">
-			<Option virtualFolder="AI\" />
-			<Option target="Debug" />
+			<Option target="ShowLog" />
 			<Option target="Browser" />
+			<Option target="RunTests" />
+		</Unit>
+		<Unit filename="Logger.h">
+			<Option virtualFolder="AI\" />
 		</Unit>
 		<Extensions>
 			<code_completion />

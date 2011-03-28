@@ -2,11 +2,12 @@
 1189864956 source:c:\[work]\c++\kethbot\main.cpp
 	<iostream>
 
-1301214074 source:c:\[work]\c++\kethbot\ai\state.cc
+1301277406 source:c:\[work]\c++\kethbot\ai\state.cc
 	"State.h"
 	"Ant.h"
+	<time.h>
 
-1301211649 c:\[work]\c++\kethbot\ai\state.h
+1301274177 c:\[work]\c++\kethbot\ai\state.h
 	<iostream>
 	<stdio.h>
 	<cstdlib>
@@ -15,10 +16,12 @@
 	<vector>
 	<queue>
 	<stack>
+	<list>
 	"Timer.h"
 	"Bug.h"
 	"Location.h"
 	"Ant.h"
+	"const.h"
 	"Logger.h"
 
 1301163261 c:\[work]\c++\kethbot\ai\timer.h
@@ -32,7 +35,7 @@
 	<fstream>
 	<sstream>
 
-1301214653 source:c:\[work]\c++\kethbot\ai\bot.cc
+1301281118 source:c:\[work]\c++\kethbot\ai\bot.cc
 	"Bot.h"
 	"Ant.h"
 	<iostream>
@@ -40,7 +43,7 @@
 	<sstream>
 	"Logger.h"
 
-1301206944 c:\[work]\c++\kethbot\ai\bot.h
+1301274305 c:\[work]\c++\kethbot\ai\bot.h
 	"State.h"
 
 1301200759 source:c:\[work]\c++\kethbot\ai\mybot.cc
@@ -159,23 +162,24 @@
 1301201449 source:c:\[work]\c++\kethbot\logger.cc
 	"AI/State.h"
 
-1301212316 source:c:\[work]\c++\kethbot\ai\ant.cc
+1301277370 source:c:\[work]\c++\kethbot\ai\ant.cc
 	"Ant.h"
 	"Logger.h"
 	"Location.h"
+	"const.h"
 
-1301208962 c:\[work]\c++\kethbot\ai\ant.h
+1301275498 c:\[work]\c++\kethbot\ai\ant.h
 	"State.h"
 
-1301207464 c:\[work]\c++\kethbot\logger.h
+1301273135 c:\[work]\c++\kethbot\logger.h
 	"json/json.h"
 	"AI/State.h"
 
-1301207464 c:\[work]\c++\kethbot\\logger.h
+1301273135 c:\[work]\c++\kethbot\\logger.h
 	"json/json.h"
 	"AI/State.h"
 
-1301211649 c:\[work]\c++\kethbot\\ai\state.h
+1301274177 c:\[work]\c++\kethbot\\ai\state.h
 	<iostream>
 	<stdio.h>
 	<cstdlib>
@@ -184,10 +188,12 @@
 	<vector>
 	<queue>
 	<stack>
+	<list>
 	"Timer.h"
 	"Bug.h"
 	"Location.h"
 	"Ant.h"
+	"const.h"
 	"Logger.h"
 
 1301163261 c:\[work]\c++\kethbot\\ai\timer.h
@@ -201,12 +207,16 @@
 	<fstream>
 	<sstream>
 
-1301208962 c:\[work]\c++\kethbot\\ai\ant.h
+1301275498 c:\[work]\c++\kethbot\\ai\ant.h
 	"State.h"
 
-1301207499 source:c:\[work]\c++\kethbot\logger.cpp
+1301273572 source:c:\[work]\c++\kethbot\logger.cpp
 	"Logger.h"
 	<iostream>
 	<fstream>
 	<sstream>
+
+1301273722 c:\[work]\c++\kethbot\ai\const.h
+
+1301273722 c:\[work]\c++\kethbot\\ai\const.h
 
