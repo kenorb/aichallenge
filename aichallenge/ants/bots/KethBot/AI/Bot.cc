@@ -67,7 +67,7 @@ void Bot::makeMoves()
         Ant* ant = state.getAntAt(loc);
         if (ant) {
             int nextMove = ant->getNextMove();
-            if (nextMove != NULL) state.makeMove(loc, nextMove);
+            if (nextMove != NO_MOVE) state.makeMove(loc, nextMove);
         } else {
             #ifdef __DEBUG
             state.logError("Structural ant at location not found");

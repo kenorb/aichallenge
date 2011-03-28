@@ -59,7 +59,6 @@ int Ant::getNextMove()
         }
     }
 
-    // Don't move
-    return NULL;
+    return NO_MOVE;
 }
 

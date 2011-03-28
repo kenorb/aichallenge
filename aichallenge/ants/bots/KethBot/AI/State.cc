@@ -9,11 +9,6 @@ State::State()
     warnings = 0;
 };
 
-State::~State()
-{
-    logger.debugLog << "~state" << endl;
-};
-
 
 void State::logError(std::string error)
 {

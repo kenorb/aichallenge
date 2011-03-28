@@ -23,27 +23,14 @@
 
 using namespace std;
 
-/*
-    constants
-*/
-
-
-/*
-    struct to store current state information
-*/
 struct State
 {
-    /*
-        Variables
-    */
-
-    int rows, cols,
-        turn, turns,
-        players,
-        attackradius, spawnradius, viewradius;
+    int rows, cols, turn, turns, players, attackradius, spawnradius, viewradius;
     double loadtime, turntime;
     vector<double> scores;
     bool gameover;
+    int errors;
+    int warnings;
 
     vector<vector<char> > grid;
     vector<vector<int> > ants_grid;
@@ -55,16 +42,7 @@ struct State
     #endif
     Timer timer;
 
-
-
-    int errors;
-    int warnings;
-
-    /*
-        Functions
-    */
     State();
-    ~State();
 
     void setup();
     void reset();
