@@ -20,6 +20,10 @@ struct Ant
 
         Location loc;
         int id;
+
+        // TODO: hasMoved should be used implemented into movement solver
+        // looping through ants that did not move and asking them for the
+        // next movement again.
         bool hasMoved;
 
     protected:
