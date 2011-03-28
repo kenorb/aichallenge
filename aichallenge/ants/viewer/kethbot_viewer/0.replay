@@ -8,147 +8,149 @@ turns 100
 viewradius2 96
 attackradius2 5
 spawnradius2 2
-m %%%%%%%%%%%%%%%%%%%%%%%%%%%
-m %a.........%.aa%.aaa...a..%
-m %aa.....a..%..a%.......a..%
-m %.a.....a..%...%.......a..%
-m %.....a...a.a..........a..%
-m %.........................%
-m %.......aaa.aa............%
-m %..aa...a...............aa%
-m %.....a.a.................%
-m %...aaaa....a%............%
-m %...........a%aa..........%
-m %%%%.........%..a..*...%%%%
-m %.a.a...a...a%...........a%
-m %........%%%%%%%%%...a..a.%
-m %.........aaa%a..a........%
-m %%%%....aa.a.%.a......a%%%%
-m %...........a%a...........%
-m %....*.....a.%............%
-m %.......aaaaa.aa.aaa......%
-m %...........a..a......a...%
-m %.......aa.a.a.a.aaa......%
-m %........a........a.....a.%
-m %................aa.a.....%
-m %........aa%a.a%..a.a.....%
-m %aa........%...%..a.a..aaa%
-m %.......a..%.aa%..a...a...%
-m %%%%%%%%%%%%%%%%%%%%%%%%%%%
+m %%%%%%%%%%%%a..%%%%%%%%%%%%
+m %aaa.......%...%.....a.a..%
+m %aaa.*.....%...%....aa.a..%
+m %..........%...%..a.a.aaaa%
+m %......a..................%
+m %.........a.a......a....aa%
+m %a..aa....a..a.aaaaa.a....%
+m %a.a..a..........a..a..aaa%
+m %....a.....a...a...a......%
+m %............%..a........a%
+m %............%.....a.....a%
+m %%%%.........%.........%%%%
+m .............%.........a..a
+m .........%%%%%%%%%.......aa
+m ....a....a...%a............
+m %%%%...a.....%a........%%%%
+m %.......a.a..%............%
+m %...........a%.a..........%
+m %........a...........a.a..%
+m %a.......a...aaa......a...%
+m %...........a.a.a....a.a..%
+m %a........a.........a....a%
+m %.............aa.......a.a%
+m %a.........%...%..........%
+m %.........*%aa.%a.......*.%
+m %..........%.a.%.......a.a%
+m %%%%%%%%%%%%...%%%%%%%%%%%%
 
-a 4 4 0 0 52 0 -ssswsesssssww--new-s----------------esee-n-eee-wne
-a 22 22 0 0 52 1 nnnnnnnnnnnnnnn
-a 4 3 0 1 52 0 sswwss-enenwnwsn--sew-nnewenw------n--------------
-a 25 21 0 49 52 0 nw
-a 7 14 0 19 52 0 ewswnee-eeeee-sssenessse--e-wsww
-a 19 15 0 48 52 0 ---
-a 14 1 0 13 52 0 n------------------------s------n-snne
-a 13 25 0 37 52 0 s-------nnsn--
-a 1 16 0 27 52 0 ee-----------------sn---
-a 14 16 0 48 52 0 w-s
-a 8 10 0 15 52 0 neeenn--see-eee-essssssww---------nw
-a 20 12 0 46 52 0 --new
-a 14 4 1 12 52 0 -nw-ensw----sn------sesee-wewe-sne--ewe
-a 15 22 1 6 52 1 nnnnnnnn-
-a 10 8 2 12 52 0 nn-n--eweewenseneensen-nn----wsn--essws
-a 23 9 2 43 52 0 ----nnn-
-a 9 1 3 7 52 0 s--------eew-nsw--ew----n-s-----nnnsness-e-e
-a 18 23 3 4 38 1 nneesnsnsnsnsnsnsnsnsnsnsnsnsnsnsn
-a 13 3 4 11 52 0 sw-w---------ew-----------e----nwenw-eee
-a 17 11 4 43 52 0 sesee--n
-a 8 5 5 7 52 0 ess--nn-wwsswnseeww-ewwenessssss-ssesseee--n
-a 14 21 5 7 52 1 nnnnnnnnnnnnn
-a 2 12 6 23 52 0 nee-------------------------
-a 7 20 6 13 52 1 nnnnnne
-a 2 2 7 14 52 0 -wssnssnnn-nsnsnsnsnsn---------------
-a 20 23 7 45 52 0 sssnss
-a 5 3 8 12 52 0 nnnseeennee---------------------we-wsse
-a 25 18 8 51 52 0 
-a 4 13 9 21 52 0 ---eeeseenn----eeen---------ee
-a 21 19 9 48 52 0 wew
-a 10 7 10 11 52 0 -nn-sswewensesweweennwwesswseweeewweeee-
-a 17 18 10 47 52 0 -s--
-a 6 15 11 20 52 0 nwneennee-------een----------w-
-a 12 21 11 35 52 0 ees--w-swwwww-ew
-a 9 14 12 22 52 0 s-ss-----------------------nn
-a 22 8 12 42 52 0 --enn-n-n
-a 8 9 13 14 52 0 -n-eenennsennnn-----sn---------------
-a 14 24 13 37 52 0 ------w-ee--wn
-a 3 13 14 22 52 0 w-een-------sn------w---e----
-a 6 22 14 15 51 1 nnnnneeesnsnsnsnsnsnsnsnsnsnsnsnsnsn
-a 9 1 15 16 52 0 eewn-ws--ewew-e--s---eeesewneewnene
-a 23 10 15 44 52 0 ---nnne
-a 11 4 16 18 52 0 --swww-------------eses-nnesnennn
-a 11 20 16 34 52 0 ee-wssssssswwsw-s
-a 1 7 17 20 52 0 eesn--------------------sn--sw-
-a 22 25 17 47 52 0 snss
-a 1 10 18 22 52 0 ssnn----------------------sss
-a 13 23 18 36 52 0 e------w-e-swws
-a 7 2 19 20 52 0 -w-s-ewew-eee-ssessewew-newnen-
-a 22 11 19 44 52 0 eneeen-
-a 5 2 20 21 52 0 nnn-nsnsnsnsnsnsnsnsnseensw-sw
-a 19 16 20 49 52 0 en
-a 6 19 21 30 52 0 e---ennsn-n--------ee
-a 15 14 21 49 52 0 -s
-a 10 9 22 24 52 0 sese-------wwwsswseen-eee--
-a 24 14 22 47 52 0 ---s
-a 7 11 23 24 52 0 neeeeessssss------------wnn
-a 24 19 23 50 52 0 w
-a 14 4 24 25 52 0 n---sss-ss-seweneesse-----
-a 22 9 24 43 52 0 e-nn-n-n
-a 7 3 25 26 52 0 n-wnsesenseswnsnsenss-n-e
-a 24 22 25 48 52 0 sns
-a 8 15 26 27 52 0 eeeeesseeewe--we--nennsn
-a 24 12 26 46 52 0 ----n
-a 6 4 27 28 52 0 nnsseeneennn---s-nessss
-a 20 15 27 48 52 0 ee-
-a 18 1 28 36 52 0 n--sewnsssss-ss
-a 23 22 28 47 52 0 -w-w
-a 19 4 29 35 52 0 wsseseees-s-wsee
-a 22 5 29 39 52 0 seee----nn-e
-a 9 5 30 33 52 0 nnesssesewnss-nn-n
-a 17 17 30 48 52 0 wsw
-a 8 9 31 32 52 0 wnnsswnnneennenssss
-a 19 21 31 45 52 0 sswsww
-a 16 3 32 33 52 0 sswn-e-nwssssss-ss
-a 18 25 32 33 39 1 nnsnsn
-a 1 7 33 34 52 0 ---------ssnwnsss
-a 19 10 33 44 52 0 se--n-n
-a 5 13 34 35 52 0 nnn---wsnn---sss
-a 24 13 34 46 52 0 ----s
-a 13 8 35 37 52 0 se-ee-se-----s
-a 25 8 35 43 52 0 ene----n
-a 2 21 36 38 52 0 n----------ee
-a 24 5 36 40 52 0 seene-e---n
-a 14 6 37 38 52 0 we--eens-ee--
-a 6 21 37 38 52 0 -n-n-------ee
-a 17 4 38 39 52 0 e-eeeewenees
-a 14 23 38 39 52 0 -ws-wsswws--
-a 15 9 39 40 52 0 eeswen---n-
-a 23 20 39 49 52 0 ww
-a 16 5 40 41 52 0 eeeene---e
-a 16 22 40 42 52 0 esseeswww
-a 5 12 41 43 52 0 nnn-ssss
-a 17 24 41 43 52 0 sssewsns
-a 9 3 42 43 52 0 newsen-n
-a 21 24 42 46 52 0 ssnss
-a 3 5 43 45 52 0 wwwnns
-a 23 12 43 45 52 0 -eens-
-a 11 9 44 45 52 0 weeeen
-a 14 14 44 49 52 0 --
-a 15 8 45 46 52 0 -e-ns
-a 9 25 45 47 52 0 nnsn
-a 2 17 46 47 52 0 n---
-a 20 13 46 47 52 0 e--w
-a 9 12 47 51 52 0 
-a 21 17 47 49 52 0 -s
-a 7 7 48 50 52 0 e
-a 22 21 48 49 52 0 -w
-a 8 3 49 50 52 0 n
-a 19 19 49 50 52 0 s
-a 6 8 50 51 52 0 
-a 18 12 50 51 52 0 
-a 17 5 51 52
-a 11 19 51 52
-s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 2 2 2 2 2 2 2 2 2 2 2 2 3
-s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+a 4 4 0 0 53 0 seesweeeeenn-nnnwwww--------wwseewnwww---eeww-------
+a 22 22 0 0 21 1 nnnnnnnnneneeeeesneee
+a 6 11 0 10 53 0 ennen-en--n----------------------nsnssnwwn
+a 22 13 0 20 53 0 nwneeeeesswnnsss--ss--nnesnwews-
+a 7 15 0 36 53 0 ennnnns-en-sn-es
+a 20 20 0 28 35 0 -eennne
+a 9 9 0 10 19 0 wwsssesww
+a 18 23 0 3 35 1 nneesnsnsnsnsnsnsnsnsnsnsnsnsnsn
+a 1 20 0 18 52 1 sneesnesnsnees-nsnsnsnsnsn-wsnewes
+a 13 23 0 8 19 1 neeeeeesnee
+a 15 4 0 20 31 0 nwns--wwwww
+a 13 22 0 8 48 1 nnnnnnnnnnneneessnsnssnsnsnsnsnsnsnsnsns
+a 13 7 1 15 53 0 sewwwnnwnn-ne--eeeeewswwww--ww-eenewn
+a 18 14 1 22 53 0 eeeessnnewnwwn-ewesssweeeeeeew
+a 3 12 2 13 53 0 nene--w----------------------wnene-swnn
+a 8 21 2 12 46 1 nnnnnnneseneeweweswnewewewewewewss
+a 7 4 3 5 53 0 eeesew--sseswnwwwwneneesennee-enwwneeneweswwens
+a 18 19 3 26 32 0 esnene
+a 0 13 4 16 53 0 nnnn-ness--ss-------nnss---nn--nnsws
+a 14 14 4 25 53 0 ----------------sesw---n-ew
+a 1 17 5 42 53 0 -eewe-eeee
+a 20 13 5 21 53 0 nweeeeennnsnnw--eweeswseseeee-w
+a 2 3 6 19 22 0 -ss
+a 23 7 6 27 53 0 ssew---wwe--nnwsnnwnwwwns
+a 17 1 7 24 53 0 -------nsnsn----------esws-s
+a 25 21 7 28 53 0 e--ee----------------e--
+a 5 2 8 24 53 0 seww----ns-------------s-new
+a 24 19 8 27 53 0 eswww-----------ne-e-ennn
+a 12 26 9 11 22 1 eeeeennnnnn
+a 25 23 9 29 53 0 -ee---------------nnnwe
+a 11 14 10 39 53 0 snnnees-enwsn
+a 19 21 10 27 31 0 snen
+a 5 17 11 38 53 0 eenw-ess-ns-n-
+a 6 24 11 46 53 0 -nsnnn
+a 4 9 12 13 22 0 nwwwwwnss
+a 19 11 12 23 53 0 neeen----nn------sss-n--sswwe
+a 15 8 13 16 53 0 -www-ssw-------nsnsnnnnnswwwwwn--ssn
+a 17 15 13 23 53 0 nw------eewn------ss----ss-ew
+a 1 3 14 20 53 0 -ssseswws------------------esen-
+a 6 25 14 47 53 0 nsnnn
+a 16 8 15 17 53 0 wwwwwsw-------nsnsn----esnwee-nn-we
+a 20 10 15 23 53 0 swwswensswswwennnnnssnee-nwee
+a 6 3 16 21 22 1 n
+a 21 11 16 22 53 0 nsswwsesnwssww---nnnseennnness
+a 7 10 17 33 53 0 -eeseeww-neseww-nne
+a 17 19 17 26 53 0 e-nwnn---nnsn-n-eeen--nnen
+a 6 17 18 37 53 0 -e-n-sns--ns-ns
+a 15 14 18 24 53 0 -------e-n------esssnw---wes
+a 2 13 19 20 53 0 -e--------------------wsseeessns
+a 25 6 19 28 53 0 wwee-wwwww---------nnn-s
+a 0 13 20 21 53 0 e--------------------wnen--nww-
+a 10 25 20 48 53 0 n---
+a 8 17 21 37 53 0 n-nnnween--nee-
+a 6 23 21 45 53 0 --nsn-e
+a 12 2 22 23 29 0 sswwww
+a 22 15 22 23 53 0 eeseeewwsw---------nnneeeeees
+a 6 4 23 26 53 0 -wew--nnnn-w---eeww-------
+a 16 24 23 24 32 1 -wewewes
+a 17 3 24 25 53 0 ------nsnsn--en-ewnsesnnese
+a 17 24 24 25 31 1 nsnsns
+a 3 19 25 41 53 0 wwee-e-eene
+a 13 19 25 32 53 0 --nnwwwee-nnes--nnew
+a 9 8 26 30 53 0 eeneeeesseeennesenennw
+a 8 19 26 36 53 0 wnen-eesen-wsenw
+a 7 11 27 33 53 0 eee---wwnensswws-we
+a 5 24 27 30 51 1 nnnsnsnsnsnsne-nsnsns
+a 9 4 28 29 53 0 -swww--------------nnn-
+a 12 19 28 33 53 0 nn-wwweeeen-s--n-sw
+a 5 20 29 40 46 0 nnewee
+a 12 15 29 39 53 0 ene-newe-nnnw
+a 3 7 30 33 53 0 wnwessnewwwsnsssens
+a 22 15 30 31 53 0 nnnn-wsnwwweewwnsnnse
+a 1 16 31 42 53 0 -sne-e-eee
+a 17 15 31 32 53 0 ew-n----sss-seewesnw
+a 5 2 32 33 53 0 nnnw---------------
+a 15 16 32 33 53 0 n---eweewswwns-nwew
+a 1 2 33 36 53 0 w---------------
+a 21 25 33 50 53 0 we
+a 2 18 34 42 53 0 weewe-ee--
+a 9 18 34 35 53 0 ewwweneee-nnnenne
+a 11 7 35 38 53 0 wwsswwwwwn-eww
+a 13 25 35 46 53 0 n--ssn
+a 5 7 36 39 53 0 nenewwwwssene
+a 23 14 36 38 53 0 -ss-nnnsnensw-
+a 3 12 37 43 53 0 ssswwsewn
+a 15 18 37 38 53 0 nneeeeeen--swn
+a 11 4 38 40 53 0 -nww----nenn
+a 20 22 38 49 53 0 e--
+a 18 7 39 42 53 0 sneenswnse
+a 12 20 39 40 53 0 nenn-s--nnnw
+a 16 4 40 41 53 0 sn-eeewenes
+a 8 21 40 44 53 0 ee-e-e-n
+a 1 5 41 43 53 0 -ww-sn---
+a 20 17 41 43 53 0 weeeee-ew
+a 6 14 42 43 53 0 nseeesnns
+a 21 15 42 44 53 0 esewns-w
+a 4 20 43 44 53 0 seensnen
+a 18 15 43 44 53 0 -wwsswsn
+a 16 9 44 47 53 0 enwes
+a 9 22 44 45 53 0 e-e--nn
+a 10 15 45 46 53 0 --wnne
+a 25 18 45 46 53 0 e-eeee
+a 8 5 46 49 53 0 n-e
+a 10 23 46 47 53 0 e-e--
+a 3 19 47 48 53 0 -e--
+a 20 15 47 48 53 0 -wsn
+a 14 7 48 50 53 0 ee
+a 7 24 48 49 53 0 enn
+a 6 11 49 50 53 0 ne
+a 24 10 49 53
+a 2 3 50 51 53 0 -
+a 18 23 50 51 53 0 -
+a 6 15 51 52 53 0 
+a 19 14 51 52 53 0 
+a 2 5 52 53
+a 24 24 52 53
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 2 4 4 4 4 4 4 4 4 4 5 6 6 6 7 7 7 7 7 7 7 7 7 7 7 8 8 9 9 9 10 11
+s 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 3 3 3 3 3 3 3 4 4 6 7 7 7 8 8 8 8 8 8 8 8 8 8 8 9 9 9 9 9 9 9

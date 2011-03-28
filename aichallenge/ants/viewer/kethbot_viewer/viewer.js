@@ -61,10 +61,18 @@ Ants.init = function (options) {
     this.dc.fillStyle = "#000";
     this.dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.x_scale = Math.min(Math.floor(this.canvas.width/this.width),
-                            Math.floor(this.canvas.height/this.height));
+                            Math.floor(this.canvas.height/this.height))-1.5;
     this.y_scale = this.x_scale;
     this.x_offset = this.width * this.x_scale / 2;
     this.y_offset = this.height * this.y_scale / 2;
+}
+
+Ants.updateBotVars = function() {
+    $('#botVars').html("");
+    $('#botVars').append("<p>turn = \"" + Ants.turn + "\"</p>");
+    $.each(debugData[Ants.turn], function(key) {
+      $('#botVars').append("<p>" + key + " = \"" + this + "\"</p>");
+    });
 }
 
 Ants.parseData = function (data) {
@@ -142,13 +150,20 @@ Ants.parseData = function (data) {
         }
     }
     this.height = map_row;
+    mapLoaded = true;
 }
+
+
 
 Ants.viewTurn = function (turn) {
     //this.canvas.width = this.canvas.width;
     var x_offset = this.canvas.width / 2 - this.x_offset
     var y_offset = this.canvas.height / 2 - this.y_offset
+
+
     for (var row = 0; row < this.height; ++row) {
+
+
         for (var col = 0; col < this.width; ++col) {
             var ilk = this.map[row][col];
             // if not showing turn 0, then show only land and water
@@ -160,11 +175,39 @@ Ants.viewTurn = function (turn) {
             var x = col * this.x_scale + x_offset;
             var y = row * this.y_scale + y_offset;
             this.dc.fillRect(x, y, this.x_scale, this.y_scale);
+
         }
     }
     if (turn > 0) {
         this.showIlks(this.changes[turn]);
     }
+
+    for (var row = 0; row < this.height; ++row) {
+        var x = 1 * this.x_scale + x_offset;
+        var y = row * this.y_scale + y_offset;
+
+        this.dc.fillStyle    = 'white';
+        this.dc.strokeStyle    = 'white';
+        this.dc.font         = 'bold 13px courier';
+        this.dc.textAlign    = 'center';
+        this.dc.textBaseline = 'top';
+        this.dc.fillText  (row, 19, y+3.25);
+        this.dc.strokeRect(8, y, this.x_scale, this.y_scale);
+    }
+
+    for (var col = 0; col < this.width; ++col) {
+        var x = col * this.x_scale + x_offset;
+        var y = 1 * this.y_scale + y_offset;
+
+        this.dc.fillStyle    = 'white';
+        this.dc.strokeStyle    = 'white';
+        this.dc.font         = 'bold 13px courier';
+        this.dc.textAlign    = 'center';
+        this.dc.textBaseline = 'top';
+        this.dc.fillText  (col, x + 10.75, 11);
+        this.dc.strokeRect(x, 8, this.x_scale, this.y_scale);
+    }
+
 }
 
 Ants.jumpTo = function (x) {
@@ -247,6 +290,23 @@ Ants.showIlks = function (changes) {
         var x = col * this.x_scale + x_offset;
         var y = row * this.y_scale + y_offset;
         this.dc.fillRect(x, y, this.x_scale, this.y_scale);
+
+        
+        if (ilk == 1) {
+          try {
+            var element = debugData[Ants.turn]["#" + row + "x" + col];
+            this.dc.fillStyle    = 'black';
+            this.dc.font         = '9px courier';
+            this.dc.textBaseline = 'top';
+            this.dc.align = 'left';
+            this.dc.fillText  (element, x+5, y);
+          } catch (err) {
+          }
+          //if (element != undefined) {
+
+          //}
+        }
+        
     }
 }
 
@@ -256,7 +316,6 @@ var init = function () {
     $.get('0.stream', function (response) {
         Ants.init({data: response, canvas: $('#map')[0]});
         Ants.viewTurn(0);
-        onTurnChange();
     });
 
 
@@ -266,7 +325,24 @@ var init = function () {
         var i = parseInt(x, 10);
         debugData[i] = this;
       });
+      jsonLoaded = true;
     });
+
+    $.get('/kethbot/debug.log', function(data) {
+      var lines = data.split("\n");
+      var element = $("#botData");
+      var i = 0;
+      $.each(lines, function(x) {
+        if (this.substring(5,0) == "[TURN") {
+          $(element).append("<p id=\"turn" + i + "\">" + this + "</p>");
+          $(element).find("p:last").hide();
+          i++;
+        } else {
+          $(element).find("p:last").append("<br>" + this);
+        }
+      });
+    });
+
 
     var running = true;
     var speed = 500;
@@ -294,11 +370,15 @@ var init = function () {
     }
 
     var onTurnChange = function() {
+        $("#botData").find("p").hide();
+        $("#turn" + Ants.turn).show();
         show_turn();
-        $('#debugData').html("");
-        $('#debugData').append("<p>turn = \"" + Ants.turn + "\"</p>");
+        $('#botVars').html("");
+        $('#botVars').append("<p>turn = \"" + Ants.turn + "\"</p>");
         $.each(debugData[Ants.turn], function(key) {
-          $('#debugData').append("<p>" + key + " = \"" + this + "\"</p>");
+          if (key[0] != "#") {
+            $('#botVars').append("<p>" + key + " = \"" + this + "\"</p>");
+          }
         });
 
         $('#globalData').html("");
@@ -352,6 +432,7 @@ var init = function () {
         }
         return false;
     });
+
 };
 
 //used to stop ie from starting before the canvas is loaded
@@ -359,8 +440,11 @@ var ready = true;
 var kick_start = function () {
     if (ready) {
         init();
+        Ants.forward();
     } else {
         setTimeout(kick_start, 250);
     }
 }
 $(kick_start);
+
+

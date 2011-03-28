@@ -9,7 +9,7 @@
         <link rel="stylesheet" href="viewer.css" />
     </head>
     <body>
-        <table border="1">
+        <table border="0">
         <tr>
           <td colspan="4">
             <form id="replay_form">
@@ -19,7 +19,7 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td valign="top">
             <div id="map_div">
                 <canvas id="map" width="640" height="640" />
                 <!--[if IE]><script type="text/javascript">
@@ -29,25 +29,19 @@
                 </script><![endif]-->
             </div>
           </td>
-          <td valign="top">
-            <h2><p>Bot Debug:</p></h2>
+          <td valign="top" nowrap>
+            <h2><p>Bot vars:</p></h2>
             <code>
-              <div id="debugData">
+              <div id="botVars">
               </div>
             </code>
           </td>
           <td valign="top">
-            <h2><p>Global Debug:</p></h2>
+            <h2><p>Bot data:</p></h2>
             <code>
-              <div id="globalData">
+              <div id="botData">
               </div>
             </code>
-          </td>
-          <td valign="top">
-            <h2><p>Charts:</p></h2>
-            <div id="charts">
-            
-            </div>
           </td>
         </tr>
     </body>
