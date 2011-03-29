@@ -3,6 +3,13 @@ from random import shuffle
 from ants import *
 from functions import *
 
+LAND = -1
+FOOD = -2
+WATER = -3
+CONFLICT = -4
+UNSEEN = -5
+PLAYERS = ('1', '2', '3', '4')
+
 class BroBot():
     def do_turn(self, ants):
         destinations = []
@@ -31,6 +38,43 @@ class BroBot():
             else:
                 # mark ant as not moving so we don't run into it
                 destinations.append((a_row, a_col))
+
+class MyMap():
+  map = []
+  def __init__(self)
+    self.coverage = 0.0
+    self.symetric = 0
+
+class MyArea():
+  def __init__(self, x, y, size)
+    self.x = x
+    self.y = y
+    self.size = size
+    self.dangerous = False
+    self.enemy = False
+    self.food = False
+    self.unknown = False
+
+class MyAnt():
+  ACTIONS = ('discover', 'attack', 'run', 'stop')
+  def __init__(self, safe)
+    self.x = x
+    self.y = y
+    self.direction = (0, 0)
+    self.safe = True
+  def safe(self, safe)
+    self.safe = safe
+  def setAction(self, action, priority)
+    self.safe = safe
+    self.priority = priority
+
+class MyEnemy():
+  def __init__(self)
+    self.aggresive = False
+    self.won = False
+    self.freeze = False
+    self.stupid = False
+
 
 ## Main Execution Code ##
 if __name__ == '__main__':
