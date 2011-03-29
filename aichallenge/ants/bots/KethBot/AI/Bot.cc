@@ -8,6 +8,8 @@
 #include "Logger.h"
 #endif
 
+#include "globals.h"
+
 Bot::Bot()
 {
 
@@ -46,10 +48,10 @@ void Bot::validateAnts()
             Ant* ant = (*iter_ant);
             ant->hasMoved = false;
 
-            if (state.grid[ant->loc.row][ant->loc.col] != 'a') {
-                Ant* foundAnt = state.getAntAt(ant->loc);
+            if (state.grid[ant->getLocation().row][ant->getLocation().col] != 'a') {
+                Ant* foundAnt = map.getAntAt(ant->getLocation());
                 if (foundAnt) {
-                    state.setAntAt(foundAnt->loc, NULL);
+                    map.setAntAt(foundAnt->getLocation(), NULL);
                     delete foundAnt;
                     i++;
                 }
@@ -70,16 +72,15 @@ void Bot::makeMoves()
     for(int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++)
     {
         Location loc = state.ants[ant_id];
-        Ant* ant = state.getAntAt(loc);
+        Ant* ant = map.getAntAt(loc);
         if (ant) {
-            int nextMove = ant->getNextMove();
-            if (nextMove != NO_MOVE) state.makeMove(loc, nextMove);
+            ant->onThink();
         } else {
             #ifdef __DEBUG
             state.logError("Structural ant at location not found");
             #endif
-            }
         }
+    }
 }
 
 void Bot::updateMap()

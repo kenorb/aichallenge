@@ -1,11 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "globals.h"
 
 #ifndef LOCATION_H_
 #define LOCATION_H_
-
-using namespace std;
 
 struct Location
 {
@@ -28,6 +27,8 @@ struct Location
         s << "[POS " << (int)row << " x " << (int)col << "]";
         return s.str();
     };
+
+    bool think();
 
 };
 #endif //LOCATION_H_

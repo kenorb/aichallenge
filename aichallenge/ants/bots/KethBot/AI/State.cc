@@ -1,5 +1,6 @@
 #include "State.h"
 #include "Ant.h"
+#include "Bot.h"
 #include <time.h>
 
 State::State()
@@ -25,22 +26,6 @@ void State::logWarning(std::string warning)
 }
 
 #endif
-
-Ant* State::getAntAt(const Location &loc)
-{
-    if (ants_grid[loc.row][loc.col]) {
-        if (Ant* ant = (Ant*)ants_grid[loc.row][loc.col]) {
-            return ant;
-        }
-    }
-    return NULL;
-}
-
-Ant* State::setAntAt(const Location &loc, Ant* ant)
-{
-    ants_grid[loc.row][loc.col] = (int)ant;
-    return ant;
-}
 
 void State::setup()
 {
@@ -105,15 +90,8 @@ void State::makeMove(const Location &loc, int direction)
     grid[locMoveTo.row][locMoveTo.col] = 'a';
     grid[loc.row][loc.col] = '.';
 
-    Ant* movingAnt = getAntAt(loc);
-
-    #ifdef __DEBUG
-    if (getAntAt(locMoveTo)) logError("Moving ant to a place where there is already an ant!");;
-    #endif
-
-    setAntAt(locMoveTo, movingAnt);
-    setAntAt(loc, NULL);
-
+    Ant* movingAnt = map->getAntAt(loc);
+    map->onAntMoves(movingAnt, locMoveTo);
     movingAnt->onMove(locMoveTo);
 
     cout << "o " << loc.row << " " << loc.col << " " << CDIRECTIONS[direction] << endl;
@@ -224,25 +202,33 @@ istream& operator>>(istream &is, State &state)
             {
                 is >> row >> col;
                 state.grid[row][col] = '%';
+
+                Location loc = Location(row, col);
+                state.map->onWater(loc);
             }
             else if(inputType == "f") //food square
             {
                 is >> row >> col;
-                state.grid[row][col] = '*';
+
+                Location loc = Location(row, col);
+                state.map->onFood(loc);
             }
             else if(inputType == "a") //live ant square
             {
                 is >> row >> col >> player;
                 state.grid[row][col] = 'a' + player;
-                if(player == 0) {
-                    Location loc = Location(row, col);
-                    state.ants.push_back(Location(row, col));
-                    if (!state.getAntAt(loc)) state.setAntAt(loc, new Ant(state, loc));
-                }
+
+                Location loc = Location(row, col);
+                if (player == 0) state.ants.push_back(Location(row, col));
+
+                state.map->onAnt(player, loc);
             }
             else if(inputType == "d") { //dead ant square
                 is >> row >> col >> player;
                 state.grid[row][col] = 'd';
+
+                Location loc = Location(row, col);
+                state.map->onDeadAnt(player, loc);
 
             }
             else if(inputType == "players") //player information

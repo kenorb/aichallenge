@@ -1,4 +1,5 @@
 #include "Bot.h"
+#include "globals.h"
 
 #include <iostream>
 #include <fstream>
@@ -36,7 +37,6 @@ int main(int argc, char *argv[])
     if (argc >= 2 && std::string(argv[1]) == "compilation") {
         return 0;
     } else {
-        Bot bot;
         bot.playGame();
     }
 

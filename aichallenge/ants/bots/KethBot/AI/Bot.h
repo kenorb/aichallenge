@@ -2,11 +2,13 @@
 #define BOT_H_
 
 #include "State.h"
+#include "Map.h"
 
 
 struct Bot
 {
     State state;
+    Map map;
 
     Bot();
 

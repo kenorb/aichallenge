@@ -48,7 +48,7 @@ void Logger::logPreState(State* state, bool init)
                 Ant* ant = (*iter_ant);
                 if (ant) {
                     char loc[32];
-                    sprintf(loc, "#%ix%i", ant->loc.row, ant->loc.col);
+                    sprintf(loc, "#%ix%i", ant->getLocation().row, ant->getLocation().col);
                     debugNode[key][loc] = ant->id;
                 } else {
                     state->logError("Found a removed structural ant");

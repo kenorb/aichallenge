@@ -5,20 +5,26 @@ struct State;
 #ifndef ANT_H
 #define ANT_H
 
-using namespace std;
-
 struct Ant
 {
     public:
         Ant(State &_state, Location &_loc);
         ~Ant();
 
+        void onThink();
         void onMove(Location& toLoc);
         bool canBePlacedAt(Location& loc);
         int getNextMove();
+        int timeAlive;
+        int lastThink;
+
+        Location getLocation()
+        {
+            return loc;
+        }
 
 
-        Location loc;
+
         int id;
 
         // TODO: hasMoved should be used implemented into movement solver
@@ -28,6 +34,7 @@ struct Ant
 
     protected:
     private:
+        Location loc;
         State* state;
 };
 

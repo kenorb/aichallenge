@@ -17,14 +17,17 @@
 #include "Ant.h"
 #include "const.h"
 
+
 #ifdef __DEBUG
 #include "Logger.h"
 #endif
 
-using namespace std;
+struct Map;
 
 struct State
 {
+    Map* map;
+
     int rows, cols, turn, turns, players, attackradius, spawnradius, viewradius;
     double loadtime, turntime;
     vector<double> scores;
@@ -54,8 +57,6 @@ struct State
     #endif
 
     void makeMove(const Location &loc, int direction);
-    Ant* getAntAt(const Location &loc);
-    Ant* setAntAt(const Location &loc, Ant* ant);
 
     double distance(const Location &loc1, const Location &loc2);
     Location getLocation(const Location &startLoc, int direction);

@@ -20,6 +20,9 @@ Ant::Ant(State &_state, Location &_loc)
     id = totalAnts;
     totalAnts++;
 
+    timeAlive = 0;
+    lastThink = 0;
+
     state = &_state;
     loc.col = _loc.col;
     loc.row = _loc.row;
@@ -42,7 +45,7 @@ Ant::~Ant()
 void Ant::onMove(Location& toLoc)
 {
     #ifdef __DEBUG
-    state->logger.debugLog << "EVENT: " << (*this) << "  moves from " << loc.str() << " to " << toLoc.str() << endl;
+    state->logger.debugLog << "EVENT: " << (*this) << " moves from " << loc.str() << " to " << toLoc.str() << endl;
     #endif
 
     loc.col = toLoc.col;
@@ -57,6 +60,17 @@ bool Ant::canBePlacedAt(Location& loc)
     return true;
 }
 
+void Ant::onThink()
+{
+    if (lastThink == state->turn) return;
+    lastThink = state->turn;
+
+    int nextMove = getNextMove();
+    if (nextMove != NO_MOVE) state->makeMove(getLocation(), nextMove);
+
+    timeAlive++;
+}
+
 int Ant::getNextMove()
 {
     int ret = NO_MOVE;
@@ -64,9 +78,12 @@ int Ant::getNextMove()
     // Move into some direction
     for(int d=0; d<4; d++)
     {
-        Location locTo = state->getLocation(loc, d);
+        Location locationTo = state->getLocation(loc, d);
 
-        if(Ant::canBePlacedAt(locTo))
+        // Solve the location before we move there
+        locationTo.think();
+
+        if(Ant::canBePlacedAt(locationTo))
         {
             ret = d;
             break;
