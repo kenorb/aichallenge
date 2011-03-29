@@ -11,13 +11,18 @@ UNSEEN = -5
 PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
+    def __init__(self, ants):
+      self.map(self.width, self.height)
     def do_turn(self, ants):
         destinations = []
         for a_row, a_col in ants.my_ants():
+            print ants.setup()
+            exti()
             targets = ants.food() + [(row, col) for (row, col), owner in ants.enemy_ants()]
             # find closest food or enemy ant
             closest_target = None
             closest_distance = 999999
+
             for t_row, t_col in targets:
                 dist = ants.distance(a_row, a_col, t_row, t_col)
                 if dist < closest_distance:
@@ -27,6 +32,7 @@ class BroBot():
                 # no target found, mark ant as not moving so we don't run into it
                 destinations.append((a_row, a_col))
                 continue
+
             directions = ants.direction(a_row, a_col, closest_target[0], closest_target[1])
             shuffle(directions)
             for direction in directions:
@@ -41,12 +47,15 @@ class BroBot():
 
 class MyMap():
   map = []
-  def __init__(self)
+  def __init__(self, width, height, map):
+    self.width = width
+    self.height = height
+    self.map = map
     self.coverage = 0.0
     self.symetric = 0
 
 class MyArea():
-  def __init__(self, x, y, size)
+  def __init__(self, x, y, size):
     self.x = x
     self.y = y
     self.size = size
@@ -56,24 +65,35 @@ class MyArea():
     self.unknown = False
 
 class MyAnt():
-  ACTIONS = ('discover', 'attack', 'run', 'stop')
-  def __init__(self, safe)
+  actions = []
+  def __init__(self, x, y):
     self.x = x
     self.y = y
     self.direction = (0, 0)
-    self.safe = True
-  def safe(self, safe)
+    self.target = (x, y)
+    self.radius = (0, 0)
+  def safe(self, safe):
     self.safe = safe
-  def setAction(self, action, priority)
-    self.safe = safe
+  def setAction(self, action, priority):
+    new_action = MyAction(self, action, priority)
+    self.actions = append(new_action)
+
+class MyAction(MyAnt):
+  ACTIONS = ('discover', 'attack', 'run', 'stop', 'group')
+  def __init__(self, action, safe, priority):
+    self.target = (0, 0)
     self.priority = priority
+    self.safe = safe
 
 class MyEnemy():
-  def __init__(self)
+  def __init__(self):
     self.aggresive = False
     self.won = False
     self.freeze = False
     self.stupid = False
+    self.afraidOf2 = False
+    self.afraidOf2 = False
+    self.changes = 1.0
 
 
 ## Main Execution Code ##
@@ -84,7 +104,7 @@ if __name__ == '__main__':
     except ImportError:
         pass
     try:
-        Ants.run(BroBot())
+        Ants.run(BroBot(Ants))
     except KeyboardInterrupt:
         print('ctrl-c, leaving ...')
 
