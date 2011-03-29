@@ -1,0 +1,15 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
+span:hover {
+    color: DarkGreen;
+    cursor: pointer;
+}
+
+p {
+    font-size: 12px;
+    margin-left: 20px;
+    margin-right: 20px;
+}

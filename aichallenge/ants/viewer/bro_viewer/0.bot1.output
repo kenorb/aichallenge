@@ -1,0 +1,147 @@
+# turn 1
+o 22 22 n
+# turn 2
+o 21 22 n
+# turn 3
+o 20 22 n
+# turn 4
+o 19 22 n
+# turn 5
+o 18 22 n
+# turn 6
+o 17 22 n
+# turn 7
+o 16 22 n
+# turn 8
+o 15 22 n
+# turn 9
+o 14 22 n
+# turn 10
+o 13 22 n
+# turn 11
+o 12 22 n
+# turn 12
+o 11 22 n
+# turn 13
+o 10 22 n
+o 9 21 n
+# turn 14
+o 7 20 n
+o 8 21 n
+o 9 22 n
+# turn 15
+o 6 19 n
+o 7 21 n
+o 8 22 n
+o 6 20 n
+# turn 16
+o 6 21 n
+o 5 19 n
+o 5 20 n
+o 7 22 n
+# turn 17
+o 4 19 n
+o 5 21 n
+o 6 22 n
+o 4 20 n
+# turn 18
+o 3 20 n
+o 4 21 n
+o 3 19 n
+o 5 22 n
+# turn 19
+o 2 19 n
+o 2 20 n
+o 3 21 n
+o 4 22 n
+# turn 20
+o 3 22 n
+o 2 21 n
+o 1 19 s
+o 1 20 s
+# turn 21
+o 2 19 n
+o 1 21 e
+o 2 22 e
+o 2 20 n
+# turn 22
+o 1 22 e
+o 2 23 e
+o 1 19 s
+o 1 20 e
+# turn 23
+o 1 21 e
+o 1 23 e
+o 2 24 e
+# turn 24
+o 1 24 e
+o 1 22 e
+o 2 25 s
+# turn 25
+o 3 25 n
+o 1 23 e
+# turn 26
+o 1 24 s
+o 2 25 s
+# turn 27
+o 3 25 n
+o 1 25 w
+o 2 24 s
+# turn 28
+o 3 24 n
+o 1 24 e
+o 2 25 s
+# turn 29
+o 3 25 n
+o 1 25 w
+o 2 24 s
+# turn 30
+o 3 24 n
+o 1 24 e
+o 2 25 s
+# turn 31
+o 3 25 n
+o 1 25 w
+o 2 24 s
+# turn 32
+o 3 24 n
+o 1 24 e
+o 2 25 s
+# turn 33
+o 3 25 n
+o 1 25 w
+o 2 24 s
+# turn 34
+o 1 24 e
+o 3 24 n
+o 2 25 s
+# turn 35
+o 1 25 s
+o 2 24 n
+# turn 36
+o 2 25 n
+o 1 24 s
+# turn 37
+o 1 25 s
+o 2 24 n
+# turn 38
+o 2 25 n
+o 1 24 s
+# turn 39
+o 1 25 s
+o 2 24 n
+# turn 40
+o 1 24 e
+o 2 25 s
+# turn 41
+o 1 25 s
+# turn 42
+o 2 25 n
+# turn 43
+o 1 25 s
+# turn 44
+o 2 25 n
+# turn 45
+o 1 25 s
+end
+score 4 4

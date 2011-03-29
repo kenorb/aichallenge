@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Ant Wars Viewer</title>
+        <!--[if IE]><script type="text/javascript" src="Html5Canvas.js"></script><![endif]-->
+        <script src="jquery.min.js"></script>
+        <script src="viewer.js"></script>
+        <link rel="stylesheet" href="viewer.css" />
+    </head>
+    <body>
+        <table border="0">
+        <tr>
+          <td colspan="4">
+            <form id="replay_form">
+                <input id="replay_file" type="file" value="" />
+            </form>
+            <div><span id="turn">start</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top">
+            <div id="map_div">
+                <canvas id="map" width="640" height="640" />
+                <!--[if IE]><script type="text/javascript">
+                var ready = false;
+                document.getElementById('map_div').removeChild(document.getElementById('map'));
+                InsertCanvasObject("map", 400, 400, function() { ready = true; });
+                </script><![endif]-->
+            </div>
+          </td>
+          <td valign="top" nowrap>
+            <h2><p>Bot vars:</p></h2>
+            <code>
+              <div id="botVars">
+              </div>
+            </code>
+          </td>
+          <td valign="top">
+            <h2><p>Bot data:</p></h2>
+            <code>
+              <div id="botData">
+              </div>
+            </code>
+          </td>
+        </tr>
+    </body>
+</html>
