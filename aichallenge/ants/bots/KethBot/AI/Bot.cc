@@ -43,7 +43,7 @@ void Bot::validateAnts()
     while (true) {
         i = 0;
         std::list<Ant*>::iterator iter_ant;
-        for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
+        for (iter_ant = gameMap.getAnts().begin(); iter_ant != gameMap.getAnts().end(); iter_ant++)
         {
             Ant* ant = (*iter_ant);
             ant->hasMoved = false;
@@ -100,7 +100,7 @@ void Bot::onThink()
     makeMoves();
 
     #ifdef __DEBUG
-    if ((int)state.ants.size() != (int)state.structuralAnts.size()) {
+    if ((int)state.ants.size() != (int)gameMap.getAnts().size()) {
         logger.logError("Number of ants given is not equal to structural ants");
     }
 

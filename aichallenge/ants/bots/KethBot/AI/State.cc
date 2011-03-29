@@ -20,6 +20,7 @@ void State::setup()
 void State::reset()
 {
     ants.clear();
+    enemyAnts.clear();
     for(int row=0; row<rows; row++)
     for(int col=0; col<cols; col++)
         if(grid[row][col] != '%') {
@@ -200,7 +201,11 @@ istream& operator>>(istream &is, State &state)
                 state.grid[row][col] = 'a' + player;
 
                 Location loc = Location(row, col);
-                if (player == 0) state.ants.push_back(Location(row, col));
+                if (player == 0) {
+                    state.ants.push_back(Location(row, col));
+                } else {
+                    state.enemyAnts.push_back(Location(row, col));
+                }
 
                 gameMap.onAnt(player, loc);
             }

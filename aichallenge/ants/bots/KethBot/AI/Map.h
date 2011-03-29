@@ -16,6 +16,11 @@ struct Map
         void onFood(Location &loc);
         void onWater(Location &loc);
 
+
+        std::list<Ant*>& getAnts();
+        vector<Location>& getEnemyAnts();
+
+
         //bool locationThink(const Location& loc);
 
         Ant* getAntAt(const Location &loc);

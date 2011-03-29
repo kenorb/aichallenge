@@ -35,6 +35,7 @@ struct State
     vector<vector<char> > grid;
     vector<vector<int> > ants_grid;
     vector<Location> ants;
+    vector<Location> enemyAnts;
     std::list<Ant*> structuralAnts;
 
     Timer timer;

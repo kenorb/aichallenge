@@ -11,7 +11,7 @@ Map::Map()
 
 void Map::onEnemy(Location &loc)
 {
-    // state->logger.debugLog << "EVENT: Enemy found at " << loc.str() << endl;
+    // logger.debugLog << "EVENT: Enemy found at " << loc.str() << endl;
 }
 
 void Map::onAnt(int bot_id, Location &loc)
@@ -46,6 +46,16 @@ void Map::onFood(Location &loc)
 void Map::onWater(Location &loc)
 {
     // Does not repeat
+}
+
+std::list<Ant*>& Map::getAnts()
+{
+    return state.structuralAnts;
+}
+
+vector<Location>& Map::getEnemyAnts()
+{
+    return state.enemyAnts;
 }
 
 Ant* Map::getAntAt(const Location &loc)
