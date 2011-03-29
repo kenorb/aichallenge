@@ -1,1 +1,1 @@
-dist/sample_bots/python/bro.py
+bots/bro/bro.py
