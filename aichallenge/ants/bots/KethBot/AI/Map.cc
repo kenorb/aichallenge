@@ -6,8 +6,7 @@
 
 Map::Map()
 {
-    bot.state.map = this;
-    state = &(bot.state);
+
 }
 
 void Map::onEnemy(Location &loc)
@@ -18,7 +17,7 @@ void Map::onEnemy(Location &loc)
 void Map::onAnt(int bot_id, Location &loc)
 {
     if (bot_id == 0) {
-        if (!getAntAt(loc)) setAntAt(loc, new Ant((*state), loc));
+        if (!getAntAt(loc)) setAntAt(loc, new Ant(state, loc));
     } else {
         onEnemy(loc);
     }
@@ -27,7 +26,7 @@ void Map::onAnt(int bot_id, Location &loc)
 void Map::onAntMoves(Ant* ant, Location &toLocation)
 {
     #ifdef __DEBUG
-    if (getAntAt(toLocation)) state->logError("Moving ant to a place where there is already an ant!");;
+    if (getAntAt(toLocation)) logger.logError("Moving ant to a place where there is already an ant!");;
     #endif
 
     setAntAt(toLocation, ant);
@@ -51,8 +50,8 @@ void Map::onWater(Location &loc)
 
 Ant* Map::getAntAt(const Location &loc)
 {
-    if (bot.state.ants_grid[loc.row][loc.col]) {
-        if (Ant* ant = (Ant*)bot.state.ants_grid[loc.row][loc.col]) {
+    if (state.ants_grid[loc.row][loc.col]) {
+        if (Ant* ant = (Ant*)state.ants_grid[loc.row][loc.col]) {
             return ant;
         }
     }
@@ -61,7 +60,7 @@ Ant* Map::getAntAt(const Location &loc)
 
 Ant* Map::setAntAt(const Location &loc, Ant* ant)
 {
-    bot.state.ants_grid[loc.row][loc.col] = (int)ant;
+    state.ants_grid[loc.row][loc.col] = (int)ant;
     return ant;
 }
 /*

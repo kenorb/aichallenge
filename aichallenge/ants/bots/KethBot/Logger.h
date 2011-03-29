@@ -13,9 +13,12 @@ struct Logger
     ~Logger();
 
 
-    void logPreState(State* state, bool init);
-    void logPostState(State* state);
-    void logMapState(State* state);
+    void logPreState(bool init);
+    void logPostState();
+    void logMapState();
+
+    void logError(std::string error);
+    void logWarning(std::string warning);
 
     Json::StyledWriter debugOutput;
     Json::Value debugNode;
@@ -23,6 +26,7 @@ struct Logger
     Bug jsonLog;
     Bug debugLog;
 
+    int errors, warnings;
 };
 
 

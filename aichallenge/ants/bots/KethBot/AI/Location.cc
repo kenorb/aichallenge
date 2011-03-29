@@ -4,7 +4,7 @@
 
 bool Location::think()
 {
-    if (Ant* ant = bot.map.getAntAt(*this)) {
+    if (Ant* ant = gameMap.getAntAt(*this)) {
         ant->onThink();
         return true;
     }

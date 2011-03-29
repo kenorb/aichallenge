@@ -23,29 +23,28 @@ Ant::Ant(State &_state, Location &_loc)
     timeAlive = 0;
     lastThink = 0;
 
-    state = &_state;
     loc.col = _loc.col;
     loc.row = _loc.row;
-    state->structuralAnts.push_back(this);
+    state.structuralAnts.push_back(this);
 
     #ifdef __DEBUG
-    state->logger.debugLog << "EVENT: New " << (*this) << " at " << loc.str() << endl;
+    logger.debugLog << "EVENT: New " << (*this) << " at " << loc.str() << endl;
     #endif
 }
 
 Ant::~Ant()
 {
     #ifdef __DEBUG
-    state->logger.debugLog << "EVENT: " << (*this) << " dies at " << loc.str() << endl;
+    logger.debugLog << "EVENT: " << (*this) << " dies at " << loc.str() << endl;
     #endif
 
-    state->structuralAnts.remove(this);
+    state.structuralAnts.remove(this);
 }
 
 void Ant::onMove(Location& toLoc)
 {
     #ifdef __DEBUG
-    state->logger.debugLog << "EVENT: " << (*this) << " moves from " << loc.str() << " to " << toLoc.str() << endl;
+    logger.debugLog << "EVENT: " << (*this) << " moves from " << loc.str() << " to " << toLoc.str() << endl;
     #endif
 
     loc.col = toLoc.col;
@@ -54,19 +53,19 @@ void Ant::onMove(Location& toLoc)
 
 bool Ant::canBePlacedAt(Location& loc)
 {
-    if(state->grid[loc.row][loc.col] == '%') return false;
-    if(state->grid[loc.row][loc.col] == 'a') return false;
+    if(state.grid[loc.row][loc.col] == '%') return false;
+    if(state.grid[loc.row][loc.col] == 'a') return false;
 
     return true;
 }
 
 void Ant::onThink()
 {
-    if (lastThink == state->turn) return;
-    lastThink = state->turn;
+    if (lastThink == state.turn) return;
+    lastThink = state.turn;
 
     int nextMove = getNextMove();
-    if (nextMove != NO_MOVE) state->makeMove(getLocation(), nextMove);
+    if (nextMove != NO_MOVE) state.makeMove(getLocation(), nextMove);
 
     timeAlive++;
 }
@@ -76,16 +75,16 @@ int Ant::getNextMove()
     int ret = NO_MOVE;
 
     // Move into some direction
-    for(int d=0; d<4; d++)
+    for(int dir=0; dir<4; dir++)
     {
-        Location locationTo = state->getLocation(loc, d);
+        Location locationTo = state.getLocation(loc, dir);
 
         // Solve the location before we move there
         locationTo.think();
 
         if(Ant::canBePlacedAt(locationTo))
         {
-            ret = d;
+            ret = dir;
             break;
         }
     }

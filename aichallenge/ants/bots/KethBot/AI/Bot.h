@@ -7,9 +7,6 @@
 
 struct Bot
 {
-    State state;
-    Map map;
-
     Bot();
 
     void playGame();

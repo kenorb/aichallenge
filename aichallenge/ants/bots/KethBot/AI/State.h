@@ -22,17 +22,13 @@
 #include "Logger.h"
 #endif
 
-struct Map;
-
 struct State
 {
-    Map* map;
-
     int rows, cols, turn, turns, players, attackradius, spawnradius, viewradius;
     double loadtime, turntime;
     vector<double> scores;
     bool gameover;
-    int errors, warnings;
+
     double visibilityCoverage;
     double areaCoverage;
 
@@ -49,12 +45,6 @@ struct State
     void updateFogOfWar();
 
     void reset();
-
-    #ifdef __DEBUG
-    Logger logger;
-    void logError(std::string error);
-    void logWarning(std::string warning);
-    #endif
 
     void makeMove(const Location &loc, int direction);
 

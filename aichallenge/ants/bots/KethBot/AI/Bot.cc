@@ -20,7 +20,7 @@ void Bot::playGame()
     cin >> state;
 
     #ifdef __DEBUG
-    state.logger.logPreState(&state, true);
+    logger.logPreState(true);
     #endif
     while(cin >> state)
     {
@@ -33,7 +33,7 @@ void Bot::playGame()
 void Bot::firstMove()
 {
     #ifdef __DEBUG
-    state.logger.debugLog << "ACTION: firstMove()" << endl;
+    logger.debugLog << "ACTION: firstMove()" << endl;
     #endif
 }
 
@@ -49,9 +49,9 @@ void Bot::validateAnts()
             ant->hasMoved = false;
 
             if (state.grid[ant->getLocation().row][ant->getLocation().col] != 'a') {
-                Ant* foundAnt = map.getAntAt(ant->getLocation());
+                Ant* foundAnt = gameMap.getAntAt(ant->getLocation());
                 if (foundAnt) {
-                    map.setAntAt(foundAnt->getLocation(), NULL);
+                    gameMap.setAntAt(foundAnt->getLocation(), NULL);
                     delete foundAnt;
                     i++;
                 }
@@ -66,18 +66,18 @@ void Bot::makeMoves()
 {
     if (state.turn == 1) firstMove();
     #ifdef __DEBUG
-    state.logger.debugLog << "ACTION: makeMoves()" << endl;
+    logger.debugLog << "ACTION: makeMoves()" << endl;
     #endif
 
     for(int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++)
     {
         Location loc = state.ants[ant_id];
-        Ant* ant = map.getAntAt(loc);
+        Ant* ant = gameMap.getAntAt(loc);
         if (ant) {
             ant->onThink();
         } else {
             #ifdef __DEBUG
-            state.logError("Structural ant at location not found");
+            logger.logError("Structural ant at location not found");
             #endif
         }
     }
@@ -86,13 +86,13 @@ void Bot::makeMoves()
 void Bot::updateMap()
 {
     state.updateFogOfWar();
-    state.logger.logMapState(&state);
+    logger.logMapState();
 }
 
 void Bot::onThink()
 {
     #ifdef __DEBUG
-    state.logger.logPreState(&state, false);
+    logger.logPreState(false);
     #endif
 
     validateAnts();
@@ -101,10 +101,10 @@ void Bot::onThink()
 
     #ifdef __DEBUG
     if ((int)state.ants.size() != (int)state.structuralAnts.size()) {
-        state.logError("Number of ants given is not equal to structural ants");
+        logger.logError("Number of ants given is not equal to structural ants");
     }
 
-    state.logger.logPostState(&state);
+    logger.logPostState();
     #endif
 
 

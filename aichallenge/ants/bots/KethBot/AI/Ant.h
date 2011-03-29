@@ -33,9 +33,9 @@ struct Ant
         bool hasMoved;
 
     protected:
+
     private:
         Location loc;
-        State* state;
 };
 
 ostream& operator<<(ostream &out, const Ant &ant);

@@ -6,26 +6,7 @@
 State::State()
 {
     gameover = 0;
-    errors = 0;
-    warnings = 0;
 };
-
-#ifdef __DEBUG
-
-void State::logError(std::string error)
-{
-    logger.debugLog << "[ERROR] [TURN #" << (int)turn << "]: " << error << endl;
-    errors++;
-
-}
-
-void State::logWarning(std::string warning)
-{
-    logger.debugLog << "[ERROR WARNING] [TURN #" << (int)turn << "]: " << warning << endl;
-    warnings++;
-}
-
-#endif
 
 void State::setup()
 {
@@ -78,20 +59,20 @@ void State::makeMove(const Location &loc, int direction)
 {
     #ifdef __DEBUG
     if ((direction < 0) || (direction > 3)) {
-        logWarning("Ant trying to move into incorrect direction");
+        logger.logWarning("Ant trying to move into incorrect direction");
     }
 
     Location locMoveTo = getLocation(loc, direction);
     if (grid[locMoveTo.row][locMoveTo.col] == '%' || grid[locMoveTo.row][locMoveTo.col] == 'a') {
-        logWarning("Ant trying to move inside a wall or another ant");
+        logger.logWarning("Ant trying to move inside a wall or another ant");
     }
     #endif
 
     grid[locMoveTo.row][locMoveTo.col] = 'a';
     grid[loc.row][loc.col] = '.';
 
-    Ant* movingAnt = map->getAntAt(loc);
-    map->onAntMoves(movingAnt, locMoveTo);
+    Ant* movingAnt = gameMap.getAntAt(loc);
+    gameMap.onAntMoves(movingAnt, locMoveTo);
     movingAnt->onMove(locMoveTo);
 
     cout << "o " << loc.row << " " << loc.col << " " << CDIRECTIONS[direction] << endl;
@@ -138,7 +119,7 @@ istream& operator>>(istream &is, State &state)
         if(inputType == "end")
         {
             #ifdef __DEBUG
-            state.logger.debugLog << "GAME END (errors: " << (int)state.errors << ", warnings: " << (int)state.warnings << ", structural ants: " << (int)state.structuralAnts.size() << ")" << endl;
+            logger.debugLog << "GAME END (errors: " << (int)logger.errors << ", warnings: " << (int)logger.warnings << ", structural ants: " << (int)state.structuralAnts.size() << ")" << endl;
             #endif
             state.gameover = 1;
             break;
@@ -152,7 +133,7 @@ istream& operator>>(istream &is, State &state)
             getline(is, junk);
     }
     #ifdef __DEBUG
-    if (!state.gameover) state.logger.debugLog << "[TURN #" << (state.turn) << "]:" << endl;
+    if (!state.gameover) logger.debugLog << "[TURN #" << (state.turn) << "]:" << endl;
     #endif
     if(state.turn == 0)
     {
@@ -204,14 +185,14 @@ istream& operator>>(istream &is, State &state)
                 state.grid[row][col] = '%';
 
                 Location loc = Location(row, col);
-                state.map->onWater(loc);
+                gameMap.onWater(loc);
             }
             else if(inputType == "f") //food square
             {
                 is >> row >> col;
 
                 Location loc = Location(row, col);
-                state.map->onFood(loc);
+                gameMap.onFood(loc);
             }
             else if(inputType == "a") //live ant square
             {
@@ -221,14 +202,14 @@ istream& operator>>(istream &is, State &state)
                 Location loc = Location(row, col);
                 if (player == 0) state.ants.push_back(Location(row, col));
 
-                state.map->onAnt(player, loc);
+                gameMap.onAnt(player, loc);
             }
             else if(inputType == "d") { //dead ant square
                 is >> row >> col >> player;
                 state.grid[row][col] = 'd';
 
                 Location loc = Location(row, col);
-                state.map->onDeadAnt(player, loc);
+                gameMap.onDeadAnt(player, loc);
 
             }
             else if(inputType == "players") //player information

@@ -2,6 +2,7 @@
 #define MAP_H_INCLUDED
 
 #include "Ant.h"
+#include "globals.h"
 
 struct Map
 {
@@ -19,9 +20,6 @@ struct Map
 
         Ant* getAntAt(const Location &loc);
         Ant* setAntAt(const Location &loc, Ant* ant);
-
-    private:
-        State* state;
 };
 
 #endif // MAP_H_INCLUDED
