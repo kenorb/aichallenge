@@ -6,6 +6,7 @@ from collections import deque, defaultdict
 from fractions import Fraction
 import operator
 import string
+from game import Game
 
 ANTS = 0
 LAND = -1
@@ -17,31 +18,16 @@ UNSEEN = -5
 PLAYER_CHARS = string.ascii_lowercase
 MAP_RENDER = PLAYER_CHARS + '?!%*.'
 
+# possible directions an ant can move
 AIM = {'n': (-1, 0),
        'e': (0, 1),
        's': (1, 0),
        'w': (0, -1)}
 
-# precalculated sqrt & radius coordinates for distance calcs
+# precalculated sqrt
 SQRT = [int(sqrt(r)) for r in range(101)]
-RADIUS = []
-for r in range(101):
-    RADIUS.append([])
-    mx = SQRT[r]
-    for d_row in range(-mx, mx+1):
-        for d_col in range(-mx, mx+1):
-            if d_row**2 + d_col**2 == r:
-                RADIUS[r].append((d_row, d_col))
 
-FULL_RADIUS = []
-for r in range(101):
-    FULL_RADIUS.append([])
-    mx = SQRT[r]
-    for d_row in range(-mx, mx+1):
-        for d_col in range(-mx, mx+1):
-            if d_row**2 + d_col**2 <= r:
-                FULL_RADIUS[r].append((d_row, d_col))
-class Ants:
+class Ants(Game):
     def __init__(self, options=None):
         # setup options
         map_text = options['map']
@@ -53,23 +39,19 @@ class Ants:
         self.spawnradius = int(options["spawnradius2"])
         self.seed = options.get('seed')
 
-        self.attack_methods = {
+        self.do_attack = {
             'power':   self.do_attack_power,
             'closest': self.do_attack_closest,
             'support': self.do_attack_support,
             'damage':  self.do_attack_damage
-        }
-        self.do_attack = self.attack_methods.get(options.get('attack'),
-                                                 self.do_attack_damage)
+        }.get(options.get('attack'), self.do_attack_damage)
 
-        self.food_methods = {
+        self.do_food = {
             'none':      self.do_food_none,
             'random':    self.do_food_random,
             'sections':  self.do_food_sections,
             'symmetric': self.do_food_symmetric
-        }
-        self.do_food = self.food_methods.get(options.get('food'),
-                                             self.do_food_sections)
+        }.get(options.get('food'), self.do_food_sections)
 
         self.width = None   # the map
         self.height = None
@@ -93,11 +75,17 @@ class Ants:
         self.initial_ant_list = sorted(self.current_ants.values(), key=operator.attrgetter('owner'))
         self.initial_access_map = self.access_map()
 
+        # cache used by neighbourhood_offsets() to determine nearby squares
+        self.offsets_cache = {}
+
         # used to track dead players, ants may still exist, but order are not processed
         self.killed = [False for i in range(self.num_players)]
 
         # used to give a different ordering of players to each player
+        #   initialised to ensure that each player thinks they are player 0
         self.switch = [[None]*self.num_players + range(-5,0) for i in range(self.num_players)]
+        for i in range(self.num_players):
+            self.switch[i][i] = 0
         # used to track water and land already reveal to player
         # ants and food will reset spots so a second land entry will be sent
         self.revealed = [[[False for col in range(self.width)]
@@ -132,8 +120,11 @@ class Ants:
 
         for line in map_text.split('\n'):
             line = line.strip().lower()
-            if not line:
-                continue # ignore blank lines
+
+            # ignore blank lines and comments
+            if not line or line[0] == '#':
+                continue
+
             key, value = line.split(' ')
             if key == 'cols':
                 self.width = int(value)
@@ -141,45 +132,72 @@ class Ants:
                 self.height = int(value)
             elif key == 'm':
                 if len(value) != self.width:
-                    raise Exception('map',
-                                    'Incorrect number of cols in row %s. Got %s, expected %s.' % (
-                                    row, len(value), self.width))
+                    raise Exception("map",
+                                    "Incorrect number of cols in row %s. "
+                                    "Got %s, expected %s."
+                                    %(row, len(value), self.width))
                 self.map.append([LAND]*self.width)
                 for col, c in enumerate(value):
                     if c in PLAYER_CHARS:
-                        if not c in players:
+                        # assign player ids in the order that we see them
+                        #  (so player 'a' won't necessarily be 0, and so on)
+                        if c not in players:
                             players.append(c)
                         self.add_ant((row, col), players.index(c))
-                    elif c == '*':
+                    elif c == MAP_RENDER[FOOD]:
                         self.add_food((row, col))
-                    elif c == '%':
+                    elif c == MAP_RENDER[WATER]:
                         self.map[row][col] = WATER
                         water_area += 1
-                    elif c != '.':
-                        raise Exception("map", "Invalid character in map: %s" % c)
+                    elif c != MAP_RENDER[LAND]:
+                        raise Exception("map",
+                                        "Invalid character in map: %s" % c)
                 row += 1
 
         if self.height != row:
-                raise Exception("map", "Incorrect number of rows.  Expected %s, got %s" % (self.height, row))
+            raise Exception("map",
+                            "Incorrect number of rows.  Expected %s, got %s"
+                            % (self.height, row))
 
         self.land_area = self.width*self.height - water_area
         self.num_players = len(players)
 
+    def neighbourhood_offsets(self, max_dist):
+        """ Return a list of squares within a given distance of loc
+
+            Loc is not included in the list
+            For all squares returned: 0 < distance(loc,square) <= max_dist
+
+            Offsets are calculated so that:
+              -height <= row+offset_row < height (and similarly for col)
+              negative indicies on self.map wrap thanks to python
+        """
+
+        if max_dist not in self.offsets_cache:
+            offsets = []
+            mx = int(sqrt(max_dist))
+            for d_row in range(-mx,mx+1):
+                for d_col in range(-mx,mx+1):
+                    d = d_row**2 + d_col**2
+                    if 0 < d <= max_dist:
+                        offsets.append((
+                            d_row%self.height-self.height,
+                            d_col%self.width-self.width
+                        ))
+            self.offsets_cache[max_dist] = offsets
+        return self.offsets_cache[max_dist]
+
     def get_vision(self, player):
         """ Determine which squares are visible to the given player """
 
-        vision = [[False for col in range(self.width)] for row in range(self.height)]
-        squares_to_check = deque()
+        offsets = self.neighbourhood_offsets(self.viewradius)
+        vision = [[False]*self.width for row in range(self.height)]
         for ant in self.player_ants(player):
-            squares_to_check.append((ant.loc, ant.loc))
-        while squares_to_check:
-            a_loc, v_loc = squares_to_check.popleft()
-            for d in AIM.values():
-                n_loc = self.destination(v_loc, d)
-                n_row, n_col = n_loc
-                if not vision[n_row][n_col] and self.distance(a_loc, n_loc) <= self.viewradius:
-                    vision[n_row][n_col] = True
-                    squares_to_check.append((a_loc, n_loc))
+            a_row, a_col = ant.loc
+            vision[a_row][a_col] = True
+            for v_row, v_col in offsets:
+                # offsets are such that there is never an IndexError
+                vision[a_row+v_row][a_col+v_col] = True
         return vision
 
     def update_revealed(self):
@@ -269,18 +287,25 @@ class Ants:
         """ Return a list of all transient objects on the map.
 
             Food, living ants, ants killed this turn
+            Changes are sorted so that the same state will result in the same output
         """
         changes = []
 
         # current ants
-        for ant in self.current_ants.values():
-            changes.append(['a', ant.loc[0], ant.loc[1], ant.owner])
+        changes.extend(sorted(
+            ['a', ant.loc[0], ant.loc[1], ant.owner]
+            for ant in self.current_ants.values()
+        ))
         # current food
-        for row, col in self.current_food:
-            changes.append(['f', row, col])
+        changes.extend(sorted(
+            ['f', row, col]
+            for row, col in self.current_food
+        ))
         # ants killed this turn
-        for ant in self.killed_ants:
-            changes.append(['d', ant.loc[0], ant.loc[1], ant.owner])
+        changes.extend(sorted(
+            ['d', ant.loc[0], ant.loc[1], ant.owner]
+            for ant in self.killed_ants
+        ))
 
         return changes
 
@@ -296,94 +321,127 @@ class Ants:
         result.append('') # newline
         return '\n'.join(result)
 
-    def nearby_ants(self, loc, exclude=None, min_dist=1, max_dist=2):
-        """ Returns ants where sqrt(min_dist) <= dist to loc <= sqrt(max_dist)
+    def nearby_ants(self, loc, max_dist, exclude=None):
+        """ Returns ants where 0 < dist to loc <= sqrt(max_dist)
 
-            Note that min_dist and max_dist are squares of the normal
-              euclidean distances.
             If exclude is not None, ants with owner == exclude
               will be ignored.
         """
+        ants = []
         row, col = loc
-        mx = SQRT[max_dist]
-        for d_row in range(-mx,mx+1):
-            for d_col in range(-mx,mx+1):
-                d = d_row**2 + d_col**2
-                if d >= min_dist and d <= max_dist:
-                    n_row = (row + d_row) % self.height
-                    n_col = (col + d_col) % self.width
-                    ant = self.current_ants.get((n_row, n_col), None)
-                    if ant and ant.owner != exclude:
-                        yield ant
+        for d_row, d_col in self.neighbourhood_offsets(max_dist):
+            if ANTS <= self.map[row+d_row][col+d_col] != exclude:
+                n_loc = self.destination(loc, (d_row, d_col))
+                ants.append(self.current_ants[n_loc])
+        return ants
 
-    def parse_orders(self, player, orders):
-        """ Parse orders from the given player """
-        new_orders = []
+    def parse_orders(self, player, lines):
+        """ Parse orders from the given player
+
+            Orders must be of the form: o row col direction
+            row, col must be integers
+            direction must be in (n,s,e,w)
+        """
+        orders = []
         valid = []
         invalid = []
-        try:
-            for line in orders:
-                line = line.strip().lower()
-                if line != '' and line[0] != '#':
-                    data = line.split()
-                    if data[0] == 'o':
-                        if not data[3] in AIM.keys():
-                            invalid.append(line + ' # invalid direction')
-                        #order = [int(data[1]), int(data[2]), data[3]]
-                        #o_col = (int(data[1]) - self.width//2 + self.center[player][0]) % self.width
-                        #o_row = (int(data[2]) - self.height//2 + self.center[player][1]) % self.height
-                        try:
-                            new_orders.append((int(data[1]), int(data[2]), data[3]))
-                            valid.append(line)
-                        except:
-                            invalid.append(line + ' # invalid row, col')
-            return new_orders, valid, invalid
-        except:
-            import traceback
-            traceback.print_exc()
-            print('error in parsing orders')
-            return ['fatal error in parsing orders']
 
-    def do_orders(self, player, orders):
-        """ Process the orders of the given player
+        for line in lines:
+            line = line.strip().lower()
+            # ignore blank lines and comments
+            if not line or line[0] == '#':
+                continue
 
-            Invalid orders are ignored.
-            Orders are only scheduled, they are actually executed by the
-              resolve_orders method after all players' orders have been
-              proccessed.
+            data = line.split()
+
+            # validate data format
+            if data[0] != 'o':
+                invalid.append((line, 'unknown action'))
+                continue
+            if len(data) != 4:
+                invalid.append((line, 'incorrectly formatted order'))
+                continue
+
+            row, col, direction = data[1:]
+            loc = None
+
+            # validate the data types
+            try:
+                loc = int(row), int(col)
+            except ValueError:
+                invalid.append((line,'invalid row or col'))
+                continue
+            if direction not in AIM:
+                invalid.append((line,'invalid direction'))
+                continue
+
+            # this order can be parsed
+            orders.append((loc, direction))
+            valid.append(line)
+
+        return orders, valid, invalid
+
+    def validate_orders(self, player, orders, lines, invalid):
+        """ Validate orders from a given player
+
+            Location (row, col) must be ant belonging to the player
+            direction must not be blocked
+            Can't multiple orders to one ant
         """
-        # process orders ignoring bad or duplicates
-        for order in orders:
-            row1, col1, d = order
-            row2, col2 = self.destination((row1, col1), AIM[d])
-
-            ant = self.current_ants[(row1, col1)]
-            if ant.owner != player: # must move your *own* ant
+        valid = []
+        valid_orders = []
+        seen_locations = set()
+        for line, (loc, direction) in zip(lines, orders):
+            # validate orders
+            if loc in seen_locations:
+                invalid.append((line,'duplicate order'))
                 continue
-            if ant.moved:           # ignore duplicate orders
+            try:
+                if self.map[loc[0]][loc[1]] != player:
+                    invalid.append((line,'not player ant'))
+                    continue
+            except IndexError:
+                invalid.append((line,'out of bounds'))
+                continue
+            dest = self.destination(loc, AIM[direction])
+            if self.map[dest[0]][dest[1]] in (FOOD, WATER):
+                invalid.append((line,'moved blocked'))
                 continue
 
-            if self.map[row2][col2] not in (FOOD, WATER): # good orders
-                ant.move((row2, col2), d)
+            # this order is valid!
+            valid_orders.append((loc, direction))
+            valid.append(line)
+            seen_locations.add(loc)
 
-    def resolve_orders(self):
+        return valid_orders, valid, invalid
+
+    def do_orders(self):
         """ Execute player orders and handle conflicts
 
             All ants are moved to their new positions.
             Any ants which occupy the same square are killed.
         """
-
-        # hold any ants that haven't moved and determine new locations
-        next_loc = defaultdict(list)
-        for ant in self.current_ants.values():
-            if not ant.moved:
-                ant.move(ant.loc)
-            next_loc[ant.loc].append(ant)
-
         # set old ant locations to land
         for ant in self.current_ants.values():
-            row, col = ant.prev_loc
+            row, col = ant.loc
             self.map[row][col] = LAND
+
+        # determine the direction that each ant moves
+        #  (holding any ants that don't have orders)
+        move_direction = {}
+        for player, orders in enumerate(self.orders):
+            for loc, direction in orders:
+                move_direction[self.current_ants[loc]] = direction
+        for ant in self.current_ants.values():
+            if ant not in move_direction:
+                move_direction[ant] = '-'
+
+        # move all the ants
+        next_loc = defaultdict(list)
+        for ant, direction in move_direction.items():
+            ant.loc = self.destination(ant.loc, AIM.get(direction, (0,0)))
+            ant.orders.append(direction)
+            next_loc[ant.loc].append(ant)
 
         # if ant is sole occupant of a new square then it survives
         self.current_ants = {}
@@ -391,7 +449,8 @@ class Ants:
             if len(ants) == 1:
                 self.current_ants[loc] = ants[0]
             else:
-                self.killed_ants.extend(ants)
+                for ant in ants:
+                    self.kill_ant(ant, True)
 
         # set new ant locations
         for ant in self.current_ants.values():
@@ -412,17 +471,18 @@ class Ants:
         # Determine new ant locations
         new_ant_locations = []
         for f_loc in self.current_food.keys():
-            owner = None
-            for ant in self.nearby_ants(f_loc, None, 1, self.spawnradius):
-                if owner == None:
-                    owner = ant.owner
-                elif owner != ant.owner:
-                    self.remove_food(f_loc)
-                    break
-            else:
-                if owner != None:
-                    food = self.remove_food(f_loc)
-                    new_ant_locations.append((food, owner))
+            # find the owners of all the ants near the food
+            nearby_players = set(
+                ant.owner for ant in self.nearby_ants(f_loc, self.spawnradius)
+            )
+
+            if len(nearby_players) == 1:
+                # spawn food because there is only one player near the food
+                food = self.remove_food(f_loc)
+                new_ant_locations.append((food, nearby_players.pop()))
+            elif nearby_players:
+                # remove food because it is contested
+                self.remove_food(f_loc)
 
         # Create new ants
         for food, owner in new_ant_locations:
@@ -477,21 +537,23 @@ class Ants:
         food.ant = ant
         return ant
 
-    def kill_ant(self, loc):
+    def kill_ant(self, ant, ignore_error=False):
         """ Kill the ant at the given location
 
             Raises an error if no ant is found at the location
+              (if ignore error is set to False)
         """
         try:
+            loc = ant.loc
             self.map[loc[0]][loc[1]] = LAND
-            ant = self.current_ants[loc]
             self.killed_ants.append(ant)
             ant.killed = True
             ant.die_turn = self.turn
             return self.current_ants.pop(loc)
         except KeyError:
-            raise Exception("Kill ant error",
-                            "Ant not found at %s" %(loc,))
+            if not ignore_error:
+                raise Exception("Kill ant error",
+                                "Ant not found at %s" %(loc,))
 
     def player_ants(self, player):
         """ Return the current ants belonging to the given player """
@@ -512,7 +574,7 @@ class Ants:
 
         # each ant damages nearby enemies
         for ant in self.current_ants.values():
-            enemies = list(self.nearby_ants(ant.loc, ant.owner, 1, self.attackradius))
+            enemies = self.nearby_ants(ant.loc, self.attackradius, ant.owner)
             if enemies:
                 nearby_enemies[ant] = enemies
                 damage_per_enemy = Fraction(1, len(enemies))
@@ -522,7 +584,7 @@ class Ants:
         # kill ants with at least 1 damage
         for ant in damage:
             if damage[ant] >= 1:
-                self.kill_ant(ant.loc)
+                self.kill_ant(ant)
                 score = Fraction(1, len(nearby_enemies[ant]))
                 for enemy in nearby_enemies[ant]:
                     self.score[enemy.owner] += score
@@ -543,7 +605,7 @@ class Ants:
             enemies = []
             friends = []
             # sort nearby ants into friend and enemy lists
-            for nearby_ant in self.nearby_ants(ant.loc, None, 1, self.attackradius):
+            for nearby_ant in self.nearby_ants(ant.loc, self.attackradius, ant.owner):
                 if nearby_ant.owner == ant.owner:
                     friends.append(nearby_ant)
                 else:
@@ -554,7 +616,7 @@ class Ants:
 
         # actually do the killing and score distribution
         for ant, enemies in ants_to_kill.items():
-            self.kill_ant(ant.loc)
+            self.kill_ant(ant)
             score_share = len(enemies)
             for enemy in enemies:
                 self.score[enemy.owner] += Fraction(1, score_share)
@@ -571,7 +633,7 @@ class Ants:
         # maps ants to nearby enemies
         nearby_enemies = {}
         for ant in self.current_ants.values():
-            nearby_enemies[ant] = list(self.nearby_ants(ant.loc, ant.owner, 1, self.attackradius))
+            nearby_enemies[ant] = self.nearby_ants(ant.loc, self.attackradius, ant.owner)
 
         # determine which ants to kill
         ants_to_kill = []
@@ -589,7 +651,7 @@ class Ants:
 
         # kill ants and distribute score
         for ant in ants_to_kill:
-            self.kill_ant(ant.loc)
+            self.kill_ant(ant)
             score_share = len(nearby_enemies[ant])
             for enemy in nearby_enemies[ant]:
                 self.score[enemy.owner] += Fraction(1, score_share)
@@ -602,7 +664,7 @@ class Ants:
         for ant in self.current_ants.values():
             # pre-compute distance to each enemy in range
             dist_map = defaultdict(list)
-            for enemy in self.nearby_ants(ant.loc, ant.owner, 1, self.attackradius):
+            for enemy in self.nearby_ants(ant.loc, self.attackradius, ant.owner):
                 dist_map[self.distance(ant.loc, enemy.loc)].append(enemy)
             ants_by_distance[ant] = dist_map
 
@@ -634,7 +696,7 @@ class Ants:
                     score_share = len(ant_group)
                     for ant in ant_group:
                         self.score[ant.owner] += Fraction(1, score_share)
-                        self.kill_ant(ant.loc)
+                        self.kill_ant(ant)
 
     def destination(self, loc, d):
         """ Returns the location produced by offsetting loc by d """
@@ -875,13 +937,12 @@ class Ants:
         """ Called by engine at the start of the turn """
         self.turn += 1
         self.killed_ants = []
-        for ant in self.current_ants.values():
-            ant.moved = False
         self.revealed_water = [[] for i in range(self.num_players)]
+        self.orders = [[] for i in range(self.num_players)]
 
     def finish_turn(self):
         """ Called by engine at the end of the turn """
-        self.resolve_orders()
+        self.do_orders()
         self.do_attack()
         self.do_spawn()
         self.do_food()
@@ -954,11 +1015,9 @@ class Ants:
     def do_moves(self, player, moves):
         """ Called by engine to give latest player orders """
         orders, valid, invalid = self.parse_orders(player, moves)
-        if len(invalid) == 0:
-            self.do_orders(player, orders)
-        else:
-            self.kill_player(player)
-        return valid, invalid
+        orders, valid, invalid = self.validate_orders(player, orders, valid, invalid)
+        self.orders[player] = orders
+        return valid, ['%s # %s' %error for error in invalid]
 
     def get_scores(self):
         """ Gets the scores of all players
@@ -1038,29 +1097,14 @@ class Ant:
         self.loc = loc
         self.owner = owner
 
-        self.prev_loc = None
         self.initial_loc = loc
         self.spawn_turn = spawn_turn
         self.die_turn = None
         self.orders = []
         self.killed = False
 
-        self.moved = False
-
     def __str__(self):
         return '(%s, %s, %s, %s, %s)' % (self.initial_loc, self.owner, self.spawn_turn, self.die_turn, ''.join(self.orders))
-
-    def move(self, new_loc, direction='-'):
-        """ Schedule ant to move - actual move is executed by resolve_orders """
-        if self.moved:
-            raise Exception("Move ant error",
-                            "This ant was already moved from %s to %s"
-                            %(self.prev_loc, self.loc))
-
-        self.prev_loc = self.loc
-        self.loc = new_loc
-        self.moved = True
-        self.orders.append(direction)
 
 class Food:
     def __init__(self, loc, start_turn):

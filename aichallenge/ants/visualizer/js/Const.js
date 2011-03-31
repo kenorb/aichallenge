@@ -9,11 +9,6 @@ var LEFT_PANEL_W = 48;
  */
 var RIGHT_PANEL_W = 48;
 /**
- * height of top panel
- * @const
- */
-var TOP_PANEL_H = 134;
-/**
  * height of bottom panel
  * @const
  */
@@ -46,3 +41,9 @@ var COLOR_SAND = '#FFD';
  * @const
  */
 var ZOOM_SCALE = 20;
+var INT_TO_HEX = new Array(256);
+(function() {
+	for (var i = 0; i < 16; i++) INT_TO_HEX[i] = '0' + i.toString(16);
+	for (; i < 256; i++) INT_TO_HEX[i] = i.toString(16);
+})();
+

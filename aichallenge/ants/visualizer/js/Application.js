@@ -3,17 +3,15 @@
  * @author <a href="mailto:marco.leise@gmx.de">Marco Leise</a>
  */
 
-/* @todo scrolling player names if too long; fade to the left and right
+/*
+ * @todo scroll map
  * @todo zoom in to 20x20 squares with animated ants
- * @todo animated single steps if possible (how?)
- * @todo menu items: clear, show fog, show attack, show birth,
+ * @todo menu items: clear, show attack, show birth,
  *     zoom, toggle graph/score bars, cpu use
  * @todo duplicate sprites that wrap around the map edge
  * @todo keep a minimum size to allow the controls to render
  * @todo setting for cpu usage
- * @todo set player colors from replay file (awaiting answer)
- * @todo show when a bot crashed (awaiting answer)
- * @todo clickable player names (requires user_id)
+ * @todo show when a bot crashed
  */
 
 LoadingState = {
@@ -59,13 +57,10 @@ Location.prototype.contains = function(x, y) {
  * @param {Node} container the html element, that the visualizer will embed into
  * @param {String} dataDir This relative path to the visualizer data files. You
  *     will get an error message if you forget the tailing '/'.
- * @param {String} codebase The java applet will be loaded from this location.
  * @param {Number} w an optional maximum width or undefined
  * @param {Number} h an optional maximum height or undefined
- * @param {Boolean} java if set to true or false, this overrides the
- *     auto-detection of the Java mode
  */
-Visualizer = function(container, dataDir, codebase, w, h, java) {
+Visualizer = function(container, dataDir, w, h) {
 	/**
 	 * any generated DOM elements will be placed here
 	 * @private
@@ -126,9 +121,7 @@ Visualizer = function(container, dataDir, codebase, w, h, java) {
 	 * @private
 	 */
 	this.options = {};
-	this.options['java'] = java;
 	this.options['data_dir'] = dataDir;
-	this.options['codebase'] = codebase;
 	// read URL parameters and store them in the parameters object
 	var equalPos, value, key, i;
 	var parameters = window.location.href.split(/\?/);
@@ -138,7 +131,7 @@ Visualizer = function(container, dataDir, codebase, w, h, java) {
 			equalPos = parameters[i].indexOf('=');
 			key = parameters[i].substr(0, equalPos);
 			value = parameters[i].substr(equalPos + 1);
-			if (key === 'java' || key === 'debug') value = new Boolean(value);
+			if (key === 'debug') value = new Boolean(value);
 			this.options[key] = value;
 		}
 	}
@@ -166,24 +159,13 @@ Visualizer = function(container, dataDir, codebase, w, h, java) {
 	 * @private
 	 */
 	this.log = document.createElement('div');
-	// print some information text
 	var text = 'Loading visualizer...';
 	text += '<table>';
 	for (key in this.options) {
 		value = this.options[key];
 		text += '<tr><td>-&nbsp;</td><td>' + key + '&nbsp;&nbsp;</td><td><b>' + value + '&nbsp;&nbsp;</b></td><td><i>';
-		if (key == "java") {
-			text += '(Display method: ';
-			if (value === undefined) {
-				this.options['java'] = !document.createElement('canvas').getContext;
-				text += (this.options['java'] ? 'Java Applet [autodetected]' : 'HTML Canvas [autodetected]') + ')';
-			} else {
-				text += (value ? 'Java Applet' : 'HTML Canvas') + ')';
-			}
-		} else if (key == "data_dir") {
+		if (key == "data_dir") {
 			text += '(Image directory)';
-		} else if (key == "codebase") {
-			text += '(Java codebase)';
 		}
 		text += '</i></td></tr>';
 	}
@@ -197,7 +179,8 @@ Visualizer = function(container, dataDir, codebase, w, h, java) {
 	 * images used by the visualizer
 	 * @private
 	 */
-	this.imgMgr = new ImageManager((dataDir || '') + 'img/', this, this.completedImages);
+	this.imgMgr = new ImageManager((dataDir || '') + 'img/', this,
+			this.completedImages);
 	this.imgMgr.add('wood.jpg');
 	this.imgMgr.add('playback.png');
 	this.imgMgr.add('fog.png');
@@ -222,9 +205,7 @@ Visualizer = function(container, dataDir, codebase, w, h, java) {
 	 */
 	this.fog = undefined;
 	this.loading = LoadingState.IDLE;
-	// If we use a Java applet, we have to delay the image requests until we
-	// can pass the image URLs over to it.
-	if (!this.options['java']) this.imgMgr.startRequests();
+	this.imgMgr.startRequests();
 }
 /**
  * @private
@@ -284,7 +265,7 @@ Visualizer.prototype.cleanUp = function() {
 	this.director.cleanUp();
 	if (this.replay && this.replay instanceof XMLHttpRequest) this.replay.abort();
 	this.replay = undefined;
-	if (this.main.element && !this.options['java']) {
+	if (this.main.element) {
 		if (this.container.firstChild === this.main.element) {
 			this.container.removeChild(this.main.element);
 		}
@@ -298,13 +279,12 @@ Visualizer.prototype.cleanUp = function() {
 };
 Visualizer.prototype.preload = function() {
 	if (this.loading !== LoadingState.IDLE) return true;
-	while (this.log.firstElement !== this.log.lastElement) {
-		this.log.removeElement(this.log.lastElement);
-	}
+	this.log.innerHTML = '';
 	this.cleanUp();
 	this.loading = LoadingState.LOADING;
 	return false;
 };
+
 /**
  * Loads a replay file located on the same server using a XMLHttpRequest.
  * @param {string} file the relative file name
@@ -318,7 +298,7 @@ Visualizer.prototype.loadReplayDataFromURI = function(file) {
 			if (vis.replay.readyState === 4) {
 				if (vis.loading === LoadingState.LOADING) {
 					if (vis.replay.status === 200) {
-						vis.replay = vis.replay.responseText;
+						vis.replay = '' + vis.replay.responseText;
 						vis.loadParseReplay();
 					} else {
 						vis.errorOut('Status ' + vis.replay.status + ': ' + vis.replay.statusText);
@@ -327,7 +307,7 @@ Visualizer.prototype.loadReplayDataFromURI = function(file) {
 			}
 		};
 		vis.replay.open("GET", file);
-		vis.replay.send(null);
+		vis.replay.send();
 		vis.loadCanvas(true);
 	});
 };
@@ -385,7 +365,9 @@ Visualizer.prototype.loadParseReplay = function() {
 	var vis = this;
 	this.progress('Parsing the replay...', function() {
 		if (!vis.replay) {
-			throw new Error('Replay is undefined.');
+			if (vis.loading !== LoadingState.CLEANUP) {
+				throw new Error('Replay is undefined.');
+			}
 		} else if (vis.replay instanceof Replay) { // has just been parsed
 			return;
 		} else if (typeof vis.replay == 'string') { // string only
@@ -407,44 +389,10 @@ Visualizer.prototype.loadParseReplay = function() {
 Visualizer.prototype.loadCanvas = function(prompt) {
 	var vis = this;
 	this.progress(prompt ? 'Creating canvas...' : undefined, function() {
-		var size = vis.calculateCanvasSize();
 		if (!vis.main.element) {
-			if (vis.options['java']) {
-				var token = appletManager.add(vis);
-				var e = document.createElement('applet');
-				vis.main.element = e;
-				var codebase = vis.options['codebase'];
-				if (codebase.substr(codebase.length - 4) === '.jar') {
-					e.setAttribute('archive', codebase);
-				} else {
-					e.setAttribute('codebase', codebase);
-				}
-				e.setAttribute('code', 'com.aicontest.visualizer.CanvasApplet');
-				e.setAttribute('width', size.width);
-				e.setAttribute('height', size.height);
-				e.setAttribute('mayscript', 'true');
-				var param = function(name, value) {
-					var p = document.createElement('param');
-					p.setAttribute('name', name);
-					p.setAttribute('value', value);
-					e.appendChild(p);
-					e.setAttribute(name, value);
-				}
-				if (vis.options['debug']) {
-					param('separate_jvm', 'true');
-					param('classloader_cache', 'false');
-					param('debug', true);
-				}
-				param('token', token);
-				vis.container.insertBefore(e, vis.log);
-				// wait for the applet to call back
-				return;
-			} else {
-				vis.main.element = document.createElement('canvas');
-				vis.main.canvas = vis.main.element;
-			}
+			vis.main.element = document.createElement('canvas');
+			vis.main.canvas = vis.main.element;
 		}
-		// from here on I can handle both canvases the same
 		vis.main.ctx = vis.main.canvas.getContext('2d');
 		e = vis.main.element;
 		if (vis.container.firstChild !== e) {
@@ -455,15 +403,6 @@ Visualizer.prototype.loadCanvas = function(prompt) {
 		vis.createCanvas(vis.scores);
 		vis.tryStart();
 	});
-};
-/**
- * Called by the AppletManager when the applet is initialized
- */
-Visualizer.prototype.initializedApplet = function() {
-	this.main.canvas = this.main.element['getMainCanvas']();
-	this.imgMgr.javaApplet = this.main.element;
-	this.imgMgr.startRequests();
-	this.loadCanvas(false);
 };
 /**
  * Called by the ImageManager when no more images are loading
@@ -485,9 +424,11 @@ Visualizer.prototype.tryStart = function() {
 	if (this.replay && this.replay instanceof Replay) {
 		if (this.main.ctx && !this.imgMgr.error && !this.imgMgr.pending) {
 			var vis = this;
+			// add static buttons
 			if (!vis.btnMgr.groups['playback']) {
-				bg = vis.btnMgr.addImageGroup('playback', vis.imgMgr.images[1],
-						ImageButtonGroup.HORIZONTAL, ButtonGroup.MODE_NORMAL, 2);
+				var bg = vis.btnMgr.addImageGroup('playback',
+						vis.imgMgr.images[1], ImageButtonGroup.HORIZONTAL,
+						ButtonGroup.MODE_NORMAL, 2);
 				bg.addButton(3, function() {vis.director.gotoTick(0)});
 				bg.addSpace(32);
 				bg.addButton(5, function() {
@@ -522,24 +463,44 @@ Visualizer.prototype.tryStart = function() {
 			}
 			// generate fog images
 			var colors = [null];
-			for (i = 0; i < this.replay.players.length; i++) {
-				colors.push(this.replay.players[i]['color']);
+			for (i = 0; i < this.replay.players; i++) {
+				colors.push(this.replay.meta['playercolors'][i]);
 			}
-			if (this.highestPlayerCount < this.replay.players.length) {
-				this.highestPlayerCount = this.replay.players.length;
+			if (this.highestPlayerCount < this.replay.players) {
+				this.highestPlayerCount = this.replay.players;
 				this.imgMgr.colorize(2, colors);
 			}
-			var bg = this.btnMgr.addImageGroup('fog', this.imgMgr.patterns[2],
+			bg = this.btnMgr.addImageGroup('fog', this.imgMgr.patterns[2],
 				ImageButtonGroup.VERTICAL, ButtonGroup.MODE_RADIO, 2);
+			var buttonAdder = function(fog) {
+				return bg.addButton(i, function() {vis.showFog(fog);});
+			}
 			for (var i = 0; i < colors.length; i++) {
-				var buttonAdder = function(fog) {
-					return bg.addButton(i, function() {vis.showFog(fog);});
-				}
 				if (i == 0) {
 					buttonAdder(undefined).down = true;
 				} else {
 					buttonAdder(i - 1);
 				}
+			}
+			// add player buttons
+			bg = this.btnMgr.addTextGroup('players', TextButtonGroup.FLOW,
+					ButtonGroup.MODE_NORMAL, 2);
+			bg.addButton('Players:', '#888');
+			buttonAdder = function(i) {
+				var color = vis.replay.htmlPlayerColors[i];
+				var func = null;
+				if (vis.replay.meta['user_url'] && vis.replay.meta['user_ids']
+						&& vis.replay.meta['user_ids'][i]) {
+					func = function() {
+						window.location.href =
+								vis.replay.meta['user_url'].replace('~',
+										vis.replay.meta['user_ids'][i]);
+					};
+				}
+				bg.addButton(vis.replay.meta['players'][i], color, func);
+			}
+			for (i = 0; i < this.replay.players; i++) {
+				buttonAdder(i);
 			}
 			// try to make the replays play 1 minute, but the turns take no more than a second
 			this.director.duration = this.replay.turns.length - 1;
@@ -560,32 +521,28 @@ Visualizer.prototype.tryStart = function() {
 				}
 				vis.keyPressed(event.keyCode);
 			};
-			if (this.options['java']) {
-				this.main.element['setInputHandler'](this);
-			} else {
-				// setup mouse handlers
-				this.main.element.onmousemove = function(event) {
-					var mx = 0;
-					var my = 0;
-					var obj = this;
-					if (this.offsetParent) do {
-						mx += obj.offsetLeft;
-						my += obj.offsetTop;
-					} while ((obj = obj.offsetParent));
-					mx = (event || window.event).clientX - mx + ((window.scrollX === undefined) ? (document.body.parentNode.scrollLeft !== undefined) ? document.body.parentNode.scrollLeft : document.body.scrollLeft : window.scrollX);
-					my = (event || window.event).clientY - my + ((window.scrollY === undefined) ? (document.body.parentNode.scrollTop !== undefined) ? document.body.parentNode.scrollTop : document.body.scrollTop : window.scrollY);
-					vis.mouseMoved(mx, my);
-				};
-				this.main.element.onmouseout = function() {
-					vis.mouseExited();
-				};
-				this.main.element.onmousedown = function() {
-					vis.mousePressed();
-				};
-				this.main.element.onmouseup = function() {
-					vis.mouseReleased();
-				};
-			}
+			// setup mouse handlers
+			this.main.element.onmousemove = function(event) {
+				var mx = 0;
+				var my = 0;
+				var obj = this;
+				if (this.offsetParent) do {
+					mx += obj.offsetLeft;
+					my += obj.offsetTop;
+				} while ((obj = obj.offsetParent));
+				mx = (event || window.event).clientX - mx + ((window.scrollX === undefined) ? (document.body.parentNode.scrollLeft !== undefined) ? document.body.parentNode.scrollLeft : document.body.scrollLeft : window.scrollX);
+				my = (event || window.event).clientY - my + ((window.scrollY === undefined) ? (document.body.parentNode.scrollTop !== undefined) ? document.body.parentNode.scrollTop : document.body.scrollTop : window.scrollY);
+				vis.mouseMoved(mx, my);
+			};
+			this.main.element.onmouseout = function() {
+				vis.mouseExited();
+			};
+			this.main.element.onmousedown = function() {
+				vis.mousePressed();
+			};
+			this.main.element.onmouseup = function() {
+				vis.mouseReleased();
+			};
 			window.onresize = function() {
 				vis.resize();
 			};
@@ -601,7 +558,7 @@ Visualizer.prototype.tryStart = function() {
 };
 Visualizer.prototype.calculateCanvasSize = function() {
 	var result = {};
-	if (typeof(window.innerWidth) == 'number' ) {
+	if (typeof(window.innerWidth) == 'number') {
 		//Non-IE
 		result.width = window.innerWidth;
 		result.height = window.innerHeight;
@@ -610,38 +567,37 @@ Visualizer.prototype.calculateCanvasSize = function() {
 		result.width = document.documentElement.clientWidth;
 		result.height = document.documentElement.clientHeight;
 	}
-	result.width = (this.w && (!this.config['fullscreen'] || this.options['java']) ? this.w : result.width);
-	result.height = (this.h && (!this.config['fullscreen'] || this.options['java']) ? this.h : result.height - 4);
+	result.width = (this.w && !this.config['fullscreen']) ? this.w : result.width;
+	result.height = (this.h && !this.config['fullscreen']) ? this.h : result.height;
 	return result;
 };
 Visualizer.prototype.createCanvas = function(obj) {
 	if (!obj.canvas) {
-		if (this.options['java']) {
-			obj.canvas = this.main.element['createCanvas']();
-		} else {
-			obj.canvas = document.createElement('canvas');
-		}
+		obj.canvas = document.createElement('canvas');
 	}
 	if (!obj.ctx) {
 		obj.ctx = obj.canvas.getContext('2d');
 	}
 };
 Visualizer.prototype.setFullscreen = function(enable) {
-	if (this.options['java']) {
-		this.config['fullscreen'] = false;
+	if (window.setFullscreen) {
+		this.config['fullscreen'] = window.setFullscreen(enable);
 	} else {
-		var html = document.getElementsByTagName("html")[0];
 		this.config['fullscreen'] = enable;
-		if (enable) {
-			this.container.removeChild(this.main.element);
-			var tempBody = document.createElement("body");
-			tempBody.appendChild(this.main.element);
-			this.savedBody = html.replaceChild(tempBody, document.body);
-		} else if (this.savedBody) {
-			document.body.removeChild(this.main.element);
-			this.container.appendChild(this.main.element);
-			html.replaceChild(this.savedBody, document.body);
-			delete this.savedBody;
+		if (enable || this.savedBody) {
+			var html = document.getElementsByTagName("html")[0];
+			if (enable) {
+				this.container.removeChild(this.main.element);
+				var tempBody = document.createElement("body");
+				tempBody.style.overflow = 'hidden';
+				tempBody.appendChild(this.main.element);
+				this.savedBody = html.replaceChild(tempBody, document.body);
+			} else if (this.savedBody) {
+				document.body.removeChild(this.main.element);
+				this.container.appendChild(this.main.element);
+				html.replaceChild(this.savedBody, document.body);
+				delete this.savedBody;
+			}
 		}
 	}
 	this.resize(true);
@@ -654,22 +610,45 @@ Visualizer.prototype.setAntLabels = function(enable) {
 };
 Visualizer.prototype.resize = function(forced) {
 	var olds = {
-		width: this.main.element.getAttribute('width'),
-		height: this.main.element.getAttribute('height')
+		width: this.main.element.width,
+		height: this.main.element.height
 	};
 	var news = this.calculateCanvasSize();
 	var resizing = news.width != olds.width || news.height != olds.height;
 	if (resizing || forced) {
 		if (resizing) {
-			this.main.element.setAttribute('width', news.width);
-			this.main.element.setAttribute('height', news.height);
-			if (this.options['java']) {
-				this.main.element['setSize'](news.width, news.height);
-			}
+			this.main.element.width = news.width;
+			this.main.element.height = news.height;
 		}
-		this.loc.vis = new Location(LEFT_PANEL_W, TOP_PANEL_H,
+		var canvas = this.main.canvas;
+		var ctx = this.main.ctx;
+		ctx.fillStyle = '#fff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		// 1. player buttons
+		var y = this.btnMgr.groups['players'].cascade(news.width) + 4;
+		// 2. scores bar & time line
+		this.loc.graph = new Location(4, y + 66, news.width - 8, 64);
+		this.loc.scorebar = new Location(95, y +  4, news.width - 4 - 95, 22);
+		this.loc.countbar = new Location(95, y + 38, news.width - 4 - 95, 22);
+		ctx.lineWidth = 2;
+		shapeRoundedRect(ctx, 0, y, canvas.width, 30, 1, 5);
+		ctx.stroke();
+		shapeRoundedRect(ctx, 0, y + 34, canvas.width, 100, 1, 5);
+		ctx.moveTo(0, y + 63);
+		ctx.lineTo(canvas.width, y + 63);
+		ctx.stroke();
+		ctx.lineWidth = 1;
+		ctx.fillStyle = '#888';
+		ctx.textAlign = 'left';
+		ctx.textBaseline = 'middle';
+		ctx.font = 'bold 20px Arial';
+		ctx.fillText('scores', 4, y + 15);
+		ctx.fillText('# of ants', 4, y + 49);
+		y += 134;
+		// 3. visualizer placement
+		this.loc.vis = new Location(LEFT_PANEL_W, y,
 			news.width - LEFT_PANEL_W - RIGHT_PANEL_W,
-			news.height - TOP_PANEL_H - BOTTOM_PANEL_H);
+			news.height - y - BOTTOM_PANEL_H);
 		this.scale = Math.min(10, Math.max(1, Math.min(
 			(this.loc.vis.w - 2 * ZOOM_SCALE) / (this.replay.cols),
 			(this.loc.vis.h - 2 * ZOOM_SCALE) / (this.replay.rows)))) | 0;
@@ -680,9 +659,8 @@ Visualizer.prototype.resize = function(forced) {
 		this.border.canvas.width = this.loc.map.w + 2 * ZOOM_SCALE;
 		this.border.canvas.height = this.loc.map.h + 2 * ZOOM_SCALE;
 		this.renderBorder();
-		this.loc.scores = new Location(4, 66, news.width - 8, 64);
-		this.scores.canvas.width = this.loc.scores.w;
-		this.scores.canvas.height = this.loc.scores.h;
+		this.scores.canvas.width = this.loc.graph.w;
+		this.scores.canvas.height = this.loc.graph.h;
 		this.renderCounts();
 		this.map.canvas.width = this.loc.map.w;
 		this.map.canvas.height = this.loc.map.h;
@@ -696,24 +674,6 @@ Visualizer.prototype.resize = function(forced) {
 		bg.x = this.loc.vis.x + this.loc.vis.w;
 		bg.y = this.loc.vis.y + 8;
 		// redraw everything
-		var ctx = this.main.ctx;
-		var canvas = this.main.canvas;
-		ctx.fillStyle = '#fff';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.lineWidth = 2;
-		shapeRoundedRect(ctx, 0, 0, canvas.width, 30, 1, 5);
-		ctx.stroke();
-		shapeRoundedRect(ctx, 0, 34, canvas.width, 100, 1, 5);
-		ctx.moveTo(0, 63);
-		ctx.lineTo(canvas.width, 63);
-		ctx.stroke();
-		ctx.lineWidth = 1;
-		ctx.fillStyle = '#888';
-		ctx.textAlign = 'left';
-		ctx.textBaseline = 'middle';
-		ctx.font = 'bold 20px Arial';
-		ctx.fillText('scores', 4, 15);
-		ctx.fillText('# of ants', 4, 49);
 		this.btnMgr.draw();
 		this.director.draw();
 	}
@@ -825,9 +785,8 @@ Visualizer.prototype.renderCounts = function() {
 	ctx.lineTo(0.5 + scaleX * this.replay.turns.length, h + 0.5);
 	ctx.stroke();
 	var scaleY = h / (max - min);
-	for (i = this.replay.players.length - 1; i >= 0; i--) {
-		var color = this.replay.players[i]['color'];
-		ctx.strokeStyle = 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
+	for (i = this.replay.players - 1; i >= 0; i--) {
+		ctx.strokeStyle = this.replay.htmlPlayerColors[i];
 		ctx.beginPath();
 		ctx.moveTo(0.5, 0.5 + scaleY * (max - this.replay.turns[0].counts[i]));
 		for (k = 1; k < this.replay.turns.length; k++) {
@@ -846,8 +805,7 @@ Visualizer.prototype.renderFog = function(turn) {
 			this.createCanvas(this.fog);
 			this.fog.canvas.width = 2;
 			this.fog.canvas.height = 2;
-			var color = this.replay.players[this.fog.player]['color'];
-			this.fog.ctx.fillStyle = 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
+			this.fog.ctx.fillStyle = this.replay.htmlPlayerColors[this.fog.player];
 			this.fog.ctx.fillRect(0, 0, 1, 1);
 			this.fog.ctx.fillRect(1, 1, 1, 1);
 			this.fog.ptrn = this.border.ctx.createPattern(this.fog.canvas, 'repeat');
@@ -884,11 +842,11 @@ Visualizer.prototype.showFog = function(fog) {
 /**
  * @private
  */
-Visualizer.prototype.drawColorBar = function(x, y, w, h, values) {
+Visualizer.prototype.drawColorBar = function(loc, values) {
 	var sum = 0;
 	this.main.ctx.save();
 	this.main.ctx.beginPath();
-	this.main.ctx.rect(x, y, w, h);
+	this.main.ctx.rect(loc.x, loc.y, loc.w, loc.h);
 	this.main.ctx.clip();
 	for (var i = 0; i < values.length; i++) {
 		sum += values[i];
@@ -901,24 +859,22 @@ Visualizer.prototype.drawColorBar = function(x, y, w, h, values) {
 		}
 		sum = values.length;
 	}
-	var scale = w / sum;
-	var offsetX = x;
+	var scale = loc.w / sum;
+	var offsetX = loc.x;
 	for (i = 0; i < useValues.length; i++) {
 		var amount = scale * useValues[i];
-		var color = this.replay.players[i]['color'];
-		this.main.ctx.fillStyle = 'rgb(' + color[0] + ', ' + color[1] + ', ' + color[2] + ')';
-		this.main.ctx.fillRect(offsetX, y, w - offsetX + x, h);
+		this.main.ctx.fillStyle = this.replay.htmlPlayerColors[i];
+		this.main.ctx.fillRect(offsetX, loc.y, loc.w - offsetX + loc.x, loc.h);
 		offsetX += amount;
 	}
 	this.main.ctx.textAlign = 'left';
 	this.main.ctx.textBaseline = 'middle';
 	this.main.ctx.font = 'bold 16px Monospace';
 	this.main.ctx.fillStyle = 'rgba(0,0,0,0.5)';
-	var offsetY = y + 0.5 * h;
-	offsetX = x + 2;
+	var offsetY = loc.y + 0.5 * loc.h;
+	offsetX = loc.x + 2;
 	for (i = 0; i < useValues.length; i++) {
-		// work around a bug in Chrome's LiveConnect implementation
-		var text = '' + Math.round(values[i]);
+		var text = Math.round(values[i]);
 		var textWidth = this.main.ctx.measureText(text).width;
 		if (useValues[i] != 0 && scale * useValues[i] >= textWidth) {
 			this.main.ctx.fillText(text, offsetX, offsetY);
@@ -950,14 +906,12 @@ Visualizer.prototype.interpolate = function(array1, array2, delta) {
  */
 Visualizer.prototype.draw = function(time, tick) {
 	var x, y, w, d;
-	var drawOrder = [];
 	var turn = (time | 0);
 	// draw the map background
-	this.main.ctx.fillStyle = '#ff3';
 	this.main.ctx.drawImage(this.map.canvas, this.loc.map.x, this.loc.map.y);
+	// draw scores
 	w = this.main.canvas.width;
 	if (tick !== undefined) {
-		//document.getElementById('lblTurn').innerHTML = ((turn > this.replay.turns.length - 2) ? 'end result' : turn + ' / ' + (this.replay.turns.length - 2));
 		if (this.fog !== undefined) this.renderFog(turn);
 		//var array1 = this.replay.turns[turn];
 		//var array2 = (time === turn) ? array1 : this.replay.turns[turn + 1];
@@ -965,69 +919,76 @@ Visualizer.prototype.draw = function(time, tick) {
 		//this.drawColorBar(95,  4, w - 4 - 95, 22, scores);
 		//var counts = this.interpolate(array1.counts, array2.counts, time - turn);
 		//this.drawColorBar(95, 38, w - 4 - 95, 22, counts);
-		this.drawColorBar(95,  4, w - 4 - 95, 22, this.replay.turns[turn].scores);
-		this.drawColorBar(95, 38, w - 4 - 95, 22, this.replay.turns[turn].counts);
+		this.drawColorBar(this.loc.scorebar, this.replay.turns[turn].scores);
+		this.drawColorBar(this.loc.countbar, this.replay.turns[turn].counts);
 	}
-	this.main.ctx.drawImage(this.scores.canvas, this.loc.scores.x, this.loc.scores.y);
+	this.main.ctx.drawImage(this.scores.canvas, this.loc.graph.x, this.loc.graph.y);
+	this.main.ctx.lineWidth = 1;
 	this.main.ctx.beginPath();
-	this.main.ctx.moveTo(this.loc.scores.x + 0.5 + (this.loc.scores.w - 1) * time / (this.replay.turns.length - 1), this.loc.scores.y + 0.5);
-	this.main.ctx.lineTo(this.loc.scores.x + 0.5 + (this.loc.scores.w - 1) * time / (this.replay.turns.length - 1), this.loc.scores.y + this.loc.scores.h - 0.5);
+	this.main.ctx.moveTo(this.loc.graph.x + 0.5 + (this.loc.graph.w - 1) * time / (this.replay.turns.length - 1), this.loc.graph.y + 0.5);
+	this.main.ctx.lineTo(this.loc.graph.x + 0.5 + (this.loc.graph.w - 1) * time / (this.replay.turns.length - 1), this.loc.graph.y + this.loc.graph.h - 0.5);
 	this.main.ctx.stroke();
+	// turn number
 	var isStop = (turn === this.replay.turns.length - 1);
 	this.main.ctx.fillStyle = '#888';
+	this.main.ctx.textBaseline = 'middle';
 	this.main.ctx.fillText('# of ants | ' + (isStop ? 'end' : 'turn '
 			+ (turn + 1) + '/' + (this.replay.turns.length - 1)),
-			this.loc.scores.x, this.loc.scores.y + 11);
+			this.loc.graph.x, this.loc.graph.y + 11);
+	// ants...
+	var drawStates = {};
 	for (var i = 0; i < this.replay.turns[turn].ants.length; i++) {
 		var antObj = this.replay.turns[turn].ants[i].interpolate(time, Quality.LOW);
 		this.correctCoords(antObj, this.replay.cols, this.replay.rows);
-		drawOrder.push(antObj);
+		var hash = INT_TO_HEX[antObj['r']] + INT_TO_HEX[antObj['g']] + INT_TO_HEX[antObj['b']];
+		if (!drawStates[hash]) drawStates[hash] = [];
+		drawStates[hash].push(antObj);
 	}
-	for (var n = 0; n < drawOrder.length; n++) {
-		antObj = drawOrder[n];
-		if (this.config['zoom']) {
-			this.main.ctx.save();
-			this.main.ctx.globalAlpha = antObj.alpha;
-			x = ZOOM_SCALE * (antObj.x + 0.5);
-			y = ZOOM_SCALE * (antObj.y + 0.5);
-			this.main.ctx.translate(x, y);
-			this.main.ctx.rotate(antObj.angle + Math.sin(20 * time) * antObj.jitter);
-			this.main.ctx.drawImage(this.imgMgr.ants[antObj.type], -10, -10);
-			this.main.ctx.restore();
-			x += 3 * Math.tan(2 * (Math.random() - 0.5));
-			y += 3 * Math.tan(2 * (Math.random() - 0.5));
-			if (antObj.alpha == 1) {
-				var sin = -Math.sin(antObj.angle);
-				var cos = +Math.cos(antObj.angle);
-				this.ctxMap.moveTo(x - sin, y - cos);
-				this.ctxMap.lineTo(x + sin, y + cos);
+	// sorting by render state gives slight fps improvements
+	for (var key in drawStates) {
+		this.main.ctx.fillStyle = '#' + key;
+		var drawList = drawStates[key];
+		for (var n = 0; n < drawList.length; n++) {
+			antObj = drawList[n];
+			if (this.config['zoom']) {
+				this.main.ctx.save();
+				this.main.ctx.globalAlpha = antObj.alpha;
+				x = ZOOM_SCALE * (antObj.x + 0.5);
+				y = ZOOM_SCALE * (antObj.y + 0.5);
+				this.main.ctx.translate(x, y);
+				this.main.ctx.rotate(antObj.angle + Math.sin(20 * time) * antObj.jitter);
+				this.main.ctx.drawImage(this.imgMgr.ants[antObj.type], -10, -10);
+				this.main.ctx.restore();
+				x += 3 * Math.tan(2 * (Math.random() - 0.5));
+				y += 3 * Math.tan(2 * (Math.random() - 0.5));
+				if (antObj.alpha == 1) {
+					var sin = -Math.sin(antObj.angle);
+					var cos = +Math.cos(antObj.angle);
+					this.ctxMap.moveTo(x - sin, y - cos);
+					this.ctxMap.lineTo(x + sin, y + cos);
+				}
+			} else {
+				x = Math.round(this.scale * antObj['x']) + this.loc.map.x;
+				y = Math.round(this.scale * antObj['y']) + this.loc.map.y;
+				w = this.scale;
+				if (antObj['size'] !== 1) {
+					d = 0.5 * (1.0 - antObj['size']) * this.scale;
+					x += d;
+					y += d;
+					w *= antObj['size'];
+				}
+				this.main.ctx.fillRect(x, y, w, w);
 			}
-		} else {
-			x = Math.round(this.scale * antObj['x']) + this.loc.map.x;
-			y = Math.round(this.scale * antObj['y']) + this.loc.map.y;
-			w = this.scale;
-			if (antObj['size'] !== 1) {
-				d = 0.5 * (1.0 - antObj['size']) * this.scale;
-				x += d;
-				y += d;
-				w *= antObj['size'];
-			}
-			this.main.ctx.fillStyle = 'rgb(' + antObj['r'] + ', ' + antObj['g'] + ', ' + antObj['b'] + ')';
-			this.main.ctx.fillRect(x, y, w, w);
 		}
 	}
 	// draw border over ants, that moved out of the map
 	this.main.ctx.drawImage(this.border.canvas, this.loc.map.x - ZOOM_SCALE, this.loc.map.y - ZOOM_SCALE);
-	if (this.options['java']) {
-		// stop Closure Compiler from renaming this Java method
-		this.main.element['repaint']();
-	}
 };
 Visualizer.prototype.mouseMoved = function(mx, my) {
 	this.mouseX = mx;
 	this.mouseY = my;
-	if (this.mouseDown && this.loc.scores.contains(this.mouseX, this.mouseY)) {
-		mx = (this.mouseX - this.loc.scores.x) / (this.loc.scores.w - 1);
+	if (this.mouseDown && this.loc.graph.contains(this.mouseX, this.mouseY)) {
+		mx = (this.mouseX - this.loc.graph.x) / (this.loc.graph.w - 1);
 		mx = Math.round(mx * (this.replay.turns.length - 1));
 		this.director.gotoTick(mx);
 	} else {
@@ -1036,8 +997,8 @@ Visualizer.prototype.mouseMoved = function(mx, my) {
 };
 Visualizer.prototype.mousePressed = function() {
 	this.mouseDown = true;
-	if (this.loc.scores.contains(this.mouseX, this.mouseY)) {
-		var mx = (this.mouseX - this.loc.scores.x) / (this.loc.scores.w - 1);
+	if (this.loc.graph.contains(this.mouseX, this.mouseY)) {
+		var mx = (this.mouseX - this.loc.graph.x) / (this.loc.graph.w - 1);
 		mx = Math.round(mx * (this.replay.turns.length - 1));
 		this.director.gotoTick(mx);
 	} else {
@@ -1095,10 +1056,3 @@ Visualizer.prototype.keyReleased = function() {
 Visualizer.prototype['loadReplayData'] = Visualizer.prototype.loadReplayData;
 Visualizer.prototype['loadReplayDataFromPHP'] = Visualizer.prototype.loadReplayDataFromPHP;
 Visualizer.prototype['loadReplayDataFromURI'] = Visualizer.prototype.loadReplayDataFromURI;
-Visualizer.prototype['mouseEntered'] = Visualizer.prototype.mouseEntered;
-Visualizer.prototype['mouseExited'] = Visualizer.prototype.mouseExited;
-Visualizer.prototype['mouseMoved'] = Visualizer.prototype.mouseMoved;
-Visualizer.prototype['mousePressed'] = Visualizer.prototype.mousePressed;
-Visualizer.prototype['mouseReleased'] = Visualizer.prototype.mouseReleased;
-Visualizer.prototype['keyPressed'] = Visualizer.prototype.keyPressed;
-Visualizer.prototype['keyReleased'] = Visualizer.prototype.keyReleased;
