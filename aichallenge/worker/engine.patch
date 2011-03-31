@@ -1,0 +1,27 @@
+diff --git a/worker/engine.py b/worker/engine.py
+index 4f72df9..8c554c3 100644
+--- a/worker/engine.py
++++ b/worker/engine.py
+@@ -4,8 +4,13 @@ import time
+ import traceback
+ import os
+ import sys
++from mapviewer import *
+ 
+ def run_game(game, botcmds, options, gameid=0):
++    visualizer = bool('visualizer' in options)
++    visualizer = False
++    if visualizer:
++      mapview = mapViewer(game)
+     output_json = bool('output_json' in options)
+     error = ''
+     if 'output_dir' in options:
+@@ -129,6 +134,8 @@ def run_game(game, botcmds, options, gameid=0):
+                                     bot_output_log[b].flush()
+                                     of.write(tmp)
+                                     of.flush()
++                            if visualizer:
++                              mapview.updateMap(game)
+ 
+                     game.finish_turn()
+                     
