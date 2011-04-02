@@ -73,6 +73,26 @@ Ant* Map::setAntAt(const Location &loc, Ant* ant)
     state.ants_grid[loc.row][loc.col] = (int)ant;
     return ant;
 }
+
+double Map::distance(const Location &loc1, const Location &loc2)
+{
+    int d1 = abs(loc1.row-loc2.row),
+        d2 = abs(loc1.col-loc2.col),
+        dr = min(d1, state.rows-d1),
+        dc = min(d2, state.cols-d2);
+    return sqrt(dr*dr + dc*dc);
+}
+
+double Map::distance_vector(const Location &loc1, vector2f loc2)
+{
+    double d1 = abs((double)loc1.row-loc2.y),
+           d2 = abs((double)loc1.col-loc2.x),
+           dr = min(d1, state.rows-d1),
+           dc = min(d2, state.cols-d2);
+    return sqrt(dr*dr + dc*dc);
+}
+
+
 /*
 bool Map::locationThink(const Location& loc)
 {

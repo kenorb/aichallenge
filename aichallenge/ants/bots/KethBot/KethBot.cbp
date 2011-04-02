@@ -5,7 +5,7 @@
 		<Option title="KethBot" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="AI\;" />
+		<Option virtualFolders="AI\;AI\Others\;" />
 		<Build>
 			<Target title="ShowLog">
 				<Option output="KethBot.exe" prefix_auto="0" extension_auto="0" />
@@ -97,7 +97,18 @@
 			<Option virtualFolder="AI\" />
 		</Unit>
 		<Unit filename="AI\Bug.h" />
-		<Unit filename="AI\Location.h" />
+		<Unit filename="AI\Location.cc">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="AI\Location.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="AI\Map.cc">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="AI\Map.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
 		<Unit filename="AI\MyBot.cc" />
 		<Unit filename="AI\State.cc">
 			<Option virtualFolder="AI\" />
@@ -107,7 +118,13 @@
 		</Unit>
 		<Unit filename="AI\Timer.h" />
 		<Unit filename="AI\const.h">
-			<Option virtualFolder="AI\" />
+			<Option virtualFolder="AI\Others\" />
+		</Unit>
+		<Unit filename="AI\globals.cc">
+			<Option virtualFolder="AI\Others\" />
+		</Unit>
+		<Unit filename="AI\globals.h">
+			<Option virtualFolder="AI\Others\" />
 		</Unit>
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp" />

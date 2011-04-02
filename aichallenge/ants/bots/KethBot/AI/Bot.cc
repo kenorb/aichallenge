@@ -13,7 +13,7 @@
 Bot::Bot()
 {
 
-};
+}
 
 void Bot::playGame()
 {
@@ -28,7 +28,14 @@ void Bot::playGame()
         onThink();
         endTurn();
     }
-};
+}
+
+double Bot::getExpandForce()
+{
+    double ret = (0.5 - state.areaCoverage) * 10;
+    if (abs(ret) > 1) ret = 1 * sign(ret);
+    return ret;
+}
 
 void Bot::firstMove()
 {
@@ -62,36 +69,43 @@ void Bot::validateAnts()
     }
 }
 
+Ant* getAnt(int id)
+{
+    Location loc = state.ants[id];
+    Ant* ret = gameMap.getAntAt(loc);
+    #ifdef __DEBUG
+    if (!ret) logger.logError("Structural ant at location not found");
+    #endif
+    return ret;
+}
+
 void Bot::makeMoves()
 {
     if (state.turn == 1) firstMove();
     #ifdef __DEBUG
     logger.debugLog << "ACTION: makeMoves()" << endl;
+    logger.debugLog << "Expand force: " << getExpandForce() << endl;
     #endif
 
-    for(int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++)
-    {
-        Location loc = state.ants[ant_id];
-        Ant* ant = gameMap.getAntAt(loc);
-        if (ant) {
-            ant->onThink();
-        } else {
-            #ifdef __DEBUG
-            logger.logError("Structural ant at location not found");
-            #endif
-        }
-    }
+    // Let ants think before they move
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) getAnt(ant_id)->prepareMove();
+
+    // Ask ants to move
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) getAnt(ant_id)->onThink();
 }
 
 void Bot::updateMap()
 {
     state.updateFogOfWar();
+    #ifdef __DEBUG
     logger.logMapState();
+    #endif
 }
 
 void Bot::onThink()
 {
     #ifdef __DEBUG
+    logger.debugLog << " --- BEGIN: Bot::onThink() --- " << endl;
     logger.logPreState(false);
     #endif
 
@@ -105,9 +119,9 @@ void Bot::onThink()
     }
 
     logger.logPostState();
+
+    logger.debugLog << " --- ENDOF: Bot::onThink() --- " << endl;
     #endif
-
-
 };
 
 void Bot::endTurn()

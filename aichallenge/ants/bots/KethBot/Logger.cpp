@@ -20,6 +20,14 @@ Logger::~Logger()
     debugLog.close();
 }
 
+void Logger::saveJson()
+{
+    debugLog << "Saving JSON... ";
+    std::string outputData = debugOutput.write(debugNode);
+    jsonLog.setText(outputData);
+    debugLog << "[DONE]" << endl;
+}
+
 void Logger::logError(std::string error)
 {
     debugLog << "[ERROR] [TURN #" << (int)state.turn << "]: " << error << endl;
@@ -35,6 +43,10 @@ void Logger::logWarning(std::string warning)
 
 void Logger::logPreState(bool init)
 {
+    char key[15];
+    std::stringstream os;
+    sprintf(key, "%03i", state.turn);
+
     if (init) {
         logger.debugLog << "INPUT DATA:" << endl;
         logger.debugLog << "cols: " << (int)state.cols << endl;
@@ -44,10 +56,6 @@ void Logger::logPreState(bool init)
         logger.debugLog << "spawnRadius: " << (double)state.spawnradius << endl;
         logger.debugLog << "viewRadius: " << (double)state.viewradius << endl << endl;
     } else {
-        char key[11];
-        std::stringstream os;
-
-        sprintf(key, "%03i", state.turn);
         debugNode[key]["ants_alive"] = state.ants.size();
 
         os << state;
@@ -65,24 +73,22 @@ void Logger::logPreState(bool init)
             {
                 Ant* ant = (*iter_ant);
                 if (ant) {
-                    char loc[32];
-                    sprintf(loc, "#%ix%i", ant->getLocation().row, ant->getLocation().col);
-                    debugNode[key][loc] = ant->id;
+                    char key2[32];
+                    sprintf(key2, "#%ix%i", ant->getLocation().row, ant->getLocation().col);
+                    debugNode[key][key2] = ant->id;
                 } else {
                     logger.logError("Found a removed structural ant");
                 }
 
             }
         }
-
-        std::string outputData = debugOutput.write(debugNode);
-        logger.jsonLog.setText(outputData);
+        saveJson();
     }
 }
 
 void Logger::logMapState()
 {
-    char key[11];
+    char key[15];
     sprintf(key, "%03i", state.turn);
 
     std::stringstream os;
@@ -95,21 +101,43 @@ void Logger::logMapState()
     debugNode[key]["visibility_coverage"] = os.str();
     os.str("");
 
-    std::string outputData = debugOutput.write(debugNode);
-    logger.jsonLog.setText(outputData);
+    os << (double)state.areaCoverage;
+    debugNode[key]["area_coverage"] = os.str();
+    os.str("");
+
+    saveJson();
 }
 
 
 void Logger::logPostState()
 {
-    char key[11];
+    char key[15];
     std::stringstream os;
 
     sprintf(key, "%03i", state.turn);
 
     debugNode[key]["ants_structural"] = state.structuralAnts.size();
 
-    std::string outputData = debugOutput.write(debugNode);
-    logger.jsonLog.setText(outputData);
+        if (state.structuralAnts.size() > 0) {
+
+            std::list<Ant*>::iterator iter_ant;
+            for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
+            {
+                Ant* ant = (*iter_ant);
+                if (ant) {
+                    char key2[32];
+                    sprintf(key2, "#ant%i_x", ant->id);
+                    debugNode[key][key2] = (int)round(ant->physicalPosition.x);
+
+                    sprintf(key2, "#ant%i_y", ant->id);
+                    debugNode[key][key2] = (int)round(ant->physicalPosition.y);
+                } else {
+                    logger.logError("Found a removed structural ant");
+                }
+
+            }
+        }
+
+    saveJson();
 }
 

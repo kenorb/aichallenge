@@ -10,6 +10,9 @@ struct Bot
     Bot();
 
     void playGame();
+
+    double getExpandForce();
+
     void onThink();
     void endTurn();
 
@@ -25,5 +28,7 @@ struct Bot
 
     void Log(const std::string &text);
 };
+
+Ant* getAnt(int id);
 
 #endif //BOT_H_

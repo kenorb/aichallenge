@@ -1,28 +1,52 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Debug" />
-	<File name="AI\Bot.cc" open="1" top="0" tabpos="6">
-		<Cursor position="767" topLine="9" />
+	<ActiveTarget name="Browser" />
+	<File name="AI\Ant.cc" open="1" top="1" tabpos="6">
+		<Cursor position="3750" topLine="130" />
 	</File>
-	<File name="AI\Bot.h" open="1" top="0" tabpos="2">
-		<Cursor position="217" topLine="5" />
+	<File name="AI\Ant.h" open="1" top="0" tabpos="8">
+		<Cursor position="248" topLine="0" />
 	</File>
-	<File name="AI\Bug.h" open="1" top="0" tabpos="1">
-		<Cursor position="781" topLine="2" />
+	<File name="AI\Bot.cc" open="1" top="0" tabpos="4">
+		<Cursor position="1754" topLine="59" />
 	</File>
-	<File name="AI\Location.h" open="0" top="0" tabpos="0">
-		<Cursor position="129" topLine="0" />
+	<File name="AI\Bot.h" open="1" top="0" tabpos="1">
+		<Cursor position="359" topLine="0" />
 	</File>
-	<File name="AI\MyBot.cc" open="1" top="0" tabpos="4">
-		<Cursor position="772" topLine="13" />
+	<File name="AI\Bug.h" open="1" top="0" tabpos="15">
+		<Cursor position="280" topLine="0" />
 	</File>
-	<File name="AI\State.cc" open="1" top="0" tabpos="5">
-		<Cursor position="689" topLine="0" />
+	<File name="AI\Location.cc" open="1" top="0" tabpos="18">
+		<Cursor position="86" topLine="0" />
 	</File>
-	<File name="AI\State.h" open="1" top="0" tabpos="7">
-		<Cursor position="708" topLine="6" />
+	<File name="AI\Location.h" open="1" top="0" tabpos="17">
+		<Cursor position="314" topLine="0" />
 	</File>
-	<File name="AI\Timer.h" open="0" top="0" tabpos="0">
+	<File name="AI\Map.cc" open="1" top="0" tabpos="11">
+		<Cursor position="1712" topLine="69" />
+	</File>
+	<File name="AI\Map.h" open="1" top="0" tabpos="12">
+		<Cursor position="682" topLine="0" />
+	</File>
+	<File name="AI\MyBot.cc" open="1" top="0" tabpos="2">
+		<Cursor position="756" topLine="0" />
+	</File>
+	<File name="AI\State.cc" open="1" top="0" tabpos="3">
+		<Cursor position="5181" topLine="167" />
+	</File>
+	<File name="AI\State.h" open="1" top="0" tabpos="5">
+		<Cursor position="903" topLine="23" />
+	</File>
+	<File name="AI\Timer.h" open="1" top="0" tabpos="13">
+		<Cursor position="280" topLine="0" />
+	</File>
+	<File name="AI\const.h" open="1" top="0" tabpos="10">
+		<Cursor position="50" topLine="0" />
+	</File>
+	<File name="AI\globals.cc" open="1" top="0" tabpos="16">
+		<Cursor position="98" topLine="0" />
+	</File>
+	<File name="AI\globals.h" open="1" top="0" tabpos="14">
 		<Cursor position="56" topLine="0" />
 	</File>
 	<File name="AI\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp" open="0" top="0" tabpos="0">
@@ -31,13 +55,10 @@
 	<File name="AI\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp" open="0" top="0" tabpos="0">
 		<Cursor position="346" topLine="0" />
 	</File>
-	<File name="Ant.cc" open="1" top="1" tabpos="8">
-		<Cursor position="0" topLine="0" />
+	<File name="Logger.cpp" open="1" top="0" tabpos="7">
+		<Cursor position="3296" topLine="98" />
 	</File>
-	<File name="Ant.h" open="1" top="0" tabpos="3">
-		<Cursor position="0" topLine="0" />
-	</File>
-	<File name="Logger.cc" open="1" top="0" tabpos="9">
-		<Cursor position="51" topLine="0" />
+	<File name="Logger.h" open="1" top="0" tabpos="9">
+		<Cursor position="342" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

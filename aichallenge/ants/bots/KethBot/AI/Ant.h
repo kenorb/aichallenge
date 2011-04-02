@@ -1,4 +1,5 @@
 #include "State.h"
+#include "vector2d.h"
 
 struct State;
 
@@ -11,9 +12,13 @@ struct Ant
         Ant(State &_state, Location &_loc);
         ~Ant();
 
+        vector2f physicalPosition;
+        vector2f velocity;
+
         void onThink();
         void onMove(Location& toLoc);
         bool canBePlacedAt(Location& loc);
+        void prepareMove();
         int getNextMove();
         int timeAlive;
         int lastThink;

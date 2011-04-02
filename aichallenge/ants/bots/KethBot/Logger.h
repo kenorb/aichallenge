@@ -20,6 +20,8 @@ struct Logger
     void logError(std::string error);
     void logWarning(std::string warning);
 
+    void saveJson();
+
     Json::StyledWriter debugOutput;
     Json::Value debugNode;
 

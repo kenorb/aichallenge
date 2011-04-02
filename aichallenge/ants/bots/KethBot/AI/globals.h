@@ -3,6 +3,8 @@
 
 using namespace std;
 
+inline int sign(int a) { return (a == 0) ? 0 : (a<0 ? -1 : 1); }
+
 struct Bot;
 extern Bot bot;
 

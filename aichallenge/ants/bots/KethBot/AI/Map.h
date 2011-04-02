@@ -20,11 +20,11 @@ struct Map
         std::list<Ant*>& getAnts();
         vector<Location>& getEnemyAnts();
 
-
-        //bool locationThink(const Location& loc);
-
         Ant* getAntAt(const Location &loc);
         Ant* setAntAt(const Location &loc, Ant* ant);
+
+        double distance(const Location &loc1, const Location &loc2);
+        double distance_vector(const Location &loc1, vector2f loc2);
 };
 
 #endif // MAP_H_INCLUDED

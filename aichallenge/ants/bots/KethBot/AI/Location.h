@@ -28,7 +28,13 @@ struct Location
         return s.str();
     };
 
+    Location relativeLocationTo(Location& loc);
     bool think();
 
+    #ifdef __DEBUG
+    void addDebugLine(std::string line);
+    #endif
+
 };
+
 #endif //LOCATION_H_
