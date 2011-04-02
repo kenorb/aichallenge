@@ -12,7 +12,8 @@ bool Location::think()
 }
 
 #ifdef __DEBUG
-void Location::addDebugLine(std::string line) {
+void Location::addDebugLine(std::string line)
+{
     char turn[15];
     std::stringstream os;
     sprintf(turn, "%03i", state.turn);
@@ -23,6 +24,37 @@ void Location::addDebugLine(std::string line) {
     logger.debugNode[turn][pos] = line;
 }
 #endif
+
+bool Location::hasAnt()
+{
+    return gameMap.getAntAt(*this) != NULL;
+}
+
+Ant* Location::nearestAnt(bool checkWalls /* = false */)
+{
+    double distance = numeric_limits<double>::max();
+
+    Ant* ret = NULL;
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
+        Ant* ant = getAnt(ant_id);
+        double dist = gameMap.distance(ant->getLocation(), (*this));
+        if (dist <= 2 && checkWalls) {
+            Location betweenLoc = Location(round((ant->getLocation().row + row) / 2),round((ant->getLocation().col + col) / 2));
+            if (state.grid[betweenLoc.row][betweenLoc.col] == '%') {
+                // TODO: Accurate distance cost using pathing algorithm?
+                dist += 3.0f;
+                #ifdef __DEBUG
+                logger.debugLog << "[nearestAnt]: There is wall between at " << betweenLoc.str() << endl;
+                #endif
+            }
+        }
+        if (dist < distance) {
+            distance = dist;
+            ret = ant;
+        }
+    }
+    return ret;
+}
 
 Location Location::relativeLocationTo(Location& loc2)
 {
@@ -40,4 +72,9 @@ Location Location::relativeLocationTo(Location& loc2)
 
     Location loc = Location(-dr * sign_row, -dc * sign_col);
     return loc;
+}
+
+double Location::distanceTo(Location& loc2)
+{
+    return gameMap.distance((*this), loc2);
 }

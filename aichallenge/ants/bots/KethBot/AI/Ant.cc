@@ -8,16 +8,11 @@
 #define pi 3.14159
 #define sqr(x) (x*x)
 
-
-// TODO STRATEGY:
-// * Calculate accurate percent of *discovered map*
-// * Calculate accurate percent of *area covered*
-// * Calculate for each ant average *push force* against all the other ants and walls
-// * Push each ant by *invidual force* according to the *discovered map* in order to keep the *50 percent* balance
-
-// OBJECTS
-// * Every object pushes other objects according to it's own *mass value*
-//    - walls having lower mass than ants (according to number of walls?)
+// STRATEGY:
+// Calculate accurate percent of *discovered map*
+// Calculate accurate percent of *area covered*
+// Calculate for each ant average *push force* against all the other ants and walls
+// Push each ant by *invidual force* according to the *discovered map* in order to keep the *50 percent* balance
 
 int totalAnts = 0;
 
@@ -28,6 +23,7 @@ Ant::Ant(State &_state, Location &_loc)
 
     timeAlive = 0;
     lastThink = 0;
+    movePriority = 0;
 
     loc.col = _loc.col;
     loc.row = _loc.row;
@@ -39,6 +35,8 @@ Ant::Ant(State &_state, Location &_loc)
     #ifdef __DEBUG
     logger.debugLog << "EVENT: New " << (*this) << " at " << loc.str() << endl;
     #endif
+
+    Ant::updatePriority();
 }
 
 Ant::~Ant()
@@ -48,6 +46,11 @@ Ant::~Ant()
     #endif
 
     state.structuralAnts.remove(this);
+}
+
+void Ant::updatePriority()
+{
+    movePriority = gameMap.distance(Ant::getLocation(), bot.startLocation);
 }
 
 void Ant::onMove(Location& toLoc)
@@ -64,20 +67,32 @@ bool Ant::canBePlacedAt(Location& loc)
 {
     if (state.grid[loc.row][loc.col] == '%') return false;
     if (state.grid[loc.row][loc.col] == 'a') return false;
-    //if (state.grid[loc.row][loc.col] == '*') return false;
+    if (state.grid[loc.row][loc.col] == '*') return false; // Server is blocking? Ants die when moved inside food?
+    if (gameMap.getAntAt(loc)) return false;
 
     return true;
 }
 
 void Ant::onThink()
 {
-    if (lastThink == state.turn) return;
+    if (lastThink == state.turn) {
+        #ifdef __DEBUG
+        logger.debugLog << "Ant trying to execute onThink() again" << endl;
+        #endif
+        return;
+    }
     lastThink = state.turn;
 
     int nextMove = getNextMove();
     if (nextMove != NO_MOVE) state.makeMove(getLocation(), nextMove);
 
     timeAlive++;
+}
+
+bool Ant::hasEnoughForceToMove()
+{
+    double velocity = gameMap.distance_vector(Ant::getLocation(), physicalPosition);
+    return velocity > 0;
 }
 
 void Ant::prepareMove()
@@ -100,7 +115,7 @@ void Ant::prepareMove()
         if(state.grid[row][col] == 'a') {
             magnetic = true;
             magnetPower = 0.5;
-            distanceDivision = 10;
+            distanceDivision = 15;
         }
 
         if(state.grid[row][col] == '%') {
@@ -109,10 +124,17 @@ void Ant::prepareMove()
             distanceDivision = 5;
         }
 
+
+
         if(state.grid[row][col] == '*') {
-            magnetic = true;
-            magnetPower = -1;
-            distanceDivision = 15;
+            Location foodLocation = Location(row, col);
+            // TODO: Run path finding algorithm to prevent moving towards wall instead of the food
+            if (foodLocation.nearestAnt(true) == this) {
+                magnetic = true;
+                magnetPower = -2;
+                distanceDivision = 15;
+            }
+
         }
 
         if (magnetic) {
@@ -136,11 +158,20 @@ void Ant::prepareMove()
         }
 
     }
-
     velocity = vector2f(force_x, force_y);
 
+    if (velocity.length() > 5) {
+        velocity.normalize();
+        velocity *= 5;
+    }
 
     physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
+
+    if (!Ant::hasEnoughForceToMove()) {
+        // TODO: Think of something smart to do when not doing a move
+    }
+
+    Ant::updatePriority();
 }
 
 int Ant::getNextMove()
@@ -148,29 +179,35 @@ int Ant::getNextMove()
     #ifdef __DEBUG
     logger.debugLog << *this << endl;
     #endif
+
     int ret = NO_MOVE;
 
-    double dist = 1000000;
-
-    double distanceTo = gameMap.distance_vector(Ant::getLocation(), physicalPosition);
-    if (distanceTo > 0.5) {
-
+    double dist = numeric_limits<double>::max();
+    if (Ant::hasEnoughForceToMove())
+    {
         // Move into some direction
         for(int dir=0; dir<4; dir++)
         {
-            Location locationTo = state.getLocation(loc, dir);
-            if(Ant::canBePlacedAt(locationTo)) locationTo.think();
-            if(Ant::canBePlacedAt(locationTo))
+            Location locationTo = state.getLocation(Ant::getLocation(), dir);
+            locationTo.think();
+
+            if (Ant::canBePlacedAt(locationTo))
             {
                 double distanceCost = gameMap.distance_vector(locationTo, physicalPosition);
                 if (distanceCost < dist) {
                     ret = dir;
-                    dist = gameMap.distance_vector(locationTo, physicalPosition);
+                    dist = distanceCost;
                 }
             }
         }
     }
 
+    // Final solver
+    if (ret != NO_MOVE)
+    {
+        Location locationTo = state.getLocation(Ant::getLocation(), ret);
+        if (!Ant::canBePlacedAt(locationTo)) return getNextMove();
+    }
 
     if (ret != NO_MOVE) hasMoved = true;
     return ret;

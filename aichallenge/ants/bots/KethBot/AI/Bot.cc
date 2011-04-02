@@ -10,6 +10,10 @@
 
 #include "globals.h"
 
+#include <vector>
+#include <string>
+#include <algorithm>
+
 Bot::Bot()
 {
 
@@ -32,7 +36,10 @@ void Bot::playGame()
 
 double Bot::getExpandForce()
 {
-    double ret = (0.5 - state.areaCoverage) * 10;
+    // Based on area coverage
+    double percent = 0.5;
+    percent += ((double)state.ants.size() / 400);
+    double ret = (percent - state.areaCoverage) * 10;
     if (abs(ret) > 1) ret = 1 * sign(ret);
     return ret;
 }
@@ -41,6 +48,13 @@ void Bot::firstMove()
 {
     #ifdef __DEBUG
     logger.debugLog << "ACTION: firstMove()" << endl;
+    #endif
+
+    std::list<Ant*>::iterator iter_ant = gameMap.getAnts().begin();
+    startLocation = (*iter_ant)->getLocation();
+
+    #ifdef __DEBUG
+    logger.debugLog << "START LOCATION: " << bot.startLocation.str() << endl;
     #endif
 }
 
@@ -76,7 +90,17 @@ Ant* getAnt(int id)
     #ifdef __DEBUG
     if (!ret) logger.logError("Structural ant at location not found");
     #endif
+    ret->updateTemporaryId(id);
     return ret;
+}
+
+bool funcSortAnts(const Location& d1, const Location& d2)
+{
+    Ant* ant1 = gameMap.getAntAt(d1);
+    Ant* ant2 = gameMap.getAntAt(d2);
+
+    // TODO: Sort ants to move the most important ones first
+    return 0;
 }
 
 void Bot::makeMoves()
@@ -87,11 +111,21 @@ void Bot::makeMoves()
     logger.debugLog << "Expand force: " << getExpandForce() << endl;
     #endif
 
+
     // Let ants think before they move
-    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) getAnt(ant_id)->prepareMove();
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
+        Ant* ant = getAnt(ant_id);
+        ant->prepareMove();
+    }
+
+    // Can be used to sort ants
+    // sort(state.ants.begin(), state.ants.end(), funcSortAnts);
 
     // Ask ants to move
-    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) getAnt(ant_id)->onThink();
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
+        Ant* ant = getAnt(ant_id);
+        ant->onThink();
+    }
 }
 
 void Bot::updateMap()

@@ -6,6 +6,8 @@
 #ifndef LOCATION_H_
 #define LOCATION_H_
 
+struct Ant;
+
 struct Location
 {
     int row, col;
@@ -24,11 +26,15 @@ struct Location
     std::string str()
     {
         std::stringstream s;
-        s << "[POS " << (int)row << " x " << (int)col << "]";
+        s << "[POS " << row << " x " << col << "]";
         return s.str();
     };
 
+    Ant* nearestAnt(bool checkWalls = false);
     Location relativeLocationTo(Location& loc);
+    double distanceTo(Location& loc2);
+
+    bool hasAnt();
     bool think();
 
     #ifdef __DEBUG

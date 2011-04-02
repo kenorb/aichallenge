@@ -1,6 +1,8 @@
 #ifndef GLOBALS_H_INCLUDED
 #define GLOBALS_H_INCLUDED
 
+#include <limits>
+
 using namespace std;
 
 inline int sign(int a) { return (a == 0) ? 0 : (a<0 ? -1 : 1); }

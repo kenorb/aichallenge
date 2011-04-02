@@ -100,6 +100,10 @@ void State::makeMove(const Location &loc, int direction)
     grid[loc.row][loc.col] = '.';
 
     Ant* movingAnt = gameMap.getAntAt(loc);
+
+    state.ants[movingAnt->temporaryId].row = locMoveTo.row;
+    state.ants[movingAnt->temporaryId].col = locMoveTo.col;
+
     gameMap.onAntMoves(movingAnt, locMoveTo);
     movingAnt->onMove(locMoveTo);
 

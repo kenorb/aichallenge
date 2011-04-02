@@ -26,7 +26,9 @@ void Map::onAnt(int bot_id, Location &loc)
 void Map::onAntMoves(Ant* ant, Location &toLocation)
 {
     #ifdef __DEBUG
-    if (getAntAt(toLocation)) logger.logError("Moving ant to a place where there is already an ant!");;
+    if (getAntAt(toLocation)) {
+        logger.logError("Moving ant to a place where there is already an ant!");;
+    }
     #endif
 
     setAntAt(toLocation, ant);

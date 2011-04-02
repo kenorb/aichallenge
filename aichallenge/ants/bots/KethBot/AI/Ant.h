@@ -23,14 +23,20 @@ struct Ant
         int timeAlive;
         int lastThink;
 
+        bool hasEnoughForceToMove();
+        void updatePriority();
+        int movePriority;
+
+        list<Location> foodQueue;
+
         Location getLocation()
         {
             return loc;
         }
 
-
-
         int id;
+        int temporaryId;
+        void updateTemporaryId(int _x) { temporaryId = _x; }
 
         // TODO: hasMoved should be used implemented into movement solver
         // looping through ants that did not move and asking them for the

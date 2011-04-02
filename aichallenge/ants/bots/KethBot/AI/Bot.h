@@ -24,6 +24,8 @@ struct Bot
 
     void debugData();
 
+    Location startLocation;
+
 
 
     void Log(const std::string &text);
