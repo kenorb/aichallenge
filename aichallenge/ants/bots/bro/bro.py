@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+
+# temp
+import sys
+from runner import *
+sys.path.insert(0, "./")
+
+# imports
 from random import shuffle
 from ants import *
 from functions import *
@@ -11,13 +18,17 @@ UNSEEN = -5
 PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
-    def __init__(self, ants):
-      self.map(self.width, self.height)
+    def __init__(self):
+      pass
     def do_turn(self, ants):
+        """
+        print 'dupa'
+        self.pprint(ants)
+        self.map = MyMap(ants.width, ants.height)
+        """
         destinations = []
         for a_row, a_col in ants.my_ants():
-            print ants.setup()
-            exti()
+            # print ants.setup()
             targets = ants.food() + [(row, col) for (row, col), owner in ants.enemy_ants()]
             # find closest food or enemy ant
             closest_target = None
@@ -45,6 +56,12 @@ class BroBot():
                 # mark ant as not moving so we don't run into it
                 destinations.append((a_row, a_col))
 
+    def pprint(self, obj):
+      import pprint
+      pp = pprint.PrettyPrinter (indent=2)
+      pp.pprint(obj)
+
+
 class MyMap():
   map = []
   def __init__(self, width, height, map):
@@ -66,26 +83,31 @@ class MyArea():
 
 class MyAnt():
   actions = []
+
   def __init__(self, x, y):
     self.x = x
     self.y = y
     self.direction = (0, 0)
     self.target = (x, y)
     self.radius = (0, 0)
+
   def safe(self, safe):
     self.safe = safe
+
   def setAction(self, action, priority):
     new_action = MyAction(self, action, priority)
     self.actions = append(new_action)
 
 class MyAction(MyAnt):
   ACTIONS = ('discover', 'attack', 'run', 'stop', 'group')
+
   def __init__(self, action, safe, priority):
     self.target = (0, 0)
     self.priority = priority
     self.safe = safe
 
 class MyEnemy():
+  
   def __init__(self):
     self.aggresive = False
     self.won = False
@@ -98,13 +120,17 @@ class MyEnemy():
 
 ## Main Execution Code ##
 if __name__ == '__main__':
+    argv = sys.argv[1:]
+    if len(argv) == 1 and argv[0] == 'run':
+      runner.run_game()
+
     try:
         import psyco
         psyco.full()
     except ImportError:
         pass
     try:
-        Ants.run(BroBot(Ants))
+        Ants.run(BroBot())
     except KeyboardInterrupt:
         print('ctrl-c, leaving ...')
 
