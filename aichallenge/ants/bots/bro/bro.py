@@ -10,6 +10,7 @@ from random import shuffle
 from ants import *
 from functions import *
 
+DEBUG = True
 LAND = -1
 FOOD = -2
 WATER = -3
@@ -19,8 +20,10 @@ PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
     def __init__(self):
+      if DEBUG: sys.stderr.write('Init')
       pass
     def do_turn(self, ants):
+        if DEBUG: sys.stderr.write('do_turn')
         """
         print 'dupa'
         self.pprint(ants)
