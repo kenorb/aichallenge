@@ -2,8 +2,8 @@
 
 # temp
 import sys
-from runner import *
-sys.path.insert(0, "./")
+# from runner import *
+# sys.path.insert(0, "./")
 
 # imports
 from random import shuffle
@@ -124,8 +124,8 @@ class MyEnemy():
 ## Main Execution Code ##
 if __name__ == '__main__':
     argv = sys.argv[1:]
-    if len(argv) == 1 and argv[0] == 'run':
-      runner.run_game()
+    # if len(argv) == 1 and argv[0] == 'run':
+      # runner.run_game()
 
     try:
         import psyco
