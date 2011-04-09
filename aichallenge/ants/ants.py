@@ -92,12 +92,7 @@ class Ants(Game):
                           for row in range(self.height)]
                          for p in range(self.num_players)]
         # used to track what a player can see
-        self.vision = [self.get_vision(i) for i in range(self.num_players)]
-        # used to track new water squares that the player can see
-        self.revealed_water = [[] for i in range(self.num_players)]
-
-        # initialise data that remembers what players have seen
-        self.update_revealed()
+        self.init_vision()
 
         # used to track scores
         self.score = [Fraction(0,1)]*self.num_players
@@ -187,18 +182,64 @@ class Ants(Game):
             self.offsets_cache[max_dist] = offsets
         return self.offsets_cache[max_dist]
 
-    def get_vision(self, player):
-        """ Determine which squares are visible to the given player """
+    def init_vision(self):
+        """ Initialise the vision data """
+        # calculate and cache vision offsets
+        cache = {}
+        # all offsets that an ant can see
+        locs = set(self.neighbourhood_offsets(self.viewradius))
+        locs.add((0,0))
+        cache['new'] = list(locs)
+        cache['-'] = [list(locs)]
 
-        offsets = self.neighbourhood_offsets(self.viewradius)
-        vision = [[False]*self.width for row in range(self.height)]
-        for ant in self.player_ants(player):
-            a_row, a_col = ant.loc
-            vision[a_row][a_col] = True
-            for v_row, v_col in offsets:
-                # offsets are such that there is never an IndexError
-                vision[a_row+v_row][a_col+v_col] = True
-        return vision
+        for d in AIM:
+            # determine the previous view
+            p_r, p_c = -AIM[d][0], -AIM[d][1]
+            p_locs = set(
+                (((p_r+r)%self.height-self.height),
+                 ((p_c+c)%self.width-self.width))
+                for r,c in locs
+            )
+            cache[d] = [list(p_locs), list(locs-p_locs), list(p_locs-locs)]
+        self.vision_offsets_cache = cache
+
+        # create vision arrays
+        self.vision = []
+        for p in range(self.num_players):
+            self.vision.append([[0]*self.width for row in range(self.height)])
+
+        # initialise the data based on the initial ants
+        self.update_vision()
+        self.update_revealed()
+
+    def update_vision(self):
+        """ Incrementally updates the vision data """
+        for ant in self.current_ants.values():
+            if not ant.orders:
+                # new ant
+                self.update_vision_ant(ant, self.vision_offsets_cache['new'], 1)
+            else:
+                order = ant.orders[-1]
+                if order in AIM:
+                    # ant moved
+                    self.update_vision_ant(ant, self.vision_offsets_cache[order][1], 1)
+                    self.update_vision_ant(ant, self.vision_offsets_cache[order][-1], -1)
+                # else: ant stayed where it was
+        for ant in self.killed_ants:
+            order = ant.orders[-1]
+            self.update_vision_ant(ant, self.vision_offsets_cache[order][0], -1)
+
+    def update_vision_ant(self, ant, offsets, delta):
+        """ Update the vision data for a single ant 
+
+            Increments all the given offsets by delta for the vision
+              data for ant.owner
+        """
+        a_row, a_col = ant.loc
+        vision = self.vision[ant.owner]
+        for v_row, v_col in offsets:
+            # offsets are such that there is never an IndexError
+            vision[a_row+v_row][a_col+v_col] += delta
 
     def update_revealed(self):
         """ Make updates to state based on what each player can see
@@ -309,7 +350,7 @@ class Ants(Game):
 
         return changes
 
-    def render_map(self, player=None):
+    def get_map_output(self, player=None):
         """ Render the map from the perspective of the given player.
 
             If player is None, then no squares are hidden and player ids
@@ -317,9 +358,8 @@ class Ants(Game):
         """
         result = []
         for row in self.get_perspective(player):
-            result.append('m ' + ''.join([MAP_RENDER[col] for col in row]))
-        result.append('') # newline
-        return '\n'.join(result)
+            result.append(''.join([MAP_RENDER[col] for col in row]))
+        return result
 
     def nearby_ants(self, loc, max_dist, exclude=None):
         """ Returns ants where 0 < dist to loc <= sqrt(max_dist)
@@ -931,7 +971,18 @@ class Ants(Game):
 
     def finish_game(self):
         """ Called by engine at the end of the game """
-        pass
+        players = [p for p in range(self.num_players) if self.is_alive(p)]
+
+        # if there is exactly one player remaining they get food bonus
+        if len(players) == 1:
+            player = players[0]
+            # currently 1 food is spawned per turn per player
+            food_bonus = (self.turns - self.turn)*self.num_players
+            self.score[player] += food_bonus
+
+        # ammend the score history instead of extending it
+        for i, s in enumerate(self.score):
+            self.score_history[i][-1] = s
 
     def start_turn(self):
         """ Called by engine at the start of the turn """
@@ -951,7 +1002,7 @@ class Ants(Game):
             self.score_history[i].append(s)
 
         # now that all the ants have moved we can update the vision
-        self.vision = [self.get_vision(i) for i in range(self.num_players)]
+        self.update_vision()
         self.update_revealed()
 
     def get_state(self):
@@ -982,9 +1033,9 @@ class Ants(Game):
         if self.seed is not None:
             result.append(['seed', self.seed])
         if player == None:
-            result.append([self.render_map()])
-        else:
-            result.append([]) # newline
+            for line in self.get_map_output():
+                result.append(['m',line])
+        result.append([]) # newline
         return '\n'.join(' '.join(map(str,s)) for s in result)
 
     def get_player_state(self, player):
@@ -1042,29 +1093,31 @@ class Ants(Game):
             Used by the engine to create a replay file which may be used
               to replay the game.
         """
-        result = []
+        replay = {}
         # required params
-        result.append(['v', 'ants', '1'])
-        result.append(['players', self.num_players])
+        replay['revision'] = 2
+        replay['players'] = self.num_players
 
         # optional params
-        result.append(['loadtime', self.loadtime])
-        result.append(['turntime', self.turntime])
-        result.append(['rows', self.height])
-        result.append(['cols', self.width])
-        result.append(['turns', self.turns])
-        result.append(['viewradius2', self.viewradius])
-        result.append(['attackradius2', self.attackradius])
-        result.append(['spawnradius2', self.spawnradius])
+        replay['loadtime'] = self.loadtime
+        replay['turntime'] = self.turntime
+        replay['turns'] = self.turns
+        replay['viewradius2'] = self.viewradius
+        replay['attackradius2'] = self.attackradius
+        replay['spawnradius2'] = self.spawnradius
         if self.seed is not None:
-            result.append(['seed', self.seed])
+            replay['seed'] = self.seed
 
         # map
-        result.append([self.render_map()])
+        replay['map'] = {}
+        replay['map']['rows'] = self.height
+        replay['map']['cols'] = self.width
+        replay['map']['data'] = self.get_map_output()
 
         # food and ants combined
+        replay['ants'] = []
         for food in self.all_food:
-            ant_data = ['a', food.loc[0], food.loc[1], food.start_turn]
+            ant_data = [ food.loc[0], food.loc[1], food.start_turn]
             if food.end_turn == None:
                 # food survives to end of game
                 ant_data.append(self.turn + 1)
@@ -1082,15 +1135,12 @@ class Ants(Game):
                 ant_data.append(ant.owner)
                 ant_data.append(''.join(ant.orders))
 
-            result.append(ant_data)
+            replay['ants'].append(ant_data)
 
         # scores
-        for s in self.score_history:
-            result.append(['s'] + map(int, s))
+        replay['scores'] = [map(int, s) for s in self.score_history]
 
-        result.append([]) # final new line
-
-        return '\n'.join(' '.join(map(str,s)) for s in result)
+        return replay
 
 class Ant:
     def __init__(self, loc, owner, spawn_turn=None):
