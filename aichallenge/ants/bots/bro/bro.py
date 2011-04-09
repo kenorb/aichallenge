@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
 # temp
-import sys
 # from runner import *
 # sys.path.insert(0, "./")
+
+# debug
+from debug import *
+
+# libraries
+import sys
+from optparse import OptionParser
 
 # imports
 from random import shuffle
 from ants import *
-from functions import *
+from astar import *
 
-DEBUG = True
 LAND = -1
 FOOD = -2
 WATER = -3
@@ -20,15 +25,17 @@ PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
     def __init__(self):
-      if DEBUG: sys.stderr.write('Init')
-      pass
+        self.debug = BroDebug(ops)
+        self.debug.msg('START')
+        self.debug.obj(ops)
+       
     def do_turn(self, ants):
-        if DEBUG: sys.stderr.write('do_turn')
-        """
-        print 'dupa'
-        self.pprint(ants)
-        self.map = MyMap(ants.width, ants.height)
-        """
+        self.debug.obj(vars(ants))
+        sys.stderr.write(ants)
+        self.debug.var('width', ants.width)
+        self.debug.var('height', ants.height)
+        self.debug.msg('turn 0')
+
         destinations = []
         for a_row, a_col in ants.my_ants():
             # print ants.setup()
@@ -64,6 +71,10 @@ class BroBot():
       pp = pprint.PrettyPrinter (indent=2)
       pp.pprint(obj)
 
+    def end_game(self, ants, err):
+      self.debug.obj(err)
+      self.debug.msg('END')
+      self.debug.end()
 
 class MyMap():
   map = []
@@ -124,12 +135,38 @@ class MyEnemy():
 ## Main Execution Code ##
 if __name__ == '__main__':
     argv = sys.argv[1:]
+
+    # parse bot options
+    parser = OptionParser()
+    parser.add_option("-r", "--replay-dir", dest="replay_dir", default='.',
+                      help="Directory where replay files are stored.")
+    parser.add_option("-d", "--debug", dest="debug",
+                       action="store_true", default=False,
+                       help="Run in debug mode.")
+    parser.add_option("-D", "--debug-file", dest="debug_file", default='debug.log',
+                       help="Specify custom debug filename.")
+    parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
+                      help="Create debug json file in replay directory.")
+    parser.add_option("-s", "--strategy", dest="strategy",
+                      help="Choose strategy (five two digit numbers).")
+
+    (opts, args) = parser.parse_args(argv)
+
+    ops = {
+        "replay_dir": opts.replay_dir,
+        "debug": opts.debug,
+        "debug_file": opts.debug_file,
+        "debug_file_json": opts.debug_file_json,
+        "strategy": opts.strategy,
+    }
+
     # if len(argv) == 1 and argv[0] == 'run':
       # runner.run_game()
 
     try:
-        import psyco
-        psyco.full()
+        # import psyco
+        # psyco.full()
+        pass
     except ImportError:
         pass
     try:
