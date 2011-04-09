@@ -30,8 +30,9 @@ class BroBot():
         self.debug.obj(ops)
        
     def do_turn(self, ants):
+        self.debug.obj(ants.map_data)
         self.debug.obj(vars(ants))
-        sys.stderr.write(ants)
+        print repr(ants.map_data)
         self.debug.var('width', ants.width)
         self.debug.var('height', ants.height)
         self.debug.msg('turn 0')
