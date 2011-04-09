@@ -1,1 +1,0 @@
-../../dist/sample_bots/python/ants.py
