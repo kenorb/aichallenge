@@ -176,11 +176,13 @@ class Ants():
                     bot.do_turn(ants)
                     ants.finish_turn()
                     map_data = ''
+                elif current_line.lower() == 'end':
+                  bot.end_game(ants, sys.stderr);
                 else:
                     map_data += current_line + '\n'
             except EOFError:
-                bot.end_game();
+                bot.end_game(ants, sys.stderr);
                 break
             except:
-                bot.end_game();
+                bot.end_game(ants, sys.stderr);
                 traceback.print_exc(file=sys.stderr)
