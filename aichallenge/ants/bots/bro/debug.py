@@ -8,12 +8,12 @@ class BroDebug():
   log = []
   log_json = []
   
-  def __init__(self, ops):
-    if ops['debug']:
-      self.debug = ops['debug']
+  def __init__(self, opts):
+    if opts.debug:
+      self.debug = opts.debug
       self.debug = True
-      self.debug_file = ops['debug_file']
-      self.debug_file_json = os.path.join(ops["replay_dir"], ops["debug_file_json"]) if ops["replay_dir"] else ops["debug_file_json"]
+      self.debug_file = opts.debug_file
+      self.debug_file_json = os.path.join(opts.replay_dir, opts.debug_file_json) if opts.replay_dir else opts.debug_file_json
 
   def msg(self, msg):
     if self.debug:

@@ -25,9 +25,9 @@ PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
     def __init__(self):
-        self.debug = BroDebug(ops)
+        self.debug = BroDebug(opts)
         self.debug.msg('START')
-        self.debug.obj(ops)
+        self.debug.obj(opts)
        
     def do_turn(self, ants):
         self.debug.obj(ants.map_data)
@@ -132,13 +132,7 @@ class MyEnemy():
     self.afraidOf2 = False
     self.changes = 1.0
 
-
-## Main Execution Code ##
-if __name__ == '__main__':
-    argv = sys.argv[1:]
-
-    # parse bot options
-    parser = OptionParser()
+def BroStartupOptions(parser):
     parser.add_option("-r", "--replay-dir", dest="replay_dir", default='.',
                       help="Directory where replay files are stored.")
     parser.add_option("-d", "--debug", dest="debug",
@@ -150,16 +144,27 @@ if __name__ == '__main__':
                       help="Create debug json file in replay directory.")
     parser.add_option("-s", "--strategy", dest="strategy",
                       help="Choose strategy (five two digit numbers).")
+    return parser
+                      
+## Main Execution Code ##
+if __name__ == '__main__':
+    argv = sys.argv[1:]
+    # parse bot options
+    parser = OptionParser()
+    (opts, args) = BroStartupOptions(parser).parse_args(argv)
 
-    (opts, args) = parser.parse_args(argv)
+    # (opts, args) = ParseStartupOptions()
+    # (opts, args) = parser.parse_args(argv)
 
+    """
     ops = {
         "replay_dir": opts.replay_dir,
         "debug": opts.debug,
         "debug_file": opts.debug_file,
         "debug_file_json": opts.debug_file_json,
         "strategy": opts.strategy,
-    }
+    }"""
+    
 
     # if len(argv) == 1 and argv[0] == 'run':
       # runner.run_game()
