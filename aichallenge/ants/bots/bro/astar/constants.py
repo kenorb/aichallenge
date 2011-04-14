@@ -30,7 +30,7 @@ DBXOFFSET = (-1, 1, 1, -1)
 DBYOFFSET = (-1, -1, 1, 1)
 
 NORMAL  = '0'
-BLOCKED = '1'
+BLOCKED = 'W'
 SOURCE  = 'S'
 TARGET  = 'T'
 
@@ -140,3 +140,7 @@ CONNECTION_SUCCESS_TEXT_POS = (10, 683)
 DRAWING   = 0
 RECEIVING = 1
 EXIT      = 2
+
+# bro custom constants
+DEFAULT_HEURISTIC = EUCLIDEAN
+DIAGONAL = False

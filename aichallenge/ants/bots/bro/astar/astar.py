@@ -93,7 +93,7 @@ class AStar(object):
     The higher the W value is, The more important the heuristic will
     be in this algorithm.
     """
-    def __init__(self, raw_graph, heuristic = MANHATTAN):
+    def __init__(self, raw_graph, heuristic = DEFAULT_HEURISTIC):
         """Create a new instance of A* path finder.
 
         :Parameters:
@@ -197,17 +197,18 @@ class AStar(object):
                                self.graph):
                     self._inspect_node((nx, ny), (x, y), False, record)
 
-                    # further investigate the diagonal nodes
-                    nx1 = x + DAXOFFSET[i]
-                    ny1 = y + DAYOFFSET[i]
-                    nx2 = x + DBXOFFSET[i]
-                    ny2 = y + DBYOFFSET[i]
-                    npos = ((nx1, ny1), (nx2, ny2))
-                    for nx, ny in npos:
-                        if is_walkable(nx, ny, self.n_row, self.n_col, 
-                                       self.graph):
-                            self._inspect_node((nx, ny), (x, y), 
-                                                True, record)
+                    if DIAGONAL:
+                      # further investigate the diagonal nodes
+                      nx1 = x + DAXOFFSET[i]
+                      ny1 = y + DAYOFFSET[i]
+                      nx2 = x + DBXOFFSET[i]
+                      ny2 = y + DBYOFFSET[i]
+                      npos = ((nx1, ny1), (nx2, ny2))
+                      for nx, ny in npos:
+                          if is_walkable(nx, ny, self.n_row, self.n_col,
+                                         self.graph):
+                              self._inspect_node((nx, ny), (x, y),
+                                                  True, record)
             yield
 
     def _retrace(self):
