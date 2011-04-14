@@ -23,11 +23,8 @@
 from math import hypot
 from heapq import *
 
-import sys
-sys.path.insert(0, '..')
-
 from graph import is_walkable, InvalidMap
-from const.constants import *
+from constants import *
 
 class _Node(object):
     """This class works as the container of the nodes' info.
