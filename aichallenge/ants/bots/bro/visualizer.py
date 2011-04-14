@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pygame
 from pygame.locals import *
 
@@ -94,21 +96,21 @@ class Visualizer():
         self.maprect = Rect(0,0,w*BSIZE,h*BSIZE)
 
     def drawMap(self, game):
-
-        x = 0
-        y = 0
-        rect = [0,0,BSIZE,BSIZE]
         # print game.map
         fnt = pygame.font.Font(pygame.font.get_default_font(),8)
         for row, squares in enumerate(game.map):
           for col, square in enumerate(squares):
-            rect[0] = col*BSIZE
-            rect[1] = row*BSIZE
             value = game.map[row][col]
             color = self.colors[value]
-            self.screen.fill(pygame.color.Color(color),rect)
+            self.drawMapXY(col, row, color)
             # ts=fnt.render('a', 1, (255,255,255))
 
+    def drawMapXY(self, x, y, color):
+        rect = [0,0,BSIZE,BSIZE]
+        rect[0] = x*BSIZE
+        rect[1] = y*BSIZE
+        self.screen.fill(pygame.color.Color(color), rect)
+        
     def updateMap(self, game):
         self.drawMenu();
         self.drawMap(game);
@@ -116,7 +118,6 @@ class Visualizer():
         self.checkEvents();
 
     def drawMenu(self):
-
         text = ["Blocking (-1)", "Walkable (1)", "Walkable (2)", "Walkable (3)", "Walkable (4)", "Start point", "End point", "Find path", "Reset"]
 
         fnt = pygame.font.Font(pygame.font.get_default_font(),11)

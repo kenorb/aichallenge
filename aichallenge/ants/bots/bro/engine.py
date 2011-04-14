@@ -9,10 +9,14 @@ import json
 sys.path.append("../../../worker")
 from sandbox import Sandbox
 
+# custom imports
+from visualizer import *
+
 def run_game(game, botcmds, options, gameid=0):
     visualizer = options.get("visualizer", False)
     if visualizer:
-      mapview = mapViewer(game)
+      mapview = Visualizer(game)
+
     output_json = options.get("output_json", False)
     output = options.get("stdout", None)
     output_dir = options.get("output_dir")
@@ -159,8 +163,8 @@ def run_game(game, botcmds, options, gameid=0):
                                     bot_output_log[b].write('# invalid actions:\n')
                                     bot_output_log[b].write('\n'.join(invalid)+'\n')
                                     bot_output_log[b].flush()
-                                if visualizer:
-                                    mapview.updateMap(game)
+                            if visualizer:
+                                mapview.updateMap(game)
 
                     game.finish_turn()
 

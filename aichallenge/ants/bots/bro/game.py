@@ -13,6 +13,7 @@ from ants import Ants
 
 # custom import
 from bro import *
+from visualizer import *
 
 def run_rounds():
     # this split of options is not needed, but left for documentation
@@ -28,7 +29,8 @@ def run_rounds():
         "loadtime": 3000,
         "turntime": 1000,
         "turns": rounds,
-        "seed": 42 }
+        "seed": 42,
+        }
     engine_options = {
         "loadtime": 3000,
         "turntime": 1000,
@@ -39,7 +41,9 @@ def run_rounds():
         "log_input": False,
         "log_output": False,
         "serial": None,
-        "verbose": True }
+        "verbose": True,
+        "visualizer": opts.visualizer,
+        }
     bots_files = (
         "python ../../dist/sample_bots/python/HunterBot.py",
         "python ../../dist/sample_bots/python/keth.py",

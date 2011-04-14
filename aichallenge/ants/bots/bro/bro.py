@@ -9,12 +9,12 @@ from debug import *
 
 # libraries
 import sys
+from random import shuffle
 from optparse import OptionParser
 
 # imports
-from random import shuffle
 from ants import *
-from astar import *
+from astar.astar import AStar
 
 LAND = -1
 FOOD = -2
@@ -28,11 +28,12 @@ class BroBot():
         self.debug = BroDebug(opts)
         self.debug.msg('START')
         self.debug.obj(opts)
+        self.map = None
        
     def do_turn(self, ants):
-        self.debug.obj(ants.map_data)
+        # self.debug.obj(ants.map_data)
         self.debug.obj(vars(ants))
-        print repr(ants.map_data)
+        # print repr(ants.map_data)
         self.debug.var('width', ants.width)
         self.debug.var('height', ants.height)
         self.debug.msg('turn 0')
@@ -99,7 +100,8 @@ class MyArea():
 class MyAnt():
   actions = []
 
-  def __init__(self, x, y):
+  def __init__(self, x, y, id = 0):
+    self.id = id
     self.x = x
     self.y = y
     self.direction = (0, 0)
@@ -133,19 +135,38 @@ class MyEnemy():
     self.changes = 1.0
 
 def BroStartupOptions(parser):
-    parser.add_option("-r", "--replay-dir", dest="replay_dir", default='.',
-                      help="Directory where replay files are stored.")
-    parser.add_option("-d", "--debug", dest="debug",
-                       action="store_true", default=False,
-                       help="Run in debug mode.")
-    parser.add_option("-D", "--debug-file", dest="debug_file", default='debug.log',
-                       help="Specify custom debug filename.")
-    parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
-                      help="Create debug json file in replay directory.")
-    parser.add_option("-s", "--strategy", dest="strategy",
-                      help="Choose strategy (five two digit numbers).")
-    return parser
-                      
+  parser.add_option("-r", "--replay-dir", dest="replay_dir", default='.',
+                    help="Directory where replay files are stored.")
+  parser.add_option("-d", "--debug", dest="debug",
+                     action="store_true", default=False,
+                     help="Run in debug mode.")
+  parser.add_option("-D", "--debug-file", dest="debug_file", default='./debug.log',
+                     help="Specify custom debug filename.")
+  parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
+                    help="Create debug json file in replay directory.")
+  parser.add_option("-s", "--strategy", dest="strategy",
+                    help="Choose strategy (five two digit numbers).")
+  return parser
+
+def BroPathfinding():
+  pathmap = []
+  def find_path(self, ant, map):
+    pathmap = map_convert(ant, map)
+    a = AStar(self.pathmap)
+    for i in a.step():
+        pass
+    path = a.path
+    start = a.source
+    end = a.target
+    if path:
+        # print 'Route length:', len(path)
+        self.debug.msg('Found route to: %s, length: %d' % (end, len(path)), ant)
+    else:
+        self.debug.msg('Failed to find the path to: %s' % (end), ant)
+
+  def map_convert(self, ant, map):
+    self.pathmap = map
+        
 ## Main Execution Code ##
 if __name__ == '__main__':
     argv = sys.argv[1:]

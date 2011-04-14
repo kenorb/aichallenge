@@ -15,15 +15,19 @@ class BroDebug():
       self.debug_file = opts.debug_file
       self.debug_file_json = os.path.join(opts.replay_dir, opts.debug_file_json) if opts.replay_dir else opts.debug_file_json
 
-  def msg(self, msg):
+  def msg(self, msg, ant = None):
     if self.debug:
+      if ant:
+        _add_ant(msg, ant)
       self.log.append(msg)
 
-  def var(self, name, value):
+  def var(self, name, value, ant = None):
     if self.debug:
+      if ant:
+        _add_ant(msg, ant)
       self.log.append({name: repr(value)})
 
-  def obj(self, obj):
+  def obj(self, obj, obj2 = None, obj3 = None):
     if self.debug:
       self.log.append(repr(obj))
 
@@ -42,6 +46,10 @@ class BroDebug():
       of = open(self.debug_file_json, 'w')
       of.write(json_data)
       of.close()
-    
+
+  def _add_ant(self, msg, ant):
+    if self.debug:
+      return "ant:%d[%dx%d]: " % (ant.id, ant.x, ant.y) + msg
+
 if __name__ == "__main__":
     print "Hello World"
