@@ -1,9 +1,8 @@
-#include "json/json.h"
-#include "AI/State.h"
-
 #ifndef LOGGER_H_INCLUDED
 #define LOGGER_H_INCLUDED
 
+#include "json/json.h"
+#include "AI/State.h"
 
 struct State;
 
@@ -11,7 +10,6 @@ struct Logger
 {
     Logger();
     ~Logger();
-
 
     void logPreState(bool init);
     void logPostState();
@@ -28,8 +26,11 @@ struct Logger
     Bug jsonLog;
     Bug debugLog;
 
+    int locationsCreated;
     int errors, warnings;
 };
+
+std::string LocationToString(Location& loc);
 
 
 #endif // LOGGER_H_INCLUDED

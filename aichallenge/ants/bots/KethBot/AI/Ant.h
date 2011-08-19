@@ -1,5 +1,4 @@
 #include "State.h"
-#include "vector2d.h"
 
 struct State;
 
@@ -19,6 +18,7 @@ struct Ant
         void onMove(Location& toLoc);
         bool canBePlacedAt(Location& loc);
         void prepareMove();
+        int pathStepsLeft();
         int getNextMove();
         int timeAlive;
         int lastThink;
@@ -27,11 +27,11 @@ struct Ant
         void updatePriority();
         int movePriority;
 
-        list<Location> foodQueue;
+        void setPathTo(Location& target);
+        void deletePath();
 
-        Location getLocation()
-        {
-            return loc;
+        Location& getLocation() {
+            return *loc;
         }
 
         int id;
@@ -43,10 +43,16 @@ struct Ant
         // next movement again.
         bool hasMoved;
 
+        Path* path;
+        bool hasPath() { return path != NULL; }
+
+        Ant* partner;
+        bool hasPartner() { return partner != NULL; }
+
     protected:
 
     private:
-        Location loc;
+        Location* loc;
 };
 
 ostream& operator<<(ostream &out, const Ant &ant);

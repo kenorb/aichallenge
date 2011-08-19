@@ -4,10 +4,14 @@
 #include "Ant.h"
 #include "globals.h"
 
+Location& Loc(int row, int col);
+Location& Loc(const Location& loc);
+Location& LocNull();
+
 struct Map
 {
     public:
-        Map();
+        void onInit();
 
         void onAnt(int bot_id, Location &loc);
         void onAntMoves(Ant* ant, Location &toLocation);
@@ -17,6 +21,7 @@ struct Map
         void onWater(Location &loc);
 
 
+        vector<Location*> locationGrid;
         std::list<Ant*>& getAnts();
         vector<Location>& getEnemyAnts();
 

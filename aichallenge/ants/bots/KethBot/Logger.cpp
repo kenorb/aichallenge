@@ -5,10 +5,18 @@
 
 #include "AI/Bot.h"
 
+std::string LocationToString(Location& loc)
+{
+    std::stringstream s;
+    s << "[POS " << loc.row << " x " << loc.col << "]";
+    return s.str();
+}
+
 Logger::Logger()
 {
     errors = 0;
     warnings = 0;
+    locationsCreated = 0;
 
     jsonLog.open("./viewer/debug.json");
     debugLog.open("./kethbot/debug.log");
@@ -27,6 +35,7 @@ void Logger::saveJson()
     jsonLog.setText(outputData);
     debugLog << "[DONE]" << endl;
 }
+
 
 void Logger::logError(std::string error)
 {
@@ -64,6 +73,10 @@ void Logger::logPreState(bool init)
 
         os << (float)state.timer.getTime() << "ms";
         debugNode[key]["time_taken"] = os.str();
+        os.str("");
+
+        os << (int)state.approxPlayers;
+        debugNode[key]["approx_players"] = os.str();
         os.str("");
 
         if (state.structuralAnts.size() > 0) {
@@ -105,6 +118,14 @@ void Logger::logMapState()
     debugNode[key]["area_coverage"] = os.str();
     os.str("");
 
+    os << (double)bot.areaCoverageGoal();
+    debugNode[key]["area_coverage_goal"] = os.str();
+    os.str("");
+
+    os << (double)bot.getExpandForce();
+    debugNode[key]["expand_force"] = os.str();
+    os.str("");
+
     saveJson();
 }
 
@@ -118,26 +139,25 @@ void Logger::logPostState()
 
     debugNode[key]["ants_structural"] = state.structuralAnts.size();
 
-        if (state.structuralAnts.size() > 0) {
+    if (state.structuralAnts.size() > 0) {
 
-            std::list<Ant*>::iterator iter_ant;
-            for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
-            {
-                Ant* ant = (*iter_ant);
-                if (ant) {
-                    char key2[32];
-                    sprintf(key2, "#ant%i_x", ant->id);
-                    debugNode[key][key2] = (int)round(ant->physicalPosition.x);
+        std::list<Ant*>::iterator iter_ant;
+        for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
+        {
+            Ant* ant = (*iter_ant);
+            if (ant) {
+                char key2[32];
+                sprintf(key2, "#ant%i_x", ant->id);
+                debugNode[key][key2] = (int)round(ant->physicalPosition.x);
 
-                    sprintf(key2, "#ant%i_y", ant->id);
-                    debugNode[key][key2] = (int)round(ant->physicalPosition.y);
-                } else {
-                    logger.logError("Found a removed structural ant");
-                }
-
+                sprintf(key2, "#ant%i_y", ant->id);
+                debugNode[key][key2] = (int)round(ant->physicalPosition.y);
+            } else {
+                logger.logError("Found a removed structural ant");
             }
+
         }
+    }
 
     saveJson();
 }
-

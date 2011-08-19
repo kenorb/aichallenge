@@ -36,15 +36,14 @@ struct Bug
     //closes the ofstream
     inline void close()
     {
-            file.close();
+        file.close();
     };
 };
 
 //output function for endl
 inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
 {
-        bug.file << manipulator;
-
+    bug.file << manipulator;
     return bug;
 };
 
@@ -52,8 +51,7 @@ inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
 template <class T>
 inline Bug& operator<<(Bug &bug, const T &t)
 {
-
-        bug.file << t;
+    bug.file << t;
     return bug;
 };
 

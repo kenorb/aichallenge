@@ -22,9 +22,13 @@
 #include "Logger.h"
 #endif
 
+#define ID_WALL '%'
+
 struct State
 {
     int rows, cols, turn, turns, players, attackradius, spawnradius, viewradius;
+    int approxPlayers;
+
     double loadtime, turntime;
     vector<double> scores;
     bool gameover;
@@ -50,7 +54,7 @@ struct State
 
     void makeMove(const Location &loc, int direction);
 
-    Location getLocation(const Location &startLoc, int direction);
+    Location& getLocation(const Location &loc, int direction);
 };
 
 ostream& operator<<(ostream &os, const State &state);

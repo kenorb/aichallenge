@@ -12,8 +12,10 @@ void State::setup()
 {
     grid = vector<vector<char> >(rows, vector<char>(cols, '?'));
     ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
+    approxPlayers = 2;
 
     cout << "go" << endl;
+
     turn++;
 };
 
@@ -23,7 +25,7 @@ void State::reset()
     enemyAnts.clear();
     for(int row=0; row<rows; row++)
     for(int col=0; col<cols; col++)
-        if(grid[row][col] != '%') {
+        if(grid[row][col] != '%' && grid[row][col] != '^') {
             grid[row][col] = '?';
         }
 };
@@ -43,7 +45,7 @@ void State::updateFogOfWar()
         if(grid[row][col] != '%' && grid[row][col] != 'a') {
             for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++)
             {
-                if (gameMap.distance(ants[ant_id], Location(row, col)) < viewradius && grid[row][col] == '?') {
+                if (gameMap.distance(ants[ant_id], Loc(row, col)) < viewradius && grid[row][col] == '?') {
                     grid[row][col] = '.';
                 }
             }
@@ -60,16 +62,16 @@ void State::updateFogOfWar()
                 visibleCells++;
                 break;
             }
-        }
     }
+        }
 
     for(int row=0; row<rows; row++)
     for(int col=0; col<cols; col++)
     {
         for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++)
         {
-            if (gameMap.distance(ants[ant_id], Location(row, col)) < 2) {
-                if(grid[row][col] != '%' && grid[row][col] != 'a' && grid[row][col] != '*') {
+            if (gameMap.distance(ants[ant_id], Loc(row, col)) < 4) {
+                if(grid[row][col] != '%' && grid[row][col] != 'a' && grid[row][col] != '*' && grid[row][col] != '^') {
                     grid[row][col] = 'o';
                 }
                 closeCells++;
@@ -85,7 +87,7 @@ void State::updateFogOfWar()
 
 void State::makeMove(const Location &loc, int direction)
 {
-    Location locMoveTo = getLocation(loc, direction);
+    Location& locMoveTo = getLocation(loc, direction);
     #ifdef __DEBUG
     if ((direction < 0) || (direction > 3)) {
         logger.logWarning("Ant trying to move into incorrect direction");
@@ -105,15 +107,16 @@ void State::makeMove(const Location &loc, int direction)
     state.ants[movingAnt->temporaryId].col = locMoveTo.col;
 
     gameMap.onAntMoves(movingAnt, locMoveTo);
-    movingAnt->onMove(locMoveTo);
 
     cout << "o " << loc.row << " " << loc.col << " " << CDIRECTIONS[direction] << endl;
+
+    movingAnt->onMove(locMoveTo);
 };
 
 //returns the new location from moving in a given direction with the edges wrapped
-Location State::getLocation(const Location &loc, int direction)
+Location& State::getLocation(const Location &loc, int direction)
 {
-    return Location( (loc.row + DIRECTIONS[direction][0] + rows) % rows,
+    return Loc( (loc.row + DIRECTIONS[direction][0] + rows) % rows,
                      (loc.col + DIRECTIONS[direction][1] + cols) % cols );
 };
 
@@ -139,10 +142,7 @@ istream& operator>>(istream &is, State &state)
     {
         if(inputType == "end")
         {
-            #ifdef __DEBUG
-            if (state.turn < 10) logger.logWarning("Game shorter than 10 turns?");
-            logger.debugLog << "GAME END (errors: " << (int)logger.errors << ", warnings: " << (int)logger.warnings << ", structural ants: " << (int)state.structuralAnts.size() << ")" << endl;
-            #endif
+            bot.endGame();
             state.gameover = 1;
             break;
         }
@@ -155,7 +155,9 @@ istream& operator>>(istream &is, State &state)
             getline(is, junk);
     }
     #ifdef __DEBUG
-    if (!state.gameover) logger.debugLog << "[TURN #" << (state.turn) << "]:" << endl;
+    if (!state.gameover) {
+        logger.debugLog << "[TURN #" << state.turn << "]:" << endl;
+    }
     #endif
     if(state.turn == 0)
     {
@@ -189,6 +191,7 @@ istream& operator>>(istream &is, State &state)
             }
             else if(inputType == "ready") //end of parameter input
             {
+                gameMap.onInit();
                 state.setup();
                 break;
             }
@@ -206,15 +209,15 @@ istream& operator>>(istream &is, State &state)
                 is >> row >> col;
                 state.grid[row][col] = '%';
 
-                Location loc = Location(row, col);
+                Location& loc = Loc(row, col);
                 gameMap.onWater(loc);
             }
             else if(inputType == "f") //food square
             {
                 is >> row >> col;
-                state.grid[row][col] = '*';
+                if (state.grid[row][col] != '^') state.grid[row][col] = '*';
 
-                Location loc = Location(row, col);
+                Location& loc = Loc(row, col);
                 gameMap.onFood(loc);
             }
             else if(inputType == "a") //live ant square
@@ -222,11 +225,15 @@ istream& operator>>(istream &is, State &state)
                 is >> row >> col >> player;
                 state.grid[row][col] = 'a' + player;
 
-                Location loc = Location(row, col);
+                Location& loc = Loc(row, col);
+
                 if (player == 0) {
-                    state.ants.push_back(Location(row, col));
+                    state.ants.push_back(Loc(row, col));
                 } else {
-                    state.enemyAnts.push_back(Location(row, col));
+                    if ((player + 1) > state.approxPlayers) {
+                        state.approxPlayers = player + 1;
+                    }
+                    state.enemyAnts.push_back(Loc(row, col));
                 }
 
                 gameMap.onAnt(player, loc);
@@ -235,7 +242,7 @@ istream& operator>>(istream &is, State &state)
                 is >> row >> col >> player;
                 state.grid[row][col] = 'd';
 
-                Location loc = Location(row, col);
+                Location& loc = Loc(row, col);
                 gameMap.onDeadAnt(player, loc);
 
             }

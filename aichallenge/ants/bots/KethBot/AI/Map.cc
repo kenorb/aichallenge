@@ -1,12 +1,42 @@
 #include "Map.h"
 #include "Bot.h"
 #include "Ant.h"
+#include "globals.h"
 
 #include <iostream>
 
-Map::Map()
-{
+Location& Loc(int row, int col) {
+    if (row < 0) row += state.rows;
+    if (col < 0) col += state.cols;
 
+    if (row >= state.rows) row -= state.rows;
+    if (col >= state.cols) col -= state.cols;
+
+    return *gameMap.locationGrid[LocToIndex(row, col)];
+}
+
+Location& Loc(const Location& loc) {
+    return *gameMap.locationGrid[LocToIndex(loc.row, loc.col)];
+}
+
+
+void Map::onInit() {
+    #ifdef __DEBUG
+    logger.debugLog << "Map::onInit()" << endl;
+    #endif
+
+    locNull.row = -1;
+    locNull.col = -1;
+
+    locationGrid.resize(state.rows*state.cols);
+    for (int i = 0; i < state.rows*state.cols; i += 1) {
+        locationGrid[i] = new Location();
+        locationGrid[i]->row = IndexToRow(i);
+        locationGrid[i]->col = IndexToCol(i);
+        #ifdef __DEBUG
+        if (i != (*locationGrid[i]).getIndex()) logger.logError("Map::onInit(): Error while indexing grid");
+        #endif
+    }
 }
 
 void Map::onEnemy(Location &loc)
@@ -72,7 +102,7 @@ Ant* Map::getAntAt(const Location &loc)
 
 Ant* Map::setAntAt(const Location &loc, Ant* ant)
 {
-    state.ants_grid[loc.row][loc.col] = (int)ant;
+    state.ants_grid[loc.row][loc.col] = (intptr_t)ant;
     return ant;
 }
 
@@ -87,10 +117,10 @@ double Map::distance(const Location &loc1, const Location &loc2)
 
 double Map::distance_vector(const Location &loc1, vector2f loc2)
 {
-    double d1 = abs((double)loc1.row-loc2.y),
-           d2 = abs((double)loc1.col-loc2.x),
-           dr = min(d1, state.rows-d1),
-           dc = min(d2, state.cols-d2);
+    double d1 = abs((double)loc1.row-(double)loc2.y),
+           d2 = abs((double)loc1.col-(double)loc2.x),
+           dr = min(d1, (double)state.rows-d1),
+           dc = min(d2, (double)state.cols-d2);
     return sqrt(dr*dr + dc*dc);
 }
 

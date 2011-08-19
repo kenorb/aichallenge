@@ -15,6 +15,7 @@
     own, provided you continue conforming to the input and output format
     outlined on the specifications page at http://www.ai-contest.com .
 */
+
 int main(int argc, char *argv[])
 {
     cout.sync_with_stdio(0);

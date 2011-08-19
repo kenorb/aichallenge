@@ -13,7 +13,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
-				<Option parameters='viewlog &quot;c:\[work]\Google AI\Ants\aichallenge\ants\kethbot\debug.log&quot;' />
+				<Option parameters='viewlog &quot;c:\[work]\Google AI\Ants\newest\ants\kethbot\debug.log&quot;' />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-D__DEBUG" />
@@ -82,6 +82,7 @@
 			<Add directory="C:\[work]\C++\KethBot\" />
 		</Compiler>
 		<Linker>
+			<Add library="AI\lib\libpsapi.a" />
 			<Add directory="c:\[work]\C++\KethBot\AI\jsoncpp-src-0.5.0\src\lib_json" />
 		</Linker>
 		<Unit filename="AI\Ant.cc">
@@ -130,6 +131,9 @@
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl" />
 		<Unit filename="AI\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp" />
+		<Unit filename="AI\vector2d.h">
+			<Option virtualFolder="AI\Others\" />
+		</Unit>
 		<Unit filename="Logger.cpp">
 			<Option virtualFolder="AI\" />
 			<Option target="ShowLog" />
@@ -137,6 +141,12 @@
 			<Option target="RunTests" />
 		</Unit>
 		<Unit filename="Logger.h">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="Profiler.cc">
+			<Option virtualFolder="AI\" />
+		</Unit>
+		<Unit filename="Profiler.h">
 			<Option virtualFolder="AI\" />
 		</Unit>
 		<Extensions>

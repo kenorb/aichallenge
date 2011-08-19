@@ -1,12 +1,13 @@
 #include "Ant.h"
+
+#ifdef __DEBUG
 #include "Logger.h"
+#endif
+
 #include "Location.h"
 #include "const.h"
 #include "Bot.h"
 #include "Map.h"
-
-#define pi 3.14159
-#define sqr(x) (x*x)
 
 // STRATEGY:
 // Calculate accurate percent of *discovered map*
@@ -21,19 +22,26 @@ Ant::Ant(State &_state, Location &_loc)
     id = totalAnts;
     totalAnts++;
 
+    path = NULL;
     timeAlive = 0;
     lastThink = 0;
     movePriority = 0;
 
-    loc.col = _loc.col;
-    loc.row = _loc.row;
+    partner = NULL;
+
+
+    loc = &Loc(_loc);
+
+    //loc.col = _loc.col;
+    //loc.row = _loc.row;
+
     state.structuralAnts.push_back(this);
 
-    physicalPosition((double)loc.col, (double)loc.row);
+    physicalPosition((double)loc->col, (double)loc->row);
     velocity(0,0);
 
     #ifdef __DEBUG
-    logger.debugLog << "EVENT: New " << (*this) << " at " << loc.str() << endl;
+    logger.debugLog << "EVENT: New " << (*this) << " at " << LocationToString(getLocation()) << endl;
     #endif
 
     Ant::updatePriority();
@@ -42,8 +50,12 @@ Ant::Ant(State &_state, Location &_loc)
 Ant::~Ant()
 {
     #ifdef __DEBUG
-    logger.debugLog << "EVENT: " << (*this) << " dies at " << loc.str() << endl;
+    logger.debugLog << "EVENT: " << (*this) << " dies at " << LocationToString(getLocation()) << endl;
     #endif
+
+    if (hasPath()) {
+        path->targetLocation().blurFood();
+    }
 
     state.structuralAnts.remove(this);
 }
@@ -56,11 +68,11 @@ void Ant::updatePriority()
 void Ant::onMove(Location& toLoc)
 {
     #ifdef __DEBUG
-    logger.debugLog << "EVENT: " << (*this) << " moves from " << loc.str() << " to " << toLoc.str() << endl;
+    logger.debugLog << "EVENT: " << (*this) << " moves from " << LocationToString(getLocation()) << " to " << LocationToString(toLoc) << endl;
     #endif
 
-    loc.col = toLoc.col;
-    loc.row = toLoc.row;
+    loc = &Loc(toLoc);
+
 }
 
 bool Ant::canBePlacedAt(Location& loc)
@@ -68,7 +80,10 @@ bool Ant::canBePlacedAt(Location& loc)
     if (state.grid[loc.row][loc.col] == '%') return false;
     if (state.grid[loc.row][loc.col] == 'a') return false;
     if (state.grid[loc.row][loc.col] == '*') return false; // Server is blocking? Ants die when moved inside food?
+    if (state.grid[loc.row][loc.col] == '^') return false; // Server is blocking? Ants die when moved inside food?
     if (gameMap.getAntAt(loc)) return false;
+
+    // maximum radius from nearest ant
 
     return true;
 }
@@ -84,6 +99,11 @@ void Ant::onThink()
     lastThink = state.turn;
 
     int nextMove = getNextMove();
+
+    #ifdef __DEBUG
+    bot.addChecksumValue(nextMove);
+    #endif
+
     if (nextMove != NO_MOVE) state.makeMove(getLocation(), nextMove);
 
     timeAlive++;
@@ -95,81 +115,120 @@ bool Ant::hasEnoughForceToMove()
     return velocity > 0;
 }
 
+void Ant::deletePath()
+{
+    delete Ant::path;
+    Ant::path = NULL;
+}
+
+void Ant::setPathTo(Location& target)
+{
+    #ifdef __DEBUG
+    logger.debugLog << "Path from " << LocationToString(getLocation()) << " to " << LocationToString(target) << endl;
+    #endif
+    Ant::path = Ant::getLocation().findPathTo(target);
+    if (!path->found || path->moves.size() == 0) {
+        #ifdef __DEBUG
+        logger.logWarning("Path not found!");
+        #endif
+        path = NULL;
+    } else
+    if (path->found) {
+        //path->moves.bottom();
+    }
+}
+
+int Ant::pathStepsLeft() {
+    if (!path) return numeric_limits<int>::max();
+    return path->moves.size();
+}
+
 void Ant::prepareMove()
 {
+    //logger.debugLog << "Ant::prepareMove(): " << (*this) << endl;
     double force_x = 0.0f;
     double force_y = 0.0f;
 
     double expandForce = bot.getExpandForce();
 
-    for(int row=0; row<state.rows; row++)
-    for(int col=0; col<state.cols; col++)
+
+    Location& nearestFood = Ant::getLocation().nearestFood();
+
+    bool cancelPath = false;
+
+    // todo
+    //  - dont go too far from nearest ant (vision range + 1 maybe)
+
+    // todo:
+    //  - if no food
+    //  - glue on to the wall
+    //  - walk until food is around
+    //  - make sure not to walk too far somehow and not to lose advantage
+    //  - only glue if less than 60% coverage
+
+    // todo:
+    // low amount of ants = avoid dying
+    // (or maybe if i'm starting to loss (by checking income per last 1/3 f the game), then avoid attacking)
+
+    // new func validate path
+    if (path && path->moves.size() == 0) cancelPath = true; else
+    if (path && !path->targetLocation().hasFood()) cancelPath = true; else
+    if (path && !nearestFood.equals(path->targetLocation()) && Ant::getLocation().costTo(nearestFood) < Ant::pathStepsLeft() && !Ant::getLocation().collisionLine(nearestFood) && nearestFood.nearestAnt() == this) {
+        #ifdef __DEBUG
+        logger.debugLog << "Canceled path food for " << (*this) << ", found closer new path without wall to food at " << LocationToString(nearestFood) << endl;
+        #endif
+
+        cancelPath = true;
+    } else
+    if (path) {
+        Ant* antNearFood = path->targetLocation().nearestAnt(true);
+
+        if (antNearFood && !antNearFood->getLocation().collisionLine(path->targetLocation())) {
+            if (antNearFood != this && antNearFood->getLocation().costTo(path->targetLocation()) < Ant::pathStepsLeft()) {
+                #ifdef __DEBUG
+                logger.debugLog << "Canceled path food for " << (*this) << ", found closer new path without wall to food at " << LocationToString(nearestFood) << endl;
+                #endif
+
+                cancelPath = true;
+            }
+        }
+    }
+
+    if (cancelPath) {
+        path->targetLocation().blurFood();
+        Ant::deletePath();
+    }
+
+    // new func update path
+    if (!Ant::hasPath() && nearestFood.isValid() && nearestFood.nearestAnt(true) == this && Ant::getLocation().collisionLine(nearestFood)) {
+    //if (!Ant::hasPath() && nearestFood.isValid() && nearestFood.nearestAnt() == this) {
+
+        if (Ant::getLocation().distanceTo(nearestFood) >= 2) {
+            #ifdef __DEBUG
+            logger.debugLog << "New food for " << (*this) << " through a wall at " << LocationToString(nearestFood) << endl;
+            #endif
+
+            Ant::setPathTo(nearestFood);
+            nearestFood.focusFood();
+        }
+    }
+
+    if (!Ant::hasPath()) {
+        velocity = Ant::getLocation().getForce(this);
+    }
+
+/*
+    std::list<Location*>::iterator iter_ant;
+    for (iter_ant = gameMap.getEnemyAnts().begin(); iter_ant != gameMap.getEnemyAnts().end(); iter_ant++)
     {
-        if (getLocation().row == row && getLocation().col == col) continue;
+        Location* enemyAnt = (*iter_ant);
+    }*/
 
-        bool magnetic = false;
-        double magnetPower;
-        double extraDistance = 0.0f;
-        double distanceDivision = 5.0f;
-
-        if(state.grid[row][col] == 'a') {
-            magnetic = true;
-            magnetPower = 0.5;
-            distanceDivision = 15;
+    /*
+        if (enemy closer than 3 squares) {
+            try to do formation towards the enemy OR step away if opponent has better formation
         }
-
-        if(state.grid[row][col] == '%') {
-            magnetic = true;
-            magnetPower = 1;
-            distanceDivision = 5;
-        }
-
-
-
-        if(state.grid[row][col] == '*') {
-            Location foodLocation = Location(row, col);
-            // TODO: Run path finding algorithm to prevent moving towards wall instead of the food
-            if (foodLocation.nearestAnt(true) == this) {
-                magnetic = true;
-                magnetPower = -2;
-                distanceDivision = 15;
-            }
-
-        }
-
-        if (magnetic) {
-            Location magnetLocation = Location(row, col);
-
-            double distance = gameMap.distance(Ant::getLocation(), magnetLocation) + extraDistance;
-            Location relLoc = Ant::getLocation().relativeLocationTo(magnetLocation);
-
-            double magnetForce = (magnetPower/(4*pi*sqr(distance/distanceDivision)));
-
-            double add_force_x = magnetForce * -vector2f(relLoc.col, relLoc.row).normalized().x;
-            double add_force_y = magnetForce * -vector2f(relLoc.col, relLoc.row).normalized().y;
-
-            if (state.grid[row][col] == 'a') {
-                add_force_x *= expandForce;
-                add_force_y *= expandForce;
-            }
-
-            force_x += add_force_x;
-            force_y += add_force_y;
-        }
-
-    }
-    velocity = vector2f(force_x, force_y);
-
-    if (velocity.length() > 5) {
-        velocity.normalize();
-        velocity *= 5;
-    }
-
-    physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
-
-    if (!Ant::hasEnoughForceToMove()) {
-        // TODO: Think of something smart to do when not doing a move
-    }
+    */
 
     Ant::updatePriority();
 }
@@ -181,6 +240,30 @@ int Ant::getNextMove()
     #endif
 
     int ret = NO_MOVE;
+
+    if (Ant::hasPath() && path->moves.size() > 0) {
+        Location& locationTo = path->moves.top();
+        Location relLoc = Ant::getLocation().relativeLocationTo(locationTo);
+
+        #ifdef __DEBUG
+        logger.debugLog << *this << "I have path, next location is " << LocationToString(locationTo) << ", canBePlaced: " << Ant::canBePlacedAt(locationTo) << endl;
+        logger.debugLog << state.grid[locationTo.row][locationTo.col] << endl;
+        #endif
+
+        locationTo.think();
+
+        if (!Ant::canBePlacedAt(locationTo)) {
+            Ant::deletePath();
+            Ant::prepareMove();
+            return Ant::getNextMove();
+        }
+
+        velocity = vector2f(relLoc.col, relLoc.row);
+        path->moves.pop();
+
+    }
+
+    physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
 
     double dist = numeric_limits<double>::max();
     if (Ant::hasEnoughForceToMove())

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 template <typename T>
@@ -151,6 +153,20 @@ struct vector2f: public vector2<float>
 		project(n);
 		*this= *this*2 - orig;
 	}
+
+	int dir() const
+	{
+	    if (abs(x) > abs(y)) {
+	        if (x > 0) return 1;
+	        if (x < 0) return 3;
+	    } else
+	    if (abs(y) > abs(x)) {
+	        if (y > 0) return 2;
+	        if (y < 0) return 0;
+	    }
+	    return -1;
+    }
+
 
 	//! projects this vector onto v
 	void project(const vector2f &v)
