@@ -418,7 +418,7 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                 if (nearestEnemy.isValid()) {
                     double enemyDistance = distance_fast(nearestEnemy.row, nearestEnemy.col, magnetLocation.row, magnetLocation.col);
                     double ourDistance = distance_fast(forAnt->getLocation().row, forAnt->getLocation().col, magnetLocation.row, magnetLocation.col);
-                    if (enemyDistance < ourDistance) {
+                    if (enemyDistance < ourDistance && !nearestEnemy.collisionLine(magnetLocation)) {
                         magnetic = false;
                     }
                 }
