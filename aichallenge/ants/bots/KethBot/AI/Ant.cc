@@ -181,13 +181,6 @@ void Ant::deletePath()
 
 void Ant::setPathTo(const Location& target)
 {
-    logger.debugLog << "OMEGA TEST BEFORE" << std::endl;
-    logger.debugLog << "ANT_ISFRIEND = " << Ant::hasFlags(ANT_ISFRIEND) << std::endl;
-    logger.debugLog << "ANT_HASPATH = " << Ant::hasFlags(ANT_HASPATH) << std::endl;
-    logger.debugLog << "ANT_NOPATH = " << Ant::hasFlags(ANT_NOPATH) << std::endl;
-    logger.debugLog << "ANT_ISFRIEND + ANT_NOPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_NOPATH)) << std::endl;
-    logger.debugLog << "ANT_ISFRIEND + ANT_HASPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_HASPATH)) << std::endl;
-
     Ant::path = Ant::getLocation().findPathTo(target);
     #ifdef __DEBUG
     logger.debugLog << "Path from " << LocationToString(getLocation()) << " to " << LocationToString(target) << " (" << path->stepsLeft() << " steps)" <<  endl;
@@ -198,14 +191,6 @@ void Ant::setPathTo(const Location& target)
         #endif
         return;
     }
-
-    logger.debugLog << "OMEGA TEST AFTER" << std::endl;
-    logger.debugLog << "ANT_ISFRIEND = " << Ant::hasFlags(ANT_ISFRIEND) << std::endl;
-    logger.debugLog << "ANT_HASPATH = " << Ant::hasFlags(ANT_HASPATH) << std::endl;
-    logger.debugLog << "ANT_NOPATH = " << Ant::hasFlags(ANT_NOPATH) << std::endl;
-    logger.debugLog << "ANT_ISFRIEND + ANT_NOPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_NOPATH)) << std::endl;
-    logger.debugLog << "ANT_ISFRIEND + ANT_HASPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_HASPATH)) << std::endl;
-
 }
 
 void Ant::prepareMove()
