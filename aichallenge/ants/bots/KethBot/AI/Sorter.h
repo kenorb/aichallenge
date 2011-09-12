@@ -3,10 +3,10 @@
 
 #include "globals.h"
 #include "Location.h"
+#include "relativeLocation.h"
 #include "Optimizer.h"
 
-struct Location;
-struct relativeLocation;
+
 
 bool SortFunction(int a, int b, int c, int d, int e, int f, bool symetric);
 

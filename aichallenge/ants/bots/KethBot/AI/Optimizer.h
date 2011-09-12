@@ -1,5 +1,3 @@
-#define __OPTIMIZER
-
 #ifndef OPTIMIZER_H_INCLUDED
 #define OPTIMIZER_H_INCLUDED
 

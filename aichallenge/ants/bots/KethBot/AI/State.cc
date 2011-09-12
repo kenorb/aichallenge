@@ -1,12 +1,15 @@
-#include "State.h"
-#include "Ant.h"
-#include "Bot.h"
 #include <time.h>
 #include <algorithm>
 #include <vector>
 
-#include "globals.h"
+#include "State.h"
+#include "Ant.h"
+#include "Sorter.h"
+#include "Bot.h"
 #include "Optimizer.h"
+
+#include "globals.h"
+#include "relativeLocation.h"
 
 State::State()
 {
@@ -70,7 +73,7 @@ void State::updateLocation(const int row, const int col, CallbackLocData data)
         if (Ant* ant = (Ant*)data.sender) {
             const double* distance = &data.relLoc->distance;
 
-            #ifdef __DEBUG
+            #ifdef __ASSERT
             double distance2 = distance_fast(ant->getLocation().row, ant->getLocation().col, row, col);
             if (*distance != distance2) logger.logError("*distance != distance2");
             #endif
@@ -211,7 +214,7 @@ void _deleteFriendlyDamage(const Location& loc, CallbackLocData data)
     friendlyAnts.erase(std::remove(friendlyAnts.begin(), friendlyAnts.end(), data.senderLocation), friendlyAnts.end());
     state.grid_damage[loc.row][loc.col].friendly--;
 
-    #ifdef __DEBUG
+    #ifdef __ASSERT
     if (friendlyAnts.size() != state.grid_damage[loc.row][loc.col].friendly) {
         logger.logError("friendlyAnts.size() != state.grid_damage[loc.row][loc.col].friendly");
         logger.debugLog << "DEBUG: " << friendlyAnts.size() << " != " << state.grid_damage[loc.row][loc.col].friendly << std::endl;
@@ -304,7 +307,7 @@ void State::sortDamageGrid()
 
     for(int row=0; row<state.rows; row++)
     for(int col=0; col<state.cols; col++) {
-        #ifdef __DEBUG
+        #ifdef __ASSERT
         if (grid_damage[row][col].friendly != grid_damage[row][col].friendlyAnts.size()) logger.logError("grid_damage[row][col].friendly != grid_damage[row][col].friendlyAnts.size()");
         if (grid_damage[row][col].enemy != grid_damage[row][col].enemyAnts.size()) logger.logError("grid_damage[row][col].enemy != grid_damage[row][col].enemyAnts.size()");
         #endif
@@ -335,7 +338,6 @@ void State::updateFogOfWar()
 
     state.updateLocations();
 
-    #ifdef __DEBUG
     #ifdef __ASSERT
     int j = 0;
     for(int row=0; row<rows; row++)
@@ -369,6 +371,8 @@ void State::updateFogOfWar()
         logger.debugLog << "DEBUG: visibleCells = " << visibleCells << ", rows*cols: " << rows*cols << std::endl;
     }
     #endif
+
+    #ifdef __DEBUG
     logger.debugLog << "Visible cells: " << visibleCells << ", Updated cells: " << updatedCells << std::endl;
     #endif
 
@@ -385,21 +389,7 @@ void State::makeMove(const Location &loc, int direction)
 {
     const Location& locMoveTo = getLocation(loc, direction);
 
-
-
-/*
-    for (int x=0;x<state.rows;x++) {
-        for (int y=0;y<state.cols;y++) {
-            if (state.grid[x][y] == 'a' || state.grid[x][y] == 'b' || state.grid[x][y] == 'c' || state.grid[x][y] == '%') {
-                logger.debugLog << state.grid[x][y];
-            } else {
-                logger.debugLog << Loc(x, y).damageArea().enemy;
-            }
-        }
-        logger.debugLog << std::endl;
-    }
-*/
-    #ifdef __DEBUG
+    #ifdef __ASSERT
     if ((direction < 0) || (direction > 3)) {
         logger.logError("Ant trying to move into incorrect direction");
     }
@@ -606,6 +596,7 @@ istream& operator>>(istream &is, State &state)
                     state.grid[row][col] = 'b';
                     if ((player + 1) > state.approxPlayers) {
                         state.approxPlayers = player + 1;
+                        // keep track of which players are being aggressive?
                     }
                     state.enemyAnts.push_back(Loc(row, col));
 

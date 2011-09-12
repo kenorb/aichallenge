@@ -1,41 +1,23 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "globals.h"
-#include <stack>
-
-#define LOCATION_UNDEFINED locNull;
-
 #ifndef LOCATION_H_
 #define LOCATION_H_
 
-enum LocationType {
-    ANT,
-    ANT_FRIENDLY,
-    ANT_ENEMY,
-    FOOD,
-    FOOD_FOCUSED,
-    FOOD_BLURRED,
-    WALL,
-    FOG,
-    EMPTY
-};
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <stack>
 
-struct Ant;
+#include "Ant.h"
+#include "Damage.h"
+#include "Map.h"
 
-struct Path;
+#include "const.h"
+#include "globals.h"
+#include "enums.h"
 
-struct Damage;
+#define LOCATION_UNDEFINED (*locNull);
 
-struct relativeLocation
-{
-    relativeLocation() { row = col = 0; };
-    relativeLocation(int r, int c) { row = r; col = c; };
-    relativeLocation(int r, int c, double d) { row = r; col = c; distance = d; };
-
-    int row, col;
-    double distance;
-};
+class Ant;
+class Path;
 
 struct Location
 {
@@ -45,7 +27,7 @@ struct Location
     Location(int r, int c);
     Location(vector2f vec);
 
-    bool isType(LocationType type) const;
+    bool isType(const LocationType type) const;
 
     inline bool equals(const Location& loc) const { return row == loc.row && col == loc.col; }
     bool isValid() const;
@@ -63,8 +45,7 @@ struct Location
     //foodList foodInRadius(double radius) const;
     const Location& nearestFood(bool focusedFood = false) const;
 
-    Ant* nearestAnt(bool ignoreTakenAnts = false, Ant* ignoreAnt = NULL) const;
-    const Location& nearestEnemyAnt() const;
+    const Location& nearestAnt(int antFlags = ANT_NOFLAGS, const Location& ignoreAnt = *locNull) const;
     Location relativeLocationTo(const Location& loc) const;
     double costTo(const Location& loc, bool precise = false) const;
     bool collisionLine(const Location& loc, bool secondSolve = false) const;
@@ -75,7 +56,7 @@ struct Location
 
     bool hasAnt() const;
     Ant* getAnt() const;
-    bool hasWall() const;
+    bool isWall() const;
     bool hasFood() const;
     bool hasFreshFood();
     bool isBlocked() const;

@@ -1,11 +1,8 @@
-#include "Ant.h"
-
 #ifdef __DEBUG
 #include "Logger.h"
 #endif
 #include "Optimizer.h"
 
-#include "Location.h"
 #include "const.h"
 #include "Bot.h"
 #include "Map.h"
@@ -70,6 +67,30 @@ Ant::~Ant()
     state.structuralAnts.remove(this);
 }
 
+AntFlags Ant::getFlags() {
+    int ret = 0;
+    if (Ant::path) ret &= ANT_HASPATH; else ret &= ANT_NOPATH;
+    if (Ant::getLocation().damageArea().enemy >= 1) ret &= ANT_UNDERATTACK;
+    if (Ant::seenEnemy) ret &= ANT_SEENENEMY;
+    if (Ant::hasMoved) ret &= ANT_DIDMOVE;
+    if (Ant::lastThink >= state.turn) ret &= ANT_DIDTHINK;
+
+    return (AntFlags)ret;
+}
+
+bool Ant::hasFlags(AntFlags flag)
+{
+    //if ((flag & ANT_ISFRIEND) == flag) return true;
+    if ((ANT_HASPATH & flag) == ANT_HASPATH && !path) return false;
+    if ((ANT_NOPATH & flag) == ANT_NOPATH && path) return false;
+    if ((ANT_UNDERATTACK & flag) == ANT_UNDERATTACK && Ant::getLocation().damageArea().enemy == 0) return false;
+    if ((ANT_SEENENEMY & flag) == ANT_SEENENEMY&& !seenEnemy) return false;
+    if ((ANT_DIDMOVE & flag) == ANT_DIDMOVE && !hasMoved) return false;
+    if ((ANT_DIDTHINK & flag) == ANT_DIDTHINK && Ant::lastThink < state.turn) return false;
+
+    return true;
+}
+
 void Ant::updatePriority()
 {
     movePriority = distance_fast((*loc).row, (*loc).col, bot.startLocation.row, bot.startLocation.col);
@@ -78,7 +99,6 @@ void Ant::updatePriority()
 void Ant::onNewTurn()
 {
     moveIterations = 0;
-    nearestEnemyAnt = &getLocation().nearestEnemyAnt();
 }
 
 void Ant::onMove(const Location& toLoc)
@@ -102,25 +122,8 @@ bool Ant::canBePlacedAt(const Location& _loc)
 
     if (gameMap.getAntAt(_loc) && _loc.getAnt() != this) return false;
 
-
-    /*
-
-    for (int row = -2; row < 2; row++)
-    for (int col = -2; col < 2; row++) {
-
-    }
-*/
-    // maximum radius from nearest ant
-
     return true;
 }
-/*
-bool Ant::cacheRadius(int radius)
-{
-    //for (i=)
-
-}
-*/
 
 double Ant::distanceTo(const Location& loc2) {
     return distance_fast((*loc).row, (*loc).col, loc2.row, loc2.col);
@@ -129,7 +132,6 @@ double Ant::distanceTo(const Location& loc2) {
 double Ant::distanceTo(Ant* ant) {
     return distance_fast((*ant->loc).row, (*ant->loc).col, (*loc).row, (*loc).col);
 };
-
 
 void Ant::onThink()
 {
@@ -156,15 +158,6 @@ void Ant::onThink()
     state.moves << (int)nextMove+2;
     #endif
 
-    #ifdef __DEBUG
-    Ant* ant = getLocation().nearestAnt(false, this);
-    if (ant) {
-        logger.debugLog << "nearestAnt: " << *ant << std::endl;
-    } else {
-        logger.debugLog << "no nearest ant" << std::endl;
-    }
-    #endif
-
     if (nextMove != NO_MOVE && nextMove != MOVE_DANAGEROUS) state.makeMove(getLocation(), nextMove);
 
     timeAlive++;
@@ -188,6 +181,13 @@ void Ant::deletePath()
 
 void Ant::setPathTo(const Location& target)
 {
+    logger.debugLog << "OMEGA TEST BEFORE" << std::endl;
+    logger.debugLog << "ANT_ISFRIEND = " << Ant::hasFlags(ANT_ISFRIEND) << std::endl;
+    logger.debugLog << "ANT_HASPATH = " << Ant::hasFlags(ANT_HASPATH) << std::endl;
+    logger.debugLog << "ANT_NOPATH = " << Ant::hasFlags(ANT_NOPATH) << std::endl;
+    logger.debugLog << "ANT_ISFRIEND + ANT_NOPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_NOPATH)) << std::endl;
+    logger.debugLog << "ANT_ISFRIEND + ANT_HASPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_HASPATH)) << std::endl;
+
     Ant::path = Ant::getLocation().findPathTo(target);
     #ifdef __DEBUG
     logger.debugLog << "Path from " << LocationToString(getLocation()) << " to " << LocationToString(target) << " (" << path->stepsLeft() << " steps)" <<  endl;
@@ -196,7 +196,16 @@ void Ant::setPathTo(const Location& target)
         #ifdef __DEBUG
         logger.debugLog << "Path not found!" <<  endl;
         #endif
+        return;
     }
+
+    logger.debugLog << "OMEGA TEST AFTER" << std::endl;
+    logger.debugLog << "ANT_ISFRIEND = " << Ant::hasFlags(ANT_ISFRIEND) << std::endl;
+    logger.debugLog << "ANT_HASPATH = " << Ant::hasFlags(ANT_HASPATH) << std::endl;
+    logger.debugLog << "ANT_NOPATH = " << Ant::hasFlags(ANT_NOPATH) << std::endl;
+    logger.debugLog << "ANT_ISFRIEND + ANT_NOPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_NOPATH)) << std::endl;
+    logger.debugLog << "ANT_ISFRIEND + ANT_HASPATH = " << Ant::hasFlags((AntFlags)(ANT_ISFRIEND + ANT_HASPATH)) << std::endl;
+
 }
 
 void Ant::prepareMove()
@@ -241,10 +250,10 @@ void Ant::prepareMove()
         cancelPath = true;
     } else
     if (path) {
-        Ant* antNearFood = path->targetLocation().nearestAnt(true);
+        const Location& antNearFood = path->targetLocation().nearestAnt(ANT_ISFRIEND + ANT_NOPATH);
 
-        if (antNearFood && !antNearFood->getLocation().collisionLine(path->targetLocation())) {
-            if (antNearFood != this && antNearFood->getLocation().costTo(path->targetLocation()) < Ant::path->stepsLeft()) {
+        if (antNearFood.isValid() && !antNearFood.collisionLine(path->targetLocation())) {
+            if (!antNearFood.equals(Ant::getLocation()) && antNearFood.costTo(path->targetLocation()) < Ant::path->stepsLeft()) {
                 #ifdef __DEBUG
                 logger.debugLog << "Canceled path food for " << (*this) << ", found closer new path without wall to food at " << LocationToString(nearestFood) << endl;
                 #endif
@@ -260,7 +269,8 @@ void Ant::prepareMove()
     }
 
     // new func update path
-    if (!Ant::hasPath() && nearestFood.isValid() && nearestFood.nearestAnt(true) == this && !nearestFood.isAround(Ant::getLocation()) && (Ant::getLocation().collisionLine(nearestFood) || distanceToNearestFood >= state.viewradius)) {
+    if (!Ant::path && nearestFood.isValid() && nearestFood.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).equals(Ant::getLocation()) && !nearestFood.isAround(Ant::getLocation()) && (Ant::getLocation().collisionLine(nearestFood) || distanceToNearestFood >= state.viewradius)) {
+
     //if (!Ant::hasPath() && nearestFood.isValid() && nearestFood.nearestAnt() == this) {
         #ifdef __DEBUG
         logger.debugLog << "New path to food for " << (*this) << " through a wall at " << LocationToString(nearestFood) << endl;
@@ -393,8 +403,6 @@ int Ant::getNextMove(bool solveCollision /* = true */)
 
     physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
 
-    double dist = numeric_limits<double>::max();
-
     const Location& nearestFood = Ant::getLocation().nearestFood();
     double distanceToNearestFood = numeric_limits<double>::max();
     bool foodCollision = false;
@@ -403,8 +411,6 @@ int Ant::getNextMove(bool solveCollision /* = true */)
         distanceToNearestFood = distance_fast(Ant::getLocation().row, Ant::getLocation().col, nearestFood.row, nearestFood.col);
         foodCollision = nearestFood.collisionLine(Ant::getLocation());
     }
-
-    bool noMove = false;
 
     if (Ant::hasEnoughForceToMove())
     {
@@ -422,15 +428,18 @@ int Ant::getNextMove(bool solveCollision /* = true */)
             }
         }
 */
-        bool effectiveKill = false;
-
         // Make a list of directions
         for(int dir = -1; dir < 4; dir++)
         {
-            int score = 0;
-
             const Location& locationTo = state.getLocation(Ant::getLocation(), dir);
-            if (locationTo.isType(WALL)) continue;
+            if (locationTo.isType(WALL)) {
+                #ifdef __DEBUG
+                logger.debugLog << "dir: " << dir << ", blocked" << std::endl;
+                #endif
+                continue;
+            }
+
+            int score = 0;
 
             directionMove move;
             move.direction = dir;
@@ -439,16 +448,27 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                 move.cost = 100;
             } else {
                 move.cost = gameMap.distance_vector(locationTo, physicalPosition);
+                if (gameMap.isDeadEnd(Ant::getLocation(), dir)) move.cost *= 10;
             }
 
             if (locationTo.damageArea().enemy == 0) {
                 const Location& nFood = locationTo.nearestFood();
-                if (nFood.isValid() && nFood.nearestAnt() == this) {
-                    double d = distance_fast(nFood.row, nFood.col, locationTo.row, locationTo.col);
-                    if (d <= state.spawnradius) {
-                        move.cost += -80000 + d;
-                        moves.push_back(move);
-                        continue;
+                if (nFood.isValid()) {
+                    /*
+                    if nearest enemy is in range of picking the food && we are further than him, don't move that direciton
+                    */
+                    if (nFood.nearestAnt(ANT_ISFRIEND).equals(Ant::getLocation())) {
+                        double d = distance_fast(nFood.row, nFood.col, locationTo.row, locationTo.col);
+                        if (d <= state.spawnradius) {
+                            move.cost += -80000 + d;
+                            moves.push_back(move);
+
+                            #ifdef __DEBUG
+                            logger.debugLog << "dir: " << dir << ", special move to food (no damage), cost: " << move.cost << std::endl;
+                            #endif
+
+                            continue;
+                        }
                     }
                 }
             } else
@@ -464,6 +484,11 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                         (
                             (nFood.damageArea().enemy == 0) ||
                             (nFood.damageArea().enemy >= 1 && nFood.damageArea().enemyDistance >= d)
+                            // todo: only risk losing ant if there is another one around
+                            //       we want to prevent enemy from picking it
+                        ) &&
+                        (
+                            (gameMap.findMany(nFood, state.attackradius + 2, ANT_FRIENDLY).size() > gameMap.findMany(nFood, state.attackradius + 2, ANT_ENEMY).size())
                         )
                     ) {
                     //if (d <= state.spawnradius) {
@@ -471,6 +496,11 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                         if (nFood.damageArea().enemy >= 1 && nFood.damageArea().enemyDistance >= d) {
                             move.cost -= locationTo.damageArea().enemyDistance;
                         }
+
+                        #ifdef __DEBUG
+                        logger.debugLog << "dir: " << dir << ", special move to food (with damage), cost: " << move.cost << std::endl;
+                        #endif
+
                         moves.push_back(move);
                         continue;
                     }
@@ -613,6 +643,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                 logger.debugLog << "dir: " << dir << ", no damage, cost: " << move.cost << std::endl;
                 #endif
             }
+
 
             moves.push_back(move);
         }

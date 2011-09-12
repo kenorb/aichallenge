@@ -9,6 +9,8 @@ const int DIRECTION[4] = {0, 1, 2, 3};
 #define pi 3.14
 #define sqr(x) (x*x)
 
+#define UNDEFINED -1
+
 #define NO_MOVE -1
 #define MOVE_UNKNOWN -2
 #define MOVE_DANAGEROUS -3

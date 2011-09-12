@@ -1,14 +1,18 @@
-#include "globals.h"
-#include "Location.h"
-#include "Map.h"
-#include "Optimizer.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <vector>
 #include <string.h>
 
+#include "Map.h"
+#include "Optimizer.h"
 #include "Genetic.h"
+#include "Sorter.h"
+#include "Location.h"
+
+#include "globals.h"
+#include "relativeLocation.h"
+
 
 void rmdup(u4 *array, int length)
 {
@@ -148,16 +152,14 @@ void Optimizer::init() {
         }
     }
 
-    {
-        for (int row = 0; row < state.rows; row++)
-        for (int col = 0; col < state.cols; col++) {
-            double distance = distance_real(0, 0, row, col);
+    for (int row = 0; row < state.rows; row++)
+    for (int col = 0; col < state.cols; col++) {
+        double distance = distance_real(0, 0, row, col);
 
-            radiusAreaMap.push_back(new relativeLocation(row, col, distance));
-            radiusAreaMap.push_back(new relativeLocation(-row, col, distance));
-            radiusAreaMap.push_back(new relativeLocation(row, -col, distance));
-            radiusAreaMap.push_back(new relativeLocation(-row, -col, distance));
-        }
+        radiusAreaMap.push_back(new relativeLocation(row, col, distance));
+        if (row > 0) radiusAreaMap.push_back(new relativeLocation(-row, col, distance));
+        if (col > 0) radiusAreaMap.push_back(new relativeLocation(row, -col, distance));
+        if (row > 0 && col > 0) radiusAreaMap.push_back(new relativeLocation(-row, -col, distance));
     }
 
     for (int r = 1; r <= sqr(OPTIMIZER_MAX_RADIUS); r++) {

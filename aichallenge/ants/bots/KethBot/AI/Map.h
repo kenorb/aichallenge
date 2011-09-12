@@ -2,8 +2,18 @@
 #define MAP_H_INCLUDED
 
 #include "Ant.h"
-#include "globals.h"
 #include "Optimizer.h"
+#include "Map.h"
+
+#include "globals.h"
+#include "const.h"
+#include "enums.h"
+
+class Ant;
+
+const Location& Loc(int row, int col);
+const Location& Loc(const Location& loc);
+const Location& Loc(const int i);
 
 struct CallbackLocData
 {
@@ -11,6 +21,8 @@ struct CallbackLocData
     const Location* senderLocation;
     const relativeLocation* relLoc;
 };
+
+typedef void (*CallbackLoc)(const Location&, CallbackLocData data);
 
 struct MapSearch
 {
@@ -27,10 +39,6 @@ struct MapSearch
     bool found;
 };
 
-typedef void (*CallbackLoc)(const Location&, CallbackLocData data);
-
-const Location& Loc(int row, int col);
-const Location& Loc(const Location& loc);
 
 #define MAX_DISTANCE 256
 #define distance_fast(a,b,c,d) optimizer.distance_table[abs(a-c)*state.cols+abs(b-d)]
@@ -49,6 +57,8 @@ struct Map
         void onDeadAnt(int bot_id, const Location &loc);
         void onFood(const Location &loc);
         void onWater(const Location &loc);
+
+        bool isDeadEnd(const Location& loc, int dir);
 
         void callbackArea(const Location& loc, double radius, CallbackLoc callback, const void* sender = NULL);
 

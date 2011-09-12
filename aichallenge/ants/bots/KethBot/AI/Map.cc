@@ -1,10 +1,12 @@
+#include <iostream>
+
 #include "Map.h"
 #include "Bot.h"
 #include "Ant.h"
-#include "globals.h"
 #include "Optimizer.h"
 
-#include <iostream>
+#include "globals.h"
+#include "relativeLocation.h"
 
 const Location& Loc(int row, int col) {
     while (row < 0) row += state.rows;
@@ -18,6 +20,11 @@ const Location& Loc(int row, int col) {
 
 const Location& Loc(const Location& loc) {
     return *gameMap.locationGrid[LocToIndex(loc.row, loc.col)];
+}
+
+const Location& Loc(const int i) {
+    if (i == UNDEFINED) return LOCATION_UNDEFINED;
+    return *gameMap.locationGrid[i];
 }
 
 void Map::onInit() {
@@ -34,10 +41,25 @@ void Map::onInit() {
         locationGrid[i] = new Location();
         locationGrid[i]->row = IndexToRow(i);
         locationGrid[i]->col = IndexToCol(i);
-        #ifdef __DEBUG
+        #ifdef __ASSERT
         if (i != (*locationGrid[i]).getIndex()) logger.logError("Map::onInit(): Error while indexing grid");
         #endif
     }
+}
+
+bool Map::isDeadEnd(const Location& loc, int dir)
+{
+    const Location& locationTo = state.getLocation(loc, dir);
+
+    int walls = 0;
+    for (int i = 0; i < 4; i++) {
+        const Location& nextMove = state.getLocation(locationTo, i);
+        if (nextMove.isWall()) walls++;
+    }
+
+    if (walls >= 3) return true;
+
+    return false;
 }
 
 vector<const Location*> Map::findMany(const Location& loc, double searchRadius, LocationType type)
@@ -50,7 +72,7 @@ vector<const Location*> Map::findMany(const Location& loc, double searchRadius, 
         if (relLoc->distance > searchRadius) break;
 
         const Location* l = &Loc(loc.row + relLoc->row, loc.col + relLoc->col);
-        #ifdef __DEBUG
+        #ifdef __ASSERT
         if (!l->isValid()) {
             logger.logError("Map::find - !l->isValid()");
             logger.debugLog << "DEBUG: " << LocationToString(*l) << std::endl;
@@ -66,6 +88,10 @@ vector<const Location*> Map::findMany(const Location& loc, double searchRadius, 
 
 MapSearch Map::find(const Location& loc, double searchRadius, LocationType type, MapSearch startFrom /* = MapSearch() */)
 {
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_MAP_SEARCH);
+    #endif
+
     MapSearch ret;
 
     for (int i = startFrom.index + 1; i < optimizer.radiusAreaMap.size(); i++) {
@@ -78,12 +104,14 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
         }
 
         const Location* l = &Loc(loc.row + relLoc->row, loc.col + relLoc->col);
-        #ifdef __DEBUG
+
+        #ifdef __ASSERT
         if (!l->isValid()) {
             logger.logError("Map::find - !l->isValid()");
             logger.debugLog << "DEBUG: " << LocationToString(*l) << std::endl;
         }
         #endif
+
         if (l->isType(type)) {
             ret.location = l;
             ret.found = true;
@@ -91,13 +119,17 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
         }
     }
 
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_MAP_SEARCH);
+    #endif
+
     return ret;
 }
 
 void Map::callbackArea(const Location& loc, double radius, CallbackLoc callback, const void* sender /* = NULL */)
 {
     if (radius > OPTIMIZER_MAX_RADIUS) {
-        #ifdef __DEBUG
+        #ifdef __ASSERT
         logger.logError("Map::callbackArea(): Radius not computed");
         #endif
         return;

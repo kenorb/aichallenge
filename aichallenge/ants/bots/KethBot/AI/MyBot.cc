@@ -1,4 +1,12 @@
-#define __OPTIMIZER
+#ifndef __DEBUG
+    #ifdef __ASSERT
+        #undef __ASSERT
+    #endif
+
+    #ifdef __JSON
+        #undef __JSON
+    #endif
+#endif
 
 #include "Bot.h"
 #include "globals.h"

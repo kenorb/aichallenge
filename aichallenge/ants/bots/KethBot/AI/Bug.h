@@ -2,6 +2,7 @@
 #define BUG_H_
 
 #include <fstream>
+
 #include "globals.h"
 
 /*

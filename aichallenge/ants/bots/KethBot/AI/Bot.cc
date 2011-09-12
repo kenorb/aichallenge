@@ -42,10 +42,9 @@ void Bot::playGame()
     optimizer.init();
     #ifdef __DEBUG
     logger.debugLog << "Optimizer init done..." << std::endl;
-    #endif
 
-    #ifdef __DEBUG
     logger.logPreState(true);
+
     #endif
 
     while(cin >> state)
@@ -61,7 +60,9 @@ void Bot::endGame()
     if (state.turn < 10) logger.logWarning("Game shorter than 10 turns?");
     logger.debugLog << endl <<
     "GAME END" << endl <<
+    #ifdef __ASSERT
     " + Errors: " << (int)logger.errors << endl <<
+    #endif
     " + Warnings: " << (int)logger.warnings << endl <<
     " + Structural ants: " << (int)state.structuralAnts.size() << endl <<
     " + Turns: " << (int)state.turns << endl
@@ -148,7 +149,7 @@ Ant* getAntById(int id)
 {
     Location& loc = state.ants[id];
     Ant* ret = gameMap.getAntAt(loc);
-    #ifdef __DEBUG
+    #ifdef __ASSERT
     if (!ret) logger.logError("Structural ant at location not found");
     #endif
     ret->updateTemporaryId(id);
@@ -195,7 +196,7 @@ void Bot::makeMoves()
 
 
 
-    #ifdef __DEBUG
+    #ifdef __JSON
     logger.logMapState();
     #endif
 
@@ -222,7 +223,7 @@ void Bot::makeMoves()
         ant->onThink();
     }
 
-    #ifdef __DEBUG
+    #ifdef __ASSERT
     for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
         Ant* ant = getAntById(ant_id);
         for (int ant_id2 = 0; ant_id2 < (int)state.ants.size(); ant_id2++) {
@@ -250,6 +251,7 @@ void Bot::onThink()
     profiler.beginThinkTime(TT_TOTAL);
 
     logger.debugLog << " --- BEGIN: Bot::onThink() --- " << endl;
+
     logger.logPreState(false);
 
     profiler.beginMemoryProfiling();
@@ -280,15 +282,19 @@ void Bot::onThink()
     #ifdef __DEBUG
     profiler.endMemoryProfiling();
 
+    #ifdef __ASSERT
     if ((int)state.ants.size() != (int)gameMap.getAnts().size()) {
-        logger.logError("Number of ants given is not equal to structural ants");
+        logger.logError("(int)state.ants.size() != (int)gameMap.getAnts().size()");
+        logger.debugLog << (int)state.ants.size() << " != " << (int)gameMap.getAnts().size() << std::endl;
     }
-
-    profiler.endThinkTime(TT_TOTAL);
+    #endif
 
     logger.logPostState();
 
-    logger.debugLog << " --- ENDOF: Bot::onThink() --- (+" << profiler.lastNewBytes << " bytes)" << endl;
+    profiler.endThinkTime(TT_TOTAL);
+
+    //logger.debugLog << " --- ENDOF: Bot::onThink() --- (+" << profiler.lastNewBytes << " bytes)" << endl;
+    logger.debugLog << " --- ENDOF: Bot::onThink() --- " << endl;
     #endif
 };
 

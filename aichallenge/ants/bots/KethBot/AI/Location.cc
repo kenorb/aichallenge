@@ -93,7 +93,7 @@ bool Location::isValid() const
         return false;
     }
 
-    #ifdef __DEBUG
+    #ifdef __ASSERT
     if (row < 0 || col < 0 || row > state.rows || col > state.cols) {
         logger.logError("Invalid location");
         logger.debugLog << "Debug output: " << LocationToString(*this) << std::endl;
@@ -106,6 +106,7 @@ bool Location::isValid() const
 
 Ant* Location::getAnt() const
 {
+    if (!isValid()) return NULL;
     return gameMap.getAntAt(*this);
 }
 
@@ -114,25 +115,28 @@ bool Location::hasAnt() const
     return gameMap.getAntAt(*this) != NULL;
 }
 
-bool Location::isType(LocationType type) const
+bool Location::isType(const LocationType type) const
 {
     char& s = state.grid[row][col];
     switch (type) {
         case ANT: return s == 'a' || s == 'b';
-        case ANT_FRIENDLY: return s == 'a' || (getAnt() != NULL);
+        case ANT_FRIENDLY: return s == 'a';
+        case WALL: return s == '%';
         case ANT_ENEMY: return s == 'b';
-        case FOOD: return s == '*' || s == '^';
         case FOOD_FOCUSED: return s == '^';
         case FOOD_BLURRED: return s == '*';
-        case WALL: return s == '%';
-        case FOG: return s == '?';
+        case FOOD: return s == '*' || s == '^';
         case EMPTY: return s == '.' || s == 'o';
-    }
+        case FOG: return s == '?';
+        #ifdef __ASSERT
+        default:
+            logger.logError("Location::isType - Unknown LocationType");
+            logger.debugLog << "DEBUG: type = " << type << std::endl;
+        break;
+        #endif
 
-    #ifdef __DEBUG
-    logger.logError("Location::isType - Unknown char in state.grid");
-    logger.debugLog << "DEBUG: s = '" << s << "'" << std::endl;
-    #endif
+    }
+    return false;
 }
 
 bool Location::isAround(const Location& loc) const
@@ -162,8 +166,6 @@ Path* Location::findPathTo(const Location& endLocation) const
 
     path->setSource(Loc(*this));
     path->setTarget(Loc(endLocation));
-
-    //logger.debugLog << "findPathFrom " << LocationToString(path->source) << " to " << LocationToString(path->target) << endl;
 
     if (Location::isAround(path->targetLocation())) {
         #ifdef __DEBUG
@@ -309,16 +311,7 @@ foodList Location::foodInRadius(double radius) const
 
 const Location& Location::nearestFood(bool focusedFood /*= false*/) const
 {
-    #ifdef __DEBUG
-    profiler.beginThinkTime(TT_NEAREST_FOOD);
-    #endif
-
-    MapSearch mapSearch = gameMap.find(*this, 16, focusedFood ? FOOD_FOCUSED : FOOD_BLURRED);
-
-    #ifdef __DEBUG
-    profiler.endThinkTime(TT_NEAREST_FOOD);
-    #endif
-
+    MapSearch mapSearch = gameMap.find(*this, 16, ((focusedFood) ? FOOD_FOCUSED : FOOD_BLURRED));
     return *mapSearch.location;
 }
 
@@ -330,6 +323,7 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
 
     double expandForce = bot.getExpandForce();
     const Location& nearestFood = Location::nearestFood();
+
     double distanceToNearestFood = MAX_DISTANCE;
 
     if (nearestFood.isValid()) {
@@ -339,9 +333,8 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
     Ant* nearestAntNearFood  = NULL;
     if (forAnt) {
         //if (nearestFood.isValid()) nearestAntNearFood = nearestFood.nearestAnt(true); // 2
-        nearestAntNearFood = nearestFood.nearestAnt(); // 3
+        nearestAntNearFood = nearestFood.nearestAnt(ANT_ISFRIEND).getAnt(); // 3
     }
-
     vector2f velocity(0,0);
 
     for(int row=0; row<state.rows; row++)
@@ -352,6 +345,7 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
         if ((*this).row == magnetLocation.row && (*this).col == magnetLocation.col) continue;
 
         bool magnetic = false;
+        bool ignoreDistance = false;
         double distance = -1;
         double magnetPower = 0;
         double extraDistance = 0.0f;
@@ -360,49 +354,41 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
 
         if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
             magnetic = true;
-            magnetPower = 0.5;
+            magnetPower = 1;
+            distanceDivision = 15;
+        }
+
+/*
+        if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
+            ignoreDistance = true;
+            magnetic = true;
+            magnetPower = 5;
             distanceDivision = 15;
 
-            if (nearestFood.isValid() && distanceToNearestFood <= 1.5) { // 3
-            //if (nearestFood.isValid() && distanceToNearestFood < 4 && forAnt && nearestAntNearFood && forAnt == nearestAntNearFood) { // 2
-                magnetic = false;
-            }
-        }
-
-
-// version 1 never push back
-// version 2 always push back
-// version 3 push back only if 2 players or mrore
-// version 4 push back according to amount of ants
-/*kethbot4
-        if (!bot.hasAggressiveMode()) {
-            if(state.grid[row][col] == 'b' || state.grid[row][col] == 'c') {
-                magnetic = true;
-                magnetPower = 4;
-                distanceDivision = 15;
-            }
+            distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+            if (distance > state.viewradius) magnetic = false;
         }
 */
-/*
-        if ((state.grid[row][col] == 'b' || state.grid[row][col] == 'c' || state.grid[row][col] == 'd')) {
 
-            if (distance == -1)
-                distance = distance_fast(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
-
-            if (distance <= state.viewradius) {
+        if (state.grid[row][col] == 'b') {
+            if (bot.hasAggressiveMode()) {
                 magnetic = true;
                 magnetPower = -5;
                 distanceDivision = 50;
-            }
-        }*/
+            } else {
+                if (forAnt) {
+                    bool nearestFriendly = Location::nearestAnt(ANT, *this).isType(ANT_FRIENDLY);
 
-        if ((state.grid[row][col] == 'b' || state.grid[row][col] == 'c' || state.grid[row][col] == 'd') && bot.hasAggressiveMode()) {
-            magnetic = true;
-            magnetPower = -5;
-            distanceDivision = 50;
+                    if (!nearestFriendly) {
+                        magnetic = true;
+                        magnetPower = 1;
+                        distanceDivision = 15;
+                    }
+                }
+            }
         }
 
-        if(state.grid[row][col] == '%' && distanceToNearestFood > 5) {
+        if(state.grid[row][col] == '%' && (!forAnt || (forAnt && nearestAntNearFood != forAnt))) {
             magnetic = true;
             magnetPower = 0.5;
             distanceDivision = 5;
@@ -412,14 +398,41 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             if (distance > 4) magnetic = false;
         }
 
-        if(state.grid[row][col] == '*' && (!forAnt || magnetLocation.nearestAnt(true) == forAnt)) {
+        if (state.grid[row][col] == '*') {
+
+           // OR rather than checking nearest ant, how about attract only if enemydistance to the food is larger than us to the food
         //if(state.grid[row][col] == '*') {
         // todo: make sure forces from both sides aren't the same, priority apples
 
-            //if (forAnt && magnetLocation.nearestAnt(true) == forAnt) {
             magnetic = true;
             magnetPower = -100;
             distanceDivision = 15;
+
+
+            if (magnetic && forAnt && magnetLocation.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).getAnt() != forAnt) {
+                magnetic = false;
+            }
+
+            if (magnetic && forAnt) {
+                const Location& nearestEnemy = magnetLocation.nearestAnt(ANT_ISENEMY);
+                if (nearestEnemy.isValid()) {
+                    double enemyDistance = distance_fast(nearestEnemy.row, nearestEnemy.col, magnetLocation.row, magnetLocation.col);
+                    double ourDistance = distance_fast(forAnt->getLocation().row, forAnt->getLocation().col, magnetLocation.row, magnetLocation.col);
+                    if (enemyDistance < ourDistance) {
+                        magnetic = false;
+                    }
+                }
+            }
+
+            if (!magnetic) {
+                Ant* friendAnt = magnetLocation.nearestAnt(ANT).getAnt();
+                if (friendAnt && magnetLocation.damageArea().enemy >= 1) {
+                    magnetic = true;
+                }
+            }
+
+
+
 
             //}
 
@@ -440,7 +453,14 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             Location relLoc = Location::relativeLocationTo(magnetLocation);
             vector2f n = -vector2f(relLoc.col, relLoc.row).normalized();
 
-            double magnetForce = (magnetPower/(4*3.14*sqr(distance/distanceDivision)));
+            double magnetForce;
+
+            if (ignoreDistance) {
+                magnetForce = magnetPower;
+            } else {
+                magnetForce = (magnetPower/(4*3.14*sqr(distance/distanceDivision)));
+            }
+
             n *= magnetForce;
 
             if (state.grid[row][col] == 'a') n *= expandForce;
@@ -491,59 +511,67 @@ int Location::countAnts(double radius, bool predict) const
 
 //TODO: Location::scoreMove
 
-Ant* Location::nearestAnt(bool ignoreTakenAnts /* = false */, Ant* ignoreAnt /*= NULL*/) const
+const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Location& ignoreAnt /* = LOCATION_UNDEFINED */) const
 {
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_NEAREST_ANT);
     #endif
 
-    Ant* foundAnt = NULL;
+    const Location* ret = locNull;
+    int locationType;
 
-    MapSearch mapSearch;
-    while (!mapSearch.reachedRadius) {
-        mapSearch = gameMap.find(*this, 32, ANT_FRIENDLY, mapSearch);
-        if (!mapSearch.found) break;
+    bool findFriend, findEnemy;
 
-        foundAnt = mapSearch.location->getAnt();
-        if (!foundAnt) continue;
-        if (foundAnt == ignoreAnt) continue;
-        if (ignoreTakenAnts && foundAnt->path) continue;
+    if ((ANT & antFlags) == ANT) {
+        findFriend = findEnemy = true;
+    } else {
+        findFriend = (ANT_ISFRIEND & antFlags) == ANT_ISFRIEND;
+        findEnemy = (ANT_ISENEMY & antFlags) == ANT_ISENEMY;
+    }
 
+    if (findFriend && findEnemy) {
+        locationType = ANT;
+    } else
+    if (findFriend) {
+        locationType = ANT_FRIENDLY;
+    } else
+    if (findEnemy) {
+        locationType = ANT_ENEMY;
+    } else {
         #ifdef __DEBUG
         profiler.endThinkTime(TT_NEAREST_ANT);
         #endif
 
-        return foundAnt;
+        #ifdef __ASSERT
+        logger.logError("Location::nearestAnt: Unknown antFlags");
+        logger.debugLog << "DEBUG: antFlags = " << antFlags << std::endl;
+        #endif
+
+        return *ret;
     }
 
-    #ifdef __DEBUG
-    profiler.endThinkTime(TT_NEAREST_ANT);
-    #endif
+    Ant* foundAnt;
 
-    return NULL;
-}
+    MapSearch mapSearch;
+    while (!mapSearch.reachedRadius) {
+        mapSearch = gameMap.find(*this, 32, (LocationType)locationType, mapSearch);
+        if (!mapSearch.found) break;
 
-const Location& Location::nearestEnemyAnt() const
-{
-    #ifdef __DEBUG
-    profiler.beginThinkTime(TT_NEAREST_ANT);
-    #endif
+        if (mapSearch.location->equals(ignoreAnt)) continue;
 
-    double distance = MAX_DISTANCE;
-
-    const Location* ret = LOCATION_UNDEFINED;
-
-    std::list<Location*>::iterator iter_ant;
-    for (int ant_id = 0; ant_id < (int)state.enemyAnts.size(); ant_id++)
-    {
-        Location& ant = state.enemyAnts[ant_id];
-
-        double dist = distance_fast(ant.row, ant.col, (*this).row, (*this).col);
-
-        if (dist < distance) {
-            distance = dist;
-            ret = &ant;
+        if (locationType == ANT_FRIENDLY) {
+            foundAnt = mapSearch.location->getAnt();
+            if (!foundAnt) {
+                #ifdef __ASSERT
+                logger.logError("Location::nearestAnt: ANT_FRIENDLY && mapSearch.location->getAnt() == NULL");
+                #endif
+                continue;
+            }
+            if (!foundAnt->hasFlags((AntFlags)antFlags)) continue;
         }
+
+        ret = mapSearch.location;
+        break;
     }
 
     #ifdef __DEBUG
@@ -579,7 +607,7 @@ Location Location::relativeLocationTo(const Location& loc2) const
 }
 
 
-bool Location::hasWall() const
+bool Location::isWall() const
 {
     return state.grid[row][col] == '%';
 }
@@ -637,7 +665,7 @@ bool Location::collisionLine(const Location& loc, bool secondSolve /* = false */
             currentPoint.y += relativeVector.y;
         }
         currentLocation = &Loc(currentPoint);
-        if (currentLocation->hasWall()) {
+        if (currentLocation->isWall()) {
             if (secondSolve) {
                 #ifdef __DEBUG
                 profiler.endThinkTime(TT_ASTAR);

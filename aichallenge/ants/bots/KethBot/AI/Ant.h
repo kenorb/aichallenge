@@ -1,12 +1,18 @@
-#include "State.h"
-
 struct State;
 
 #ifndef ANT_H
 #define ANT_H
 
+#include "State.h"
+#include "Location.h"
+#include "enums.h"
+
 #include <iostream>
 #include <functional>
+
+struct Location;
+struct Path;
+
 using namespace std;
 
 struct Ant
@@ -17,6 +23,9 @@ struct Ant
 
         vector2f physicalPosition;
         vector2f velocity;
+
+        bool hasFlags(AntFlags flag);
+        AntFlags getFlags();
 
         void onThink();
         void onNewTurn();

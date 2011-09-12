@@ -1,5 +1,3 @@
-#define __OPTIMIZER
-
 #ifndef GLOBALS_H_INCLUDED
 #define GLOBALS_H_INCLUDED
 
@@ -7,7 +5,6 @@
 #include "vector2d.h"
 #include <vector>
 #include <sys/time.h>
-#include "Sorter.h"
 
 #ifdef __DEBUG
 #include "Profiler.h"
