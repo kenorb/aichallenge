@@ -4,7 +4,6 @@
 #include "State.h"
 #include "Map.h"
 
-
 struct Bot
 {
     Bot();
@@ -29,16 +28,16 @@ struct Bot
     void debugData();
 
     Location startLocation;
+    double targetDistance;
 
     void Log(const std::string &text);
-    void addChecksumValue(uint32_t val);
+    void addChecksumValue(int val);
 
     #ifdef __DEBUG
-    double totalThinkTime, longestThinkTime;
     int checkSum;
     #endif
 };
 
-Ant* getAnt(int id);
+Ant* getAntById(int id);
 
 #endif //BOT_H_

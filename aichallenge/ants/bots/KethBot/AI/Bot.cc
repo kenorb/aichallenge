@@ -21,9 +21,8 @@
 Bot::Bot()
 {
     #ifdef __DEBUG
-    totalThinkTime = 0;
-    longestThinkTime = 0;
     checkSum = 0;
+    codeDepth = 0;
     #endif
 }
 
@@ -38,8 +37,17 @@ void Bot::playGame()
     cin >> state;
 
     #ifdef __DEBUG
+    logger.debugLog << "Optimizer init..." << std::endl;
+    #endif
+    optimizer.init();
+    #ifdef __DEBUG
+    logger.debugLog << "Optimizer init done..." << std::endl;
+    #endif
+
+    #ifdef __DEBUG
     logger.logPreState(true);
     #endif
+
     while(cin >> state)
     {
         onThink();
@@ -56,27 +64,32 @@ void Bot::endGame()
     " + Errors: " << (int)logger.errors << endl <<
     " + Warnings: " << (int)logger.warnings << endl <<
     " + Structural ants: " << (int)state.structuralAnts.size() << endl <<
-    " + Total think time: " << bot.totalThinkTime << "s" << endl <<
-    " + Avg think time left: " << ((double)(state.turntime / 1000) - (bot.totalThinkTime / state.turn)) << "s" << endl <<
-    " + Time utilized: " << abs(1 - (1 / ((double)(state.turntime / 1000) - (bot.totalThinkTime / state.turn))))*100 << "%" << endl <<
-    " + Longest think time: " << longestThinkTime << "s" << endl <<
-    " + AI memory usage: " << (profiler.aiMemoryUsage) << " bytes" << endl <<
+    " + Turns: " << (int)state.turns << endl
+    << profiler.output() <<
     " + Locations created: " << (logger.locationsCreated) << endl <<
     " + Game checksum: " << bot.getCheckSum() << endl;
+    //" + Game moves: " << state.moves.str() << endl;
     #endif
+
+    exit(1);
 }
 
 bool Bot::hasAggressiveMode()
 {
-    if (bot.getExpandForce() <= 0) return true;
-    if (state.visibilityCoverage > 0.80 && state.enemyAnts.size() <= state.ants.size() / 2) return true;
+    //if (bot.getExpandForce() <= 0) return true;
+    if (state.areaCoverage >= areaCoverageGoal() && state.enemyAnts.size() <= ((double)(state.ants.size()) / 2.0f)) return true;
     return false;
+}
+
+double Bot::areaCoverageGoal()
+{
+    return 0.6;
 }
 
 double Bot::getExpandForce()
 {
     // Based on area coverage
-    double percent = 0.6;
+    double percent = Bot::areaCoverageGoal();
     percent += ((double)state.ants.size() / 500);
     double ret = (percent - state.areaCoverage) * 10;
     if (abs(ret) > 1) ret = 1 * sign(ret);
@@ -123,17 +136,19 @@ void Bot::validateAnts()
     }
 }
 
-void Bot::addChecksumValue(uint32_t val) {
-    if (val <= 0) return;
+#ifdef __DEBUG
+void Bot::addChecksumValue(int val) {
+    if (val < 0) val = -val;
+    if (val == 0) val = 1;
     bot.checkSum += val;
 }
+#endif
 
-Ant* getAnt(int id)
+Ant* getAntById(int id)
 {
     Location& loc = state.ants[id];
     Ant* ret = gameMap.getAntAt(loc);
     #ifdef __DEBUG
-    bot.addChecksumValue(state.ants[id].row+state.ants[id].col);
     if (!ret) logger.logError("Structural ant at location not found");
     #endif
     ret->updateTemporaryId(id);
@@ -159,13 +174,26 @@ void Bot::makeMoves()
     logger.debugLog << "Aggressive mode: " << hasAggressiveMode() << endl;
     #endif
 
-
+    state.sortDamageGrid();
 
     // Let ants think before they move
     for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
-        Ant* ant = getAnt(ant_id);
+        Ant* ant = getAntById(ant_id);
+        #ifdef __DEBUG
+        logger.debugLog << "OnBefore " << *ant << " prepareMove" << std::endl;
+        #endif
+/*
+        if (state.timeLeft() <= 300) {
+            #ifdef __DEBUG
+            logger.logWarning("300ms of time left. Canceling think loop for this turn.");
+            #endif
+            break; // doesnt work?
+        }
+*/
         ant->prepareMove();
     }
+
+
 
     #ifdef __DEBUG
     logger.logMapState();
@@ -177,9 +205,36 @@ void Bot::makeMoves()
 
     // Ask ants to move
     for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
-        Ant* ant = getAnt(ant_id);
+        Ant* ant = getAntById(ant_id);
+
+        #ifdef __DEBUG
+        logger.debugLog << "OnBefore " << *ant << " think" << std::endl;
+        #endif
+/*
+        if (state.timeLeft() <= 500) {
+            #ifdef __DEBUG
+            logger.logWarning("300ms of time left. Canceling think loop for this turn.");
+            #endif
+            break; // doesnt work?
+        }
+*/
+        ant->onNewTurn();
         ant->onThink();
     }
+
+    #ifdef __DEBUG
+    for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {
+        Ant* ant = getAntById(ant_id);
+        for (int ant_id2 = 0; ant_id2 < (int)state.ants.size(); ant_id2++) {
+            Ant* ant2 = getAntById(ant_id2);
+            if (ant != ant2 && ant->path && ant2->path && ant->path->targetLocation().equals(ant2->path->targetLocation())) {
+                logger.logWarning("Two ants have same path destination");
+                logger.debugLog << "DEBUG: " << *ant << " & " << *ant2 << std::endl;
+                logger.debugLog << "DEBUG: " << LocationToString(ant->path->targetLocation()) << " & " << LocationToString(ant2->path->targetLocation()) << std::endl;
+            }
+        }
+    }
+    #endif
 }
 
 void Bot::updateMap()
@@ -192,17 +247,35 @@ void Bot::onThink()
     #ifdef __DEBUG
     bot.addChecksumValue(state.turn);
 
-    double timeStart = unix_time();
+    profiler.beginThinkTime(TT_TOTAL);
+
     logger.debugLog << " --- BEGIN: Bot::onThink() --- " << endl;
     logger.logPreState(false);
 
     profiler.beginMemoryProfiling();
     #endif
 
-    validateAnts();
-    updateMap();
-    makeMoves();
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_CORE);
+    #endif
 
+    validateAnts();
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_CORE);
+    #endif
+
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_MAP);
+    #endif
+
+    updateMap();
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_MAP);
+    #endif
+
+    makeMoves();
 
     #ifdef __DEBUG
     profiler.endMemoryProfiling();
@@ -211,9 +284,7 @@ void Bot::onThink()
         logger.logError("Number of ants given is not equal to structural ants");
     }
 
-    double timeTaken = unix_time() - timeStart;
-    if (timeTaken > longestThinkTime) longestThinkTime = timeTaken;
-    totalThinkTime += timeTaken;
+    profiler.endThinkTime(TT_TOTAL);
 
     logger.logPostState();
 

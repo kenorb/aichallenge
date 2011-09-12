@@ -3,23 +3,57 @@
 
 #include "Ant.h"
 #include "globals.h"
+#include "Optimizer.h"
 
-Location& Loc(int row, int col);
-Location& Loc(const Location& loc);
-Location& LocNull();
+struct CallbackLocData
+{
+    const void* sender;
+    const Location* senderLocation;
+    const relativeLocation* relLoc;
+};
+
+struct MapSearch
+{
+    MapSearch() {
+        found = false;
+        reachedRadius = false;
+        location = locNull;
+        index = -1;
+    }
+
+    const Location* location;
+    int index;
+    bool reachedRadius;
+    bool found;
+};
+
+typedef void (*CallbackLoc)(const Location&, CallbackLocData data);
+
+const Location& Loc(int row, int col);
+const Location& Loc(const Location& loc);
+
+#define MAX_DISTANCE 256
+#define distance_fast(a,b,c,d) optimizer.distance_table[abs(a-c)*state.cols+abs(b-d)]
+#define distance_real(a,b,c,d) sqrt(sqr(abs(a-c))+sqr(abs(b-d)))
+#define LocToIndex(row, col) ((row)*state.cols+(col))
+#define MAX_GRID_INDEX LocToIndex(state.rows-1, state.cols-1)
 
 struct Map
 {
     public:
         void onInit();
 
-        void onAnt(int bot_id, Location &loc);
-        void onAntMoves(Ant* ant, Location &toLocation);
-        void onEnemy(Location &loc);
-        void onDeadAnt(int bot_id, Location &loc);
-        void onFood(Location &loc);
-        void onWater(Location &loc);
+        void onAnt(int bot_id, const Location &loc);
+        void onAntMoves(Ant* ant, const Location &toLocation);
+        void onEnemy(const Location &loc);
+        void onDeadAnt(int bot_id, const Location &loc);
+        void onFood(const Location &loc);
+        void onWater(const Location &loc);
 
+        void callbackArea(const Location& loc, double radius, CallbackLoc callback, const void* sender = NULL);
+
+        vector<const Location*> findMany(const Location& loc, double searchRadius, LocationType type);
+        MapSearch find(const Location& loc, double searchRadius, LocationType type, MapSearch next = MapSearch());
 
         vector<Location*> locationGrid;
         std::list<Ant*>& getAnts();
@@ -28,7 +62,12 @@ struct Map
         Ant* getAntAt(const Location &loc);
         Ant* setAntAt(const Location &loc, Ant* ant);
 
+        double distance(int row1, int col1, int row2, int col2);
         double distance(const Location &loc1, const Location &loc2);
+        double distance_sqrt(int row1, int col1, int row2, int col2);
+        double distance_sqrt(const Location &loc1, const Location &loc2);
+        double distance_lut(const Location &loc1, const Location &loc2);
+        double distance_table(const Location &loc1, const Location &loc2);
         double distance_vector(const Location &loc1, vector2f loc2);
 };
 

@@ -10,6 +10,9 @@ const int DIRECTION[4] = {0, 1, 2, 3};
 #define sqr(x) (x*x)
 
 #define NO_MOVE -1
+#define MOVE_UNKNOWN -2
+#define MOVE_DANAGEROUS -3
+
 #define UP 0
 #define RIGHT 1
 #define DOWN 2

@@ -6,12 +6,14 @@
 
 #ifdef __DEBUG
 Logger logger;
+int codeDepth;
 #endif
 
 Bot bot;
 State state;
 Map gameMap;
-Location locNull;
+Location* locNull;
+Optimizer optimizer;
 
 #ifdef __DEBUG
 Profiler profiler;
@@ -25,14 +27,17 @@ double unix_time()
     return timer.tv_sec+(timer.tv_usec/1000000.0);
 }
 
-int IndexToRow(int row) {
+int IndexToRow(const int row) {
     return floor(row / state.cols);
 }
 
-int IndexToCol(int col) {
+int IndexToCol(const int col) {
     return col % state.cols;
 }
 
-int LocToIndex(int row, int col) {
-    return row * state.cols + col;
+int isPowerOfTwo(unsigned int x)
+{
+    while (((x & 1) == 0) && x > 1) /* While x is even and > 1 */
+    x >>= 1;
+    return (x == 1);
 }
