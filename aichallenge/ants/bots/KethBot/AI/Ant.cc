@@ -210,24 +210,15 @@ void Ant::prepareMove()
 
     bool cancelPath = false;
 
-    // todo
-    //  - dont go too far from nearest ant (vision range + 1 maybe)
-
-    // todo:
-    //  - if no food
-    //  - glue on to the wall
-    //  - walk until food is around
-    //  - make sure not to walk too far somehow and not to lose advantage
-    //  - only glue if less than 60% coverage
-
-    // todo:
-    // low amount of ants = avoid dying
-    // (or maybe if i'm starting to loss (by checking income per last 1/3 f the game), then avoid attacking)
-
-    // new func validate path
+    // cleanup: new func validate path
     if (path && path->stepsLeft() == 0) cancelPath = true; else
     if (path && !path->targetLocation().hasFood()) cancelPath = true; else
     if (path && nearestFood.isValid() && !nearestFood.equals(path->targetLocation()) && Ant::getLocation().costTo(nearestFood) < Ant::path->stepsLeft()) {
+        // todo: use/choose by food priority
+        // food priority = attraction of food to other foods on the map
+        // extra priority according to further food from start distance
+        // extra priotity according to if enemy is further than us
+        // magnetpower *= priority
         #ifdef __DEBUG
         logger.debugLog << "Canceled path food for " << (*this) << ", found closer new path with fewer steps at " << LocationToString(nearestFood) << endl;
         #endif
@@ -382,7 +373,15 @@ int Ant::getNextMove(bool solveCollision /* = true */)
         }
 
         velocity = vector2f(relLoc.col, relLoc.row);
-        if (path) path->moves.pop();
+
+        if (path) {
+            path->moves.pop();
+
+            if (path->stepsLeft() == 0 || locationTo.isAround(path->targetLocation())) {
+                //if (path->hasTarget()) path->targetLocation().blurFood();
+                Ant::deletePath();
+            }
+        }
 
     }
 
