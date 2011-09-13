@@ -29,6 +29,7 @@ struct Ant
 
         void onThink();
         void onNewTurn();
+        bool isEnemyInRange(const double radius);
         void onMove(const Location& toLoc);
         bool canBePlacedAt(const Location& loc);
         void prepareMove();

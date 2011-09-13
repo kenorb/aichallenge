@@ -330,12 +330,16 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
 
     double expandForce = bot.getExpandForce();
     const Location& nearestFood = Location::nearestFood();
+    Ant* nearestFriendlyAnt = Location::nearestAnt(ANT_ISFRIEND, *this).getAnt();
+    const Location& nearestEnemyAnt = Location::nearestAnt(ANT_ISENEMY, *this);
 
     double distanceToNearestFood = MAX_DISTANCE;
+    double distanceToNearestAnt = MAX_DISTANCE;
+    double distanceToNearestAntEnemy = MAX_DISTANCE;
 
-    if (nearestFood.isValid()) {
-        distanceToNearestFood = distance_fast(row, col, nearestFood.row, nearestFood.col);
-    }
+    if (nearestFood.isValid()) distanceToNearestFood = distance_fast(row, col, nearestFood.row, nearestFood.col);
+    if (nearestFriendlyAnt) distanceToNearestAnt = distance_fast(row, col, nearestFriendlyAnt->getLocation().row, nearestFriendlyAnt->getLocation().col);
+    if (nearestEnemyAnt.isValid()) distanceToNearestAntEnemy = distance_fast(row, col, nearestEnemyAnt.row, nearestEnemyAnt.col);
 
     Ant* nearestAntNearFood  = NULL;
     if (forAnt) {
@@ -344,10 +348,15 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
     }
     vector2f velocity(0,0);
 
+
+
+
+
     for(int row=0; row<state.rows; row++)
     for(int col=0; col<state.cols; col++)
     {
         const Location& magnetLocation = Loc(row, col);
+        const Location* forceTowards = &Loc(row, col);
 
         if ((*this).row == magnetLocation.row && (*this).col == magnetLocation.col) continue;
 
@@ -358,27 +367,58 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
         double extraDistance = 0.0f;
         double distanceDivision = 5.0f;
 
-
+/*
         if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
             magnetic = true;
             magnetPower = 1;
             distanceDivision = 15;
         }
+*/
 
 /*
-        if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
+        if(state.grid[row][col] == '?' && distanceToNearestFood > state.viewradius) {
             ignoreDistance = true;
             magnetic = true;
-            magnetPower = 5;
-            distanceDivision = 15;
-
-            distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
-            if (distance > state.viewradius) magnetic = false;
+            magnetPower = -100;
         }
 */
 
+        if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
+            ignoreDistance = true;
+            magnetic = true;
+            magnetPower = 10;
+            distanceDivision = 15;
+
+            distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+
+
+            if (distance > state.viewradius) {
+                magnetic = false;
+                if (distanceToNearestAnt > state.viewradius) {
+                    if (forAnt && forAnt->isEnemyInRange(state.viewradius)) {
+                        magnetic = false;
+                    } else {
+                        magnetic = true;
+                        magnetPower = -magnetPower;
+                    }
+                }
+            }
+
+            if (magnetLocation.damageArea().enemy >= 1 && distanceToNearestFood > state.viewradius && distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
+                forceTowards = magnetLocation.damageArea().enemyAnts.front();
+
+                magnetic = true;
+                ignoreDistance = true;
+                magnetPower = -100;
+            }
+        }
+
+
         if (state.grid[row][col] == 'b') {
-            if (bot.hasAggressiveMode()) {
+            bool attack = false;
+            if (bot.hasAggressiveMode()) attack = true;
+
+            if (attack) {
                 magnetic = true;
                 magnetPower = -5;
                 distanceDivision = 50;
@@ -433,7 +473,6 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             }
 
             if (!magnetic) {
-
                 if (distance == -1)
                     distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
 
@@ -455,9 +494,9 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             if (magnetPower == 0) continue;
 
             if (distance == -1)
-                distance = distance_fast(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col) + extraDistance;
+                distance = distance_fast(forceTowards->row, forceTowards->col, (*this).row, (*this).col) + extraDistance;
 
-            Location relLoc = Location::relativeLocationTo(magnetLocation);
+            Location relLoc = Location::relativeLocationTo(*forceTowards);
             vector2f n = -vector2f(relLoc.col, relLoc.row).normalized();
 
             double magnetForce;
@@ -518,7 +557,7 @@ int Location::countAnts(double radius, bool predict) const
 
 //TODO: Location::scoreMove
 
-const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Location& ignoreAnt /* = LOCATION_UNDEFINED */) const
+const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Location& ignoreAnt /* = LOCATION_UNDEFINED */, const double searchRadius /* = 32 */) const
 {
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_NEAREST_ANT);
@@ -561,7 +600,7 @@ const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Loc
 
     MapSearch mapSearch;
     while (!mapSearch.reachedRadius) {
-        mapSearch = gameMap.find(*this, 32, (LocationType)locationType, mapSearch);
+        mapSearch = gameMap.find(*this, searchRadius, (LocationType)locationType, mapSearch);
         if (!mapSearch.found) break;
 
         if (mapSearch.location->equals(ignoreAnt)) continue;

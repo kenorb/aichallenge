@@ -322,6 +322,10 @@ void Ant::prepareMove()
     #endif
 }
 
+bool Ant::isEnemyInRange(const double radius) {
+    return getLocation().nearestAnt(ANT_ISENEMY, *locNull, radius).isType(ANT_ENEMY);
+}
+
 int Ant::getNextMove(bool solveCollision /* = true */)
 {
     #ifdef __DEBUG

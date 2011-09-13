@@ -35,6 +35,7 @@ struct Location
 
     bool isAround(const Location& loc) const;
     void normalize();
+    DamageSolve solveAttack();
 
 
     int countAnts(double radius, bool predict = false) const;
@@ -45,7 +46,7 @@ struct Location
     //foodList foodInRadius(double radius) const;
     const Location& nearestFood(bool focusedFood = false) const;
 
-    const Location& nearestAnt(int antFlags = ANT_NOFLAGS, const Location& ignoreAnt = *locNull) const;
+    const Location& nearestAnt(int antFlags = ANT_NOFLAGS, const Location& ignoreAnt = *locNull, const double searchRadius = 32) const;
     Location relativeLocationTo(const Location& loc) const;
     double costTo(const Location& loc, bool precise = false) const;
     bool collisionLine(const Location& loc, bool secondSolve = false) const;
