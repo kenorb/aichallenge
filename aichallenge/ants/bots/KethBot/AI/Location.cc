@@ -277,6 +277,12 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
     return ret;
 }
 
+DamageSolve Location::solveAttack()
+{
+    DamageSolve damageSolve;
+    //friendlyAnts = findMany(const Location& loc, double searchRadius, LocationType type)
+}
+
 /*
 foodList Location::foodInRadius(double radius) const
 {
@@ -316,6 +322,7 @@ const Location& Location::nearestFood(bool focusedFood /*= false*/) const
 }
 
 vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repulsion /* = true*/) const
+// todo: use flags
 {
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_FORCES);
@@ -393,7 +400,8 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             magnetPower = 0.5;
             distanceDivision = 5;
 
-            distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+            if (distance == -1)
+                distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
 
             if (distance > 4) magnetic = false;
         }
@@ -425,19 +433,18 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             }
 
             if (!magnetic) {
-                Ant* friendAnt = magnetLocation.nearestAnt(ANT).getAnt();
-                if (friendAnt && magnetLocation.damageArea().enemy >= 1) {
-                    magnetic = true;
+
+                if (distance == -1)
+                    distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+
+                if (distance < state.viewradius) {
+                    Ant* friendAnt = magnetLocation.nearestAnt(ANT).getAnt();
+                    if (friendAnt && magnetLocation.damageArea().enemy >= 1) {
+                        magnetic = true;
+                        ignoreDistance = true;
+                    }
                 }
             }
-
-
-
-
-            //}
-
-            // testing
-            //if (forAnt && !forAnt->seenEnemy) magnetic = false;
         }
 
 
