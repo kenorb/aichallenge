@@ -156,7 +156,7 @@ SearchLocation::SearchLocation(const Location& _loc, int _cost)
     opened = true;
 }
 
-Path* Location::findPathTo(const Location& endLocation) const
+Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false */) const
 {
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_ASTAR);
@@ -175,6 +175,8 @@ Path* Location::findPathTo(const Location& endLocation) const
     }
 
     int index = LocToIndex(this->row, this->col);
+    int startIndex = LocToIndex(this->row, this->col);
+    int targetIndex = LocToIndex(endLocation.row, endLocation.col);
 
     list<SearchLocation*> opened;
 
@@ -202,12 +204,64 @@ Path* Location::findPathTo(const Location& endLocation) const
             if (search_grid[index] != NULL) continue;
 
             int locationCost = 1;
+            int currentCost = openedSquare->cost + locationCost;
 
-            search_grid[index] = new SearchLocation(*currentLocation, openedSquare->cost + locationCost);
+            search_grid[index] = new SearchLocation(*currentLocation, currentCost);
+
+            #ifdef __DEBUG
+            if (optimizer.distance_cost_table[LocToIndex(row, col)][index] == 0) {
+                logger.astarNodesCreated++;
+                logger.astarDistanceComputed += currentCost;
+            }
+            #endif
+
+            optimizer.distance_cost_table[LocToIndex(row, col)][index] = currentCost;
+
             search_grid[index]->setRef(Loc(openedSquare->getLocation()));
 
+            const Location* loopPrevious[2];
+            loopPrevious[0] = &Loc(openedSquare->getLocation());
+            loopPrevious[1] = loopPrevious[0];
+
+            int indexPrevious[2];
+            indexPrevious[0] = LocToIndex(loopPrevious[0]->row, loopPrevious[0]->col);
+            indexPrevious[1] = indexPrevious[0];
+
+            while (!loopPrevious[0]->equals(path->sourceLocation())) {
+                loopPrevious[0] = &search_grid[indexPrevious[0]]->getReference();
+
+                #ifdef __DEBUG
+                if (optimizer.distance_cost_table[LocToIndex(row, col)][indexPrevious[0]] == 0) {
+                    logger.astarNodesCreated++;
+                    logger.astarDistanceComputed += search_grid[indexPrevious[0]]->cost;
+                }
+                #endif
+
+                optimizer.distance_cost_table[LocToIndex(row, col)][indexPrevious[0]] = search_grid[indexPrevious[0]]->cost;
+
+                loopPrevious[1] = loopPrevious[0];
+                indexPrevious[1] = indexPrevious[0];
+                while (!loopPrevious[1]->equals(path->sourceLocation())) {
+                    loopPrevious[1] = &search_grid[indexPrevious[1]]->getReference();
+                    indexPrevious[1] = LocToIndex(loopPrevious[1]->row, loopPrevious[1]->col);
+
+                    int magicCost = abs(search_grid[indexPrevious[0]]->cost - search_grid[indexPrevious[1]]->cost);
+
+                    #ifdef __DEBUG
+                    if (optimizer.distance_cost_table[indexPrevious[0]][indexPrevious[1]] == 0) {
+                        logger.astarNodesCreated++;
+                        logger.astarDistanceComputed += magicCost;
+                    }
+                    #endif
+
+                    optimizer.distance_cost_table[indexPrevious[0]][indexPrevious[1]] = magicCost;
+                }
+
+                indexPrevious[0] = LocToIndex(loopPrevious[0]->row, loopPrevious[0]->col);
+            }
+
             if (currentLocation->row == path->targetLocation().row && currentLocation->col == path->targetLocation().col) {
-                path->totalCost = openedSquare->cost + locationCost;
+                path->totalCost = currentCost;
 
                 while (!currentLocation->equals(path->sourceLocation())) {
                     path->moves.push(*currentLocation);
@@ -227,15 +281,6 @@ Path* Location::findPathTo(const Location& endLocation) const
             if (currentLocation->isBlocked()) continue;
             opened.push_back(search_grid[LocToIndex(currentLocation->row, currentLocation->col)]);
         }
-
-        //delete &openedSquare;
-        //path->iterations++;
-/*
-        if (path->iterations > 32) {
-            delete path;
-            return NULL;
-        }*/
-
     }
 
     delete path;
@@ -249,13 +294,23 @@ Path* Location::findPathTo(const Location& endLocation) const
 
 double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
 {
-    double ret;
-    precise = false;
-/*
-    #ifndef __DEBUG
-    if (state.timeLeft() >= 500) precise = true;
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_ASTAR);
     #endif
-*/
+
+    double ret;
+    precise = true;
+
+    int computedCost = cachedNode(LocToIndex(row, col), LocToIndex(loc.row, loc.col));
+
+    if (computedCost > 0) {
+        #ifdef __DEBUG
+        profiler.endThinkTime(TT_ASTAR);
+        #endif
+
+        return computedCost;
+    }
+
     if (!precise) {
         bool blocking = Location::collisionLine(loc);
 
@@ -266,14 +321,21 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
 
         return ceil(ret);
     } else {
-        Path* path = Location::findPathTo(loc);
+        Path* path = Location::findPathTo(loc, true);
         if (path) {
             ret = path->totalCost;
         } else {
             ret = numeric_limits<double>::max();
         }
+        logger.debugLog << "result = " << ret << std::endl;
         delete path;
     }
+
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_ASTAR);
+    #endif
+
     return ret;
 }
 
@@ -367,32 +429,26 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
         double extraDistance = 0.0f;
         double distanceDivision = 5.0f;
 
-/*
-        if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
-            magnetic = true;
-            magnetPower = 1;
-            distanceDivision = 15;
-        }
-*/
-
-/*
-        if(state.grid[row][col] == '?' && distanceToNearestFood > state.viewradius) {
-            ignoreDistance = true;
-            magnetic = true;
-            magnetPower = -100;
-        }
-*/
 
         if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
-            ignoreDistance = true;
             magnetic = true;
-            magnetPower = 10;
+            magnetPower = 5;
             distanceDivision = 15;
 
-            distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+            if (bot.hasAggressiveMode()) {
+                if (distance == -1)
+                    distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
 
+                if (magnetLocation.damageArea().enemy >= 1 && distanceToNearestFood > state.viewradius && distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
+                    forceTowards = magnetLocation.damageArea().enemyAnts.front();
+                    magnetic = true;
+                    ignoreDistance = true;
+                    magnetPower = -100;
+                }
+            }
 
-            if (distance > state.viewradius) {
+/*
+            if (distance > state.viewradius + 3) {
                 magnetic = false;
                 if (distanceToNearestAnt > state.viewradius) {
                     if (forAnt && forAnt->isEnemyInRange(state.viewradius)) {
@@ -402,15 +458,7 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                         magnetPower = -magnetPower;
                     }
                 }
-            }
-
-            if (magnetLocation.damageArea().enemy >= 1 && distanceToNearestFood > state.viewradius && distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
-                forceTowards = magnetLocation.damageArea().enemyAnts.front();
-
-                magnetic = true;
-                ignoreDistance = true;
-                magnetPower = -100;
-            }
+            }*/
         }
 
 
@@ -457,7 +505,9 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             distanceDivision = 15;
 
 
-            if (magnetic && forAnt && magnetLocation.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).getAnt() != forAnt) {
+            Ant* nAnt = magnetLocation.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).getAnt();
+
+            if (magnetic && forAnt && nAnt && nAnt != forAnt && !magnetLocation.collisionLine(nAnt->getLocation())) {
                 magnetic = false;
             }
 
@@ -472,13 +522,13 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                 }
             }
 
-            if (!magnetic) {
+            if (!magnetic && (magnetLocation.damageArea().enemy >= 1)) {
                 if (distance == -1)
                     distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
 
-                if (distance < state.viewradius) {
+                if (distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
                     Ant* friendAnt = magnetLocation.nearestAnt(ANT).getAnt();
-                    if (friendAnt && magnetLocation.damageArea().enemy >= 1) {
+                    if (friendAnt) {
                         magnetic = true;
                         ignoreDistance = true;
                     }

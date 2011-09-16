@@ -3,6 +3,8 @@
 
 #include <vector>
 
+typedef unsigned char uint8;
+
 struct relativeLocation;
 
 const int OPTIMIZER_MAP_SIZE_MAX = 128 * 128;
@@ -20,6 +22,7 @@ struct Optimizer {
 
     double* sqrt_table;
     double* distance_table;
+    uint8** distance_cost_table;
     std::vector<const relativeLocation*> radiusArea[(OPTIMIZER_MAX_RADIUS*OPTIMIZER_MAX_RADIUS)+1];
     std::vector<const relativeLocation*> radiusAreaMap;
 

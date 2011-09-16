@@ -15,6 +15,7 @@
 #include "enums.h"
 
 #define LOCATION_UNDEFINED (*locNull);
+#define cachedNode(a,b) (optimizer.distance_cost_table[a][b] > 0 ? optimizer.distance_cost_table[a][b] : optimizer.distance_cost_table[b][a])
 
 class Ant;
 class Path;
@@ -42,7 +43,7 @@ struct Location
     Damage& damageArea() const;
 
     vector2f getForce(Ant* forAnt, bool attraction = true, bool repulsion = true) const;
-    Path* findPathTo(const Location& endLocation) const;
+    Path* findPathTo(const Location& endLocation, bool costOnly = false) const;
     //foodList foodInRadius(double radius) const;
     const Location& nearestFood(bool focusedFood = false) const;
 

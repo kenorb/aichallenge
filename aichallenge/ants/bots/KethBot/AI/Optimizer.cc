@@ -143,6 +143,13 @@ void Optimizer::init() {
 
     distance_table = new double[state.rows*state.cols];
 
+
+    distance_cost_table = new uint8*[state.rows*state.cols];
+    for(int i = 0; i < state.rows * state.cols; ++i) {
+        distance_cost_table[i] = new uint8[state.rows*state.cols];
+        memset(distance_cost_table[i], 0, sizeof(uint8) * state.rows*state.cols);
+    }
+
     for (int row=0;row<state.rows;row++) {
         for (int col=0;col<state.cols;col++) {
             Location loc1(0, 0);
@@ -156,10 +163,20 @@ void Optimizer::init() {
     for (int col = 0; col < state.cols; col++) {
         double distance = distance_real(0, 0, row, col);
 
+        logger.debugLog << " ADDING " << row << " x " << col << std::endl;
         radiusAreaMap.push_back(new relativeLocation(row, col, distance));
-        if (row > 0) radiusAreaMap.push_back(new relativeLocation(-row, col, distance));
-        if (col > 0) radiusAreaMap.push_back(new relativeLocation(row, -col, distance));
-        if (row > 0 && col > 0) radiusAreaMap.push_back(new relativeLocation(-row, -col, distance));
+        if (row > 0) {
+            logger.debugLog << " ADDING " << -row << " x " << col << std::endl;
+            radiusAreaMap.push_back(new relativeLocation(-row, col, distance));
+        }
+        if (col > 0) {
+            logger.debugLog << " ADDING " << row << " x " << -col << std::endl;
+            radiusAreaMap.push_back(new relativeLocation(row, -col, distance));
+        }
+        if (row > 0 && col > 0) {
+            logger.debugLog << " ADDING " << -row << " x " << -col << std::endl;
+            radiusAreaMap.push_back(new relativeLocation(-row, -col, distance));
+        }
     }
 
     for (int r = 1; r <= sqr(OPTIMIZER_MAX_RADIUS); r++) {
@@ -205,7 +222,8 @@ void Optimizer::init() {
     for (int i = 0; i < radiusArea[3].size(); i++) {
         logger.debugLog << "radiusArea[" << i << "] = " << radiusArea[3][i]->row << "x" << radiusArea[3][i]->col << std::endl;
     }
-
+*/
+/*
     for (int i = 0; i < radiusAreaMap.size(); i++) {
         logger.debugLog << "radiusAreaMap[" << i << "] = " << radiusAreaMap[i]->row << "x" << radiusAreaMap[i]->col << std::endl;
     }
