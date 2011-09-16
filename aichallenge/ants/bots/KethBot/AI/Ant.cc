@@ -323,7 +323,11 @@ void Ant::prepareMove()
 }
 
 bool Ant::isEnemyInRange(const double radius) {
-    return getLocation().nearestAnt(ANT_ISENEMY, *locNull, radius).isType(ANT_ENEMY);
+    const Location& nearestAnt = getLocation().nearestAnt(ANT_ISENEMY, *locNull, radius);
+    if (nearestAnt.isValid()) {
+        return nearestAnt.isType(ANT_ENEMY);
+    }
+    return false;
 }
 
 int Ant::getNextMove(bool solveCollision /* = true */)
@@ -344,6 +348,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
 
     if (path && path->stepsLeft() > 0) {
         Location& locationTo = path->moves.top();
+
         Location relLoc = Ant::getLocation().relativeLocationTo(locationTo);
         locationTo.think();
 
@@ -378,15 +383,15 @@ int Ant::getNextMove(bool solveCollision /* = true */)
 
         velocity = vector2f(relLoc.col, relLoc.row);
 
-        if (path) {
-            path->moves.pop();
-
-            if (path->stepsLeft() == 0 || locationTo.isAround(path->targetLocation())) {
-                //if (path->hasTarget()) path->targetLocation().blurFood();
+        if (path && path->stepsLeft() >= 1) path->moves.pop();
+        /* crashy?
+        if (path && path->stepsLeft() >= 1) {
+            if (path->stepsLeft() == 1 || locationTo.isAround(path->targetLocation()) || path->moves.top().damageArea().enemy >= 1) {
+                if (path->hasTarget()) path->targetLocation().blurFood();
                 Ant::deletePath();
             }
         }
-
+        */
     }
 
     physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
@@ -426,7 +431,16 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                 #endif
                 continue;
             }
-
+/* crashy?
+            if (Ant* nAnt = Ant::getLocation().nearestAnt((AntFlags)(ANT_ISFRIEND + ANT_HASPATH), Ant::getLocation(), 2).getAnt()) {
+                if (nAnt && nAnt->path && nAnt->path->stepsLeft() >= 1 && locationTo.equals(nAnt->path->moves.top())) {
+                    #ifdef __DEBUG
+                    logger.debugLog << "dir: " << dir << ", path blocking" << std::endl;
+                    #endif
+                    continue;
+                }
+            }
+*/
             int score = 0;
 
             directionMove move;
@@ -635,6 +649,9 @@ int Ant::getNextMove(bool solveCollision /* = true */)
 
             moves.push_back(move);
         }
+
+
+
 /*
         if (!effectiveKill && noMove) {
             #ifdef __DEBUG
@@ -645,46 +662,58 @@ int Ant::getNextMove(bool solveCollision /* = true */)
         }
         */
 
-        std::sort(moves.begin(), moves.end(), directionMove::sortMoves());
+        if (moves.size() >= 1) {
+            std::sort(moves.begin(), moves.end(), directionMove::sortMoves());
+
+            for (vector<directionMove>::iterator move = moves.begin(); move != moves.end(); ++move)
+            {
+                predictionMove = (*move).direction;
 
 
+                const Location& locationTo = state.getLocation(Ant::getLocation(), (*move).direction);
+                if (locationTo.damageArea().enemy >= 1 && locationTo.damageArea().enemyDistance == 1) {
+                    continue;
+                    #ifdef __DEBUG
+                    profiler.endThinkTime("Ant::getNextMove()");
+                    codeDepth--;
+                    #endif
+                    predictionMove = MOVE_DANAGEROUS;
+                    return NO_MOVE;
+                }
 
-        for (vector<directionMove>::iterator move = moves.begin(); move != moves.end(); ++move)
-        {
-            predictionMove = (*move).direction;
+                Ant* forwardAnt = locationTo.getAnt();
+                locationTo.think();
 
+                if (forwardAnt && forwardAnt->predictionMove == MOVE_DANAGEROUS) {
+                    continue;
+                    #ifdef __DEBUG
+                    profiler.endThinkTime("Ant::getNextMove()");
+                    codeDepth--;
+                    #endif
+                    predictionMove = MOVE_DANAGEROUS;
+                    return NO_MOVE;
+                }
 
-            const Location& locationTo = state.getLocation(Ant::getLocation(), (*move).direction);
-            if (locationTo.damageArea().enemy >= 1 && locationTo.damageArea().enemyDistance == 1) {
-                continue;
-                #ifdef __DEBUG
-                profiler.endThinkTime("Ant::getNextMove()");
-                codeDepth--;
-                #endif
-                predictionMove = MOVE_DANAGEROUS;
-                return NO_MOVE;
-            }
-
-            Ant* forwardAnt = locationTo.getAnt();
-            locationTo.think();
-
-            if (forwardAnt && forwardAnt->predictionMove == MOVE_DANAGEROUS) {
-                continue;
-                #ifdef __DEBUG
-                profiler.endThinkTime("Ant::getNextMove()");
-                codeDepth--;
-                #endif
-                predictionMove = MOVE_DANAGEROUS;
-                return NO_MOVE;
-            }
-
-            if (Ant::canBePlacedAt(locationTo)) {
-                ret = (*move).direction;
+                if (Ant::canBePlacedAt(locationTo)) {
+                    ret = (*move).direction;
+                }
             }
         }
     }
 
+
     const Location& locationTo = state.getLocation(Ant::getLocation(), ret);
+
+/*
+    if (path) {
+        if (path->stepsLeft() >= 1) path->moves.pop();
+
+        if (path->stepsLeft() == 0 || locationTo.isAround(path->targetLocation())) {
+            if (path->hasTarget()) path->targetLocation().blurFood();
+            Ant::deletePath();
+        }
+    }
+*/
 
     // Final solver
     if (ret != NO_MOVE && ret != MOVE_DANAGEROUS)
