@@ -381,6 +381,11 @@ void State::updateFogOfWar()
     areaCoverage = closeCells / (double)(rows * cols);
 
     #ifdef __DEBUG
+    logger.debugLog << "visibilityCoverage: " << visibilityCoverage << ", areaCoverage: " << areaCoverage << std::endl;
+    #endif
+
+
+    #ifdef __DEBUG
     lastVisibleCells = visibleCells;
     #endif
 }
