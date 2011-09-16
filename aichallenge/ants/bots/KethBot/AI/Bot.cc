@@ -68,6 +68,8 @@ void Bot::endGame()
     " + Turns: " << (int)state.turns << endl
     << profiler.output() <<
     " + Locations created: " << (logger.locationsCreated) << endl <<
+    " + AStar nodes cached: " << (logger.astarNodesCreated) << " (" << (((double)logger.astarNodesCreated / (double)(sqr(state.rows*state.cols) / 2)) * 100) << "% of the map)" << endl <<
+    " + AStar computed distance: " << (logger.astarDistanceComputed) << endl <<
     " + Game checksum: " << bot.getCheckSum() << endl;
     //" + Game moves: " << state.moves.str() << endl;
     #endif
@@ -161,7 +163,8 @@ bool funcSortAnts(const Location& d1, const Location& d2)
     //Ant* ant1 = gameMap.getAntAt(d1);
     //Ant* ant2 = gameMap.getAntAt(d2);
 
-    // TODO: Sort ants to move the most important ones first
+    //if (ant1 && ant1->path) return true;
+
     return 0;
 }
 
