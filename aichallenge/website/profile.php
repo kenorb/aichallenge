@@ -1,10 +1,11 @@
 <?php
-include 'header.php';
+require_once('header.php');
+require_once('mysql_login.php');
 
-$user_id = $_GET["user_id"];
+$user_id = $_GET["user"];
 if(!filter_var($user_id, FILTER_VALIDATE_INT)) {
-  $user_id = NULL;
- }
+    $user_id = NULL;
+}
 
 #require_once 'Zend/Cache.php';
 
@@ -16,61 +17,40 @@ if(!filter_var($user_id, FILTER_VALIDATE_INT)) {
 //$cacheID="profile_$user_id";
 
 //if (!($cache->start($cacheID))) {
-include_once 'profile_submissions_widget.php';
-include_once 'profile_games_widget.php';
+require_once('profile_submissions_widget.php');
+require_once('profile_games_widget.php');
+require_once('game_list.php');
 
-// Fetch Rank Data
-$rankquery = <<<EOT
-select
-    r.rank
-from
-    ranking r
-    inner join submission s on s.submission_id = r.submission_id
-    where
-        s.user_id = '$user_id' and
-        leaderboard_id = (select max(leaderboard_id) from leaderboard
-            where complete=1)
-EOT;
-$rankresult = mysql_query($rankquery);
-
- // Fetch User Data
-$userquery = <<<EOT
-select
-  u.username,
-  date_format(u.created,'%b %D %Y') as created,
-  u.bio,
-  c.flag_filename,
-  o.org_id,
-  o.name as org_name,
-  c.country_id,
-  c.name as country_name,
-  u.email,
-  u.activation_code
-from
-  user u
-  left outer join organization o on o.org_id = u.org_id
-  left outer join country c on c.country_id = u.country_id
-where
-  u.user_id = '$user_id'
-EOT;
-$userresult = mysql_query($userquery);
-$userdata = mysql_fetch_assoc($userresult);
-if ($rankresult) {
-  $rankdata = mysql_fetch_assoc($rankresult);
-  $rank = $rankdata["rank"];
+$rank = NULL;
+$skill = NULL;
+$userresult = contest_query("select_profile_user", $user_id);
+if ($userresult) {
+    $userdata = mysql_fetch_assoc($userresult);
+    if ($userdata['rank']) {
+        $rank = nice_rank($userdata["rank"],
+                          $userdata["rank_change"]);
+        $skill = nice_skill($userdata['skill'],
+                             $userdata['mu'],
+                             $userdata['sigma'],
+                             $userdata['skill_change'],
+                             $userdata['mu_change'],
+                             $userdata['sigma_change']);
+    }
 }
-$rank = ($rank == NULL)?"N/A. No ranking available":$rank;
-$username = htmlentities($userdata["username"]);
-$created = $userdata["created"];
-$country_id = htmlentities($userdata["country_id"]);
-$country_name = htmlentities($userdata["country_name"]);
+$rank = ($rank == NULL)?"Not Ranked":$rank;
+$skill = ($skill == NULL)?"No Skillz":$skill;
+
+$username = htmlentities($userdata["username"], ENT_COMPAT, 'UTF-8');
+$created = nice_date($userdata["created"]); // date("M jS Y",$userdata["created"]);
+$country_id = htmlentities($userdata["country_id"], ENT_COMPAT, 'UTF-8');
+$country_name = htmlentities($userdata["country_name"], ENT_COMPAT, 'UTF-8');
 $country_name = $country_name == NULL ?
-  "Unknown" : htmlentities($country_name);
+  "Unknown" : htmlentities($country_name, ENT_COMPAT, 'UTF-8');
 $flag_filename = $userdata["flag_filename"];
 $flag_filename = $flag_filename == NULL ? "" : "<img alt=\"$country_name\" width=\"16\" height=\"11\" title=\"$country_name\" src=\"flags/$flag_filename\" />";
-$org_id = htmlentities($userdata["org_id"]);
-$org_name = htmlentities($userdata["org_name"]);
-$bio = htmlentities($userdata["bio"]);
+$org_id = htmlentities($userdata["org_id"], ENT_COMPAT, 'UTF-8');
+$org_name = htmlentities($userdata["org_name"], ENT_COMPAT, 'UTF-8');
+$bio = str_replace("\n","<br />",str_replace("\r","", htmlentities($userdata["bio"], ENT_COMPAT, 'UTF-8')));
 if ($org_name == NULL) {
   $org_name = "None";
 }
@@ -127,7 +107,7 @@ EOT;
 }
 echo <<<EOT
     <p><strong>Country:</strong>&nbsp;
-    <a href="country_profile.php?country_id=$country_id">$flag_filename
+    <a href="country_profile.php?country=$country_id">$flag_filename
       $country_name</a>
 EOT;
 if ($logged_in) {
@@ -159,7 +139,7 @@ EOT;
 echo <<<EOT
     <p>
     <strong>Affiliation:</strong>&nbsp;
-    <a href="organization_profile.php?org_id=$org_id">$org_name</a>
+    <a href="organization_profile.php?org=$org_id">$org_name</a>
 EOT;
 if ($logged_in) {
 echo <<<EOT
@@ -221,33 +201,36 @@ echo <<<EOT
     </form>
 EOT;
 }
-    echo "<p><strong>Current Rank:</strong>&nbsp;$rank</p>";
+    echo "<p><strong>Rank:</strong> <span class=\"stats\">$rank</span> <strong>Skill:</strong> <span class=\"stats\">$skill</span></p>";
 
-    $query = "SELECT * FROM submission
-        WHERE user_id='$user_id' AND status = 40 and latest = 1";
-    $result = mysql_query($query);
-    if ($row = mysql_fetch_assoc($result)) {
-        $sub_id = $row['submission_id'];
-        $query = "SELECT count(1) FROM submission
-            WHERE last_game_timestamp < (SELECT last_game_timestamp
-                FROM submission WHERE submission_id = '$sub_id')
-            AND status = 40 AND latest = 1";
-        $result = mysql_query($query);
-        $row = mysql_fetch_assoc($result);
-        $queue_size = $row['count(1)'];
-        if ($queue_size > 50) {
-            echo "<p>Most likely to play next game within the
-                next $queue_size games.</p>";
+    $in_game_result = contest_query("select_in_game", $user_id);
+    if ($in_game_result and mysql_num_rows($in_game_result) > 0) {
+        echo "<p><strong>In Game:</strong> Playing in a game right now.</p>";
+    } else {    
+        $next_game_result = contest_query("select_next_game_in", $user_id);
+        if ($next_game_result) {
+            while ($next_game_row = mysql_fetch_assoc($next_game_result)) {
+                echo "<p><strong>Next Game:</strong> ".$next_game_row["players_ahead"]." players are ahead.<br />";
+                echo "The current game rate is about ".$next_game_row["players_per_minute"]." players per minute.<br />";
+                if ($next_game_row["players_per_minute"] == 0) {
+                    echo "Next game could take awhile...";
+                } else {
+                    echo "Next game should be within ".$next_game_row["next_game_in_adjusted"]." minutes.";
+                }
+                echo "<br />Page refreshed at ".date(DATE_ATOM).".";
+                echo "</p>";
+            }
         } else {
-            echo "<p>Next game should be played soon.</p>";
+            echo "<p><strong>Next Game:</strong> The current game rate is unavailable. :'(</p>";
         }
     }
 
     echo "<h3><span>Latest Games</span><div class=\"divider\" /></h3>";
-    echo getGamesTableString($user_id, true, 15, "profile_games.php?user_id=$user_id");
+    echo get_game_list_table(1, $user_id, NULL, NULL, TRUE, 'profile_games.php');
+    //echo getGamesTableString($user_id, true, 15, "profile_games.php?user=$user_id");
     echo "<p></p>";
     echo "<h3><span>Recent Submissions</span><div class=\"divider\" /></h3>";
-    echo getSubmissionTableString($user_id, true, 10, "profile_submissions.php?user_id=$user_id");
+    echo getSubmissionTableString($user_id, true, 10, "profile_submissions.php?user=$user_id&page=1");
 
 }
 //$cache->end();
@@ -265,6 +248,23 @@ if (logged_in_with_valid_credentials() && logged_in_as_admin()) {
 </form>
 EOT;
 }
+
+echo '
+<script>
+$(function () {
+    $(".games").tablesorter({
+        /*textExtraction: function (node) {
+            node = $(node);
+            if (node.attr("class") === "number") {
+                return parseFloat(node.text());
+            } else {
+                return node.text();
+            }
+        }*/
+    });
+});
+</script>
+';
 
 include 'footer.php';
 ?>

@@ -1,18 +1,20 @@
 #!/usr/bin/python
 #
-# Sets up a contest main server from a fresh ubuntu install.
+# Sets up a contest main server.
 #
-# WARNING: Do NOT run this on a machine that you use for anything else, it
-#          currently unconditionally makes very invasive changes the machine
-#          configuration
 #
 
 import getpass
+import os
 import os.path
+import pwd
 import sys
 from optparse import OptionParser
 
-from install_tools import CD, Environ, install_apt_packages, run_cmd, CmdError
+import create_worker_archive
+from install_tools import CD, Environ, install_apt_packages, run_cmd, CmdError, check_ubuntu_version
+from install_tools import get_choice, get_password
+from socket import getfqdn
 
 TEMPLATE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,36 +26,28 @@ def install_manager_packages():
 
 def install_website_packages():
     """ Install system packages required for the website """
-    pkg_list = ["apache2", "php5", "libapache2-mod-php5", "php5-mysql"]
+    pkg_list = ["apache2", "php5", "libapache2-mod-php5", "php5-mysql",
+            "memcached", "php5-memcache", "php5-curl", "zip",
+            "cvs", "openjdk-6-jdk", "ant", "icedtea-plugin", "markdown"]
     install_apt_packages(pkg_list)
-
-def create_contest_user(username):
-    """ Create the contest user that all manager scripts run under """
-    try:
-        run_cmd("getent passwd " + username)
-    except CmdError:
-        run_cmd('adduser --disabled-password --gecos "" ' + username)
-
-def setup_local_repo(opts):
-    """ Create or update the local source repository as needed """
-    with CD(opts.root_dir):
-        if not os.path.exists(os.path.join(opts.root_dir, opts.local_repo)):
-            run_cmd("git clone -b %s %s %s" % (opts.src_branch,
-                opts.src_repo, opts.local_repo))
-        else:
-            with CD(os.path.join(opts.root_dir, opts.local_repo)):
-                run_cmd("git pull %s %s" % (opts.src_repo, opts.src_branch))
 
 def setup_base_files(opts):
     """ Setup all the contest specific files and directories """
-    sub_dir = os.path.join(opts.root_dir, "submissions")
-    if not os.path.exists(sub_dir):
-        os.mkdir(sub_dir)
-        run_cmd("chown {0}:{0} {1}".format(opts.username, sub_dir))
-    map_dir = os.path.join(opts.root_dir, "maps")
-    if not os.path.exists(map_dir):
-        os.mkdir(map_dir)
-        run_cmd("chown {0}:{0} {1}".format(opts.username, map_dir))
+    if not os.path.exists(opts.upload_dir):
+        os.mkdir(opts.upload_dir)
+        run_cmd("chown {0}:www-data {1}".format(opts.username, opts.upload_dir))
+        os.chmod(opts.upload_dir, 0775)
+    if not os.path.exists(opts.map_dir):
+        os.mkdir(opts.map_dir)
+        run_cmd("chown {0}:www-data {1}".format(opts.username, opts.map_dir))
+    if not os.path.exists(opts.replay_dir):
+        os.mkdir(opts.replay_dir)
+        run_cmd("chown {0}:www-data {1}".format(opts.username, opts.replay_dir))
+        os.chmod(opts.replay_dir, 0775)
+    if not os.path.exists(opts.log_dir):
+        os.mkdir(opts.log_dir)
+        run_cmd("chown {0}:www-data {1}".format(opts.username, opts.log_dir))
+        os.chmod(opts.log_dir, 0775)
     si_filename = os.path.join(TEMPLATE_DIR, "server_info.py.template")
     with open(si_filename, 'r') as si_file:
         si_template = si_file.read()
@@ -61,14 +55,16 @@ def setup_base_files(opts):
             database_user=opts.database_user,
             database_password=opts.database_password,
             database_name=opts.database_name,
-            map_dir=map_dir, sub_dir=sub_dir)
-    manager_dir = os.path.join(opts.root_dir, opts.local_repo, "manager")
+            map_dir=opts.map_dir, upload_dir=opts.upload_dir,
+            log_dir=opts.log_dir)
+    manager_dir = os.path.join(opts.local_repo, "manager")
     with CD(manager_dir):
         if not os.path.exists("server_info.py"):
             with open("server_info.py", "w") as si_file:
                 si_file.write(si_contents)
-            run_cmd("chmod 600 server_info.py")
-    run_cmd("chown -R {0}:{0} {1}".format(opts.username, opts.root_dir))
+            run_cmd("chown {0}:{0} server_info.py".format(opts.username))
+    if os.stat(opts.local_repo).st_uid != pwd.getpwnam(opts.username).pw_uid:
+        run_cmd("chown -R {0}:{0} {1}".format(opts.username, opts.local_repo))
 
 SETUP_SQL = {
     "creation": "create database %s",
@@ -104,7 +100,7 @@ def setup_database(opts):
         password_opt = ""
         if opts.database_password:
             password_opt = "-p'%s'" % (opts.database_password,)
-        schema_dir = os.path.join(opts.root_dir, opts.local_repo, "sql")
+        schema_dir = os.path.join(opts.local_repo, "sql")
         schema_files = os.listdir(schema_dir)
         schema_files = [f for f in schema_files if f.endswith(".sql")]
         schema_files.sort()
@@ -115,89 +111,134 @@ def setup_database(opts):
 
 def setup_website(opts):
     """ Configure apache to serve the website and set a server_info.php """
-    website_root = os.path.join(opts.root_dir, opts.local_repo, "website")
-    subs_dir = os.path.join(opts.root_dir, "submissions")
+    website_root = os.path.join(opts.local_repo, "website")
     si_filename = os.path.join(TEMPLATE_DIR, "server_info.php.template")
     with open(si_filename, 'r') as si_file:
         si_template = si_file.read()
-    si_contents = si_template.format(sub_dir=subs_dir,
+    si_contents = si_template.format(upload_dir=opts.upload_dir,
+            map_dir=opts.map_dir, replay_dir=opts.replay_dir,
+            log_dir=opts.log_dir, repo_dir=opts.local_repo,
             database_user=opts.database_user,
             database_password=opts.database_password,
             database_name=opts.database_name,
+            api_url=opts.website_hostname
             )
     with CD(website_root):
         if not os.path.exists("server_info.php"):
             with open("server_info.php", "w") as si_file:
                 si_file.write(si_contents)
-    log_dir = os.path.join(opts.root_dir, "html_logs")
-    if not os.path.exists(log_dir):
-       os.mkdir(log_dir)
-       run_cmd("chown %s:www-data %s" % (opts.username, log_dir))
-       os.chmod(log_dir, 0775)
-    site_config = "/etc/apache2/sites-available/ai-contest"
+        if not os.path.exists("aichallenge.wiki"):
+            run_cmd("git clone git://github.com/aichallenge/aichallenge.wiki.git")
+            run_cmd("python setup.py")
+    with CD(os.path.join(opts.local_repo, "ants/dist/starter_bots")):
+        run_cmd("make")
+        run_cmd("make install")
+    if not os.path.exists(os.path.join(website_root, "worker-src.tgz")):
+        create_worker_archive.main(website_root)
+    visualizer_path = os.path.join(opts.local_repo, "ants/visualizer")
+    plugin_path = "/usr/share/icedtea-web/plugin.jar"
+    if not os.path.exists(os.path.join(website_root, "visualizer")):
+        with CD(visualizer_path):
+            run_cmd("ant deploy -Djava.plugin=%s -Ddeploy.path=%s"
+                    % (plugin_path, website_root))
+    site_config = "/etc/apache2/sites-available/" + opts.website_hostname
     if not os.path.exists(site_config):
         site_filename = os.path.join(TEMPLATE_DIR, "apache_site.template")
         with open(site_filename, "r") as site_file:
             site_template = site_file.read()
-        site_contents = site_template.format(web_hostname="ai-contest.com",
-                web_root=website_root, log_dir=log_dir)
+        site_contents = site_template.format(web_hostname=opts.website_hostname,
+                web_root=website_root,
+                log_dir=opts.log_dir,
+                map_dir=opts.map_dir,
+                replay_dir=opts.replay_dir)
         with open(site_config, "w") as site_file:
             site_file.write(site_contents)
         if opts.website_as_default:
             enabled_link = "/etc/apache2/sites-enabled/000-default"
         else:
-            enabled_link = "/etc/apache2/sites-enabled/ai-contest"
+            enabled_link = "/etc/apache2/sites-enabled/" + opts.website_hostname
         if os.path.exists(enabled_link):
             os.remove(enabled_link)
         os.symlink(site_config, enabled_link)
+        run_cmd("a2enmod rewrite")
         run_cmd("/etc/init.d/apache2 restart")
+    run_cmd("chown -R {0}:{0} {1}".format(opts.username, website_root))
 
-IPTABLES_LOAD = """#!/bin/sh
-iptables-restore < /etc/iptables.rules
-exit 0
-"""
+def interactive_options(options):
+    print "Warning: This script is meant to be run as root and will make changes to the configuration of the machine it is run on."
+    resp = raw_input("Are you sure you want to continue (yes/no)? [no] ")
+    if resp != "yes":
+        sys.exit(1)
+    pkg_only = get_choice("Only install system packages?")
+    options.packages_only = pkg_only
+    if pkg_only:
+        print "Only system packages will be installed, no further setup will be done."
+        return
+    user = options.username
+    user = raw_input("Contest username? [%s] " % (user,))
+    options.username = user if user else options.username
+    options.database_root_password = get_password("database root")
+    db_user = options.username
+    db_user = raw_input("Contest database username? [%s] " % (db_user,))
+    options.database_user = db_user if db_user else options.username
+    options.database_password = get_password("contest database")
+    db_name = options.database_name
+    db_name = raw_input("Name of contest database? [%s] " % (db_name,))
+    options.database_name = db_name if db_name else options.database_name
+    root_dir = options.root_dir
+    root_dir = raw_input("Contest root directory? [%s] " % (root_dir,))
+    options.root_dir = root_dir if root_dir else options.root_dir
+    repo_dir = options.local_repo
+    repo_dir = raw_input("Directory of source repository? [%s] " % (repo_dir,))
+    options.local_repo = repo_dir if repo_dir else options.local_repo
+    upload_dir = options.upload_dir
+    upload_dir = raw_input("Directory of uploaded submissions? [%s] " % (upload_dir,))
+    options.upload_dir = upload_dir if upload_dir else options.upload_dir
+    map_dir = options.map_dir
+    map_dir = raw_input("Directory of game maps? [%s] " % (map_dir,))
+    options.map_dir = map_dir if map_dir else options.map_dir
+    replay_dir = options.replay_dir
+    replay_dir = raw_input("Directory of game replays? [%s] " % (replay_dir,))
+    options.replay_dir = replay_dir if replay_dir else options.replay_dir
+    webname = options.website_hostname
+    webname = raw_input("Website hostname? [%s] " % (webname,))
+    options.website_hostname = webname if webname else options.website_hostname
+    default = options.website_as_default
+    default = get_choice("Make contest site the default website?", default)
+    options.website_as_default = default
 
 def get_options(argv):
     """ Get all the options required for the installation """
     current_username = os.environ.get("SUDO_USER", getpass.getuser())
+    # find default paths
+    top_level = os.path.abspath(os.path.join(TEMPLATE_DIR, ".."))
+    root_dir = os.path.split(top_level)[0]
+    map_dir = os.path.join(root_dir, 'maps')
+    replay_dir = os.path.join(root_dir, 'games')
+    upload_dir = os.path.join(root_dir, 'uploads')
+    compiled_dir = os.path.join(root_dir, 'compiled')
+    log_dir = os.path.join(root_dir, 'logs')
     default_install = {
         "installs": set([install_manager_packages, install_website_packages]),
         "packages_only": False,
-        "create_user": False, "username": current_username,
+        "username": current_username,
         "database_root_password": "",
         "database_user": current_username, "database_password": "",
-        "database_name": "aichallenge", "database_host": "127.0.0.1",
-        "root_dir": "/home/$user/ants",
-        "src_repo": "git://github.com/aichallenge/aichallenge.git",
-        "src_branch": "epsilon",
-        "update_local_repo": True,
-        "local_repo": "aichallenge",
+        "database_name": "aichallenge",
+        "root_dir": root_dir,
+        "map_dir": map_dir,
+        "replay_dir": replay_dir,
+        "upload_dir": upload_dir,
+        "compiled_dir": compiled_dir,
+        "log_dir": log_dir,
+        "local_repo": top_level,
         "website_as_default": False,
-        "website_hostname": "ai-contest.com",
+        "website_hostname": '.'.join(getfqdn().split('.')[1:]),
+        "interactive": True,
     }
-
-    # check if we are running from a repo and default to using it if so
-    have_local_repo = True
-    top_level = os.path.abspath(os.path.join(TEMPLATE_DIR, ".."))
-    expected_repo_dirs = [".git", "manager", "website"]
-    for expected in expected_repo_dirs:
-        if not os.path.exists(os.path.join(top_level, expected)):
-            have_local_repo = False
-            break
-    if have_local_repo:
-        root_dir, local_repo = os.path.split(top_level)
-        default_install['root_dir'] = root_dir
-        default_install['local_repo'] = local_repo
-        default_install['update_local_repo'] = False
-
     full_install = {
-        "create_user": True, "username": "contest",
-        "database_user": "contest", "database_password": "",
-        "database_name": "contest",
-        "root_dir": "/home/$user",
-        "update_local_repo": True,
-        "local_repo": "aichallenge",
         "website_as_default": True,
+        "interactive": False,
     }
 
     def replace_options(option, opt_str, value, parser, replacements):
@@ -217,33 +258,28 @@ def get_options(argv):
             help="Only install required packages and exit")
     parser.add_option("-u", "--username", action="store", dest="username",
             help="User account for the contest")
-    parser.add_option("--create-user", action="store_true",
-            dest="create_user",
-            help="Create the contest user if it doesn't already exist")
-    parser.add_option("--src-repo", action="store", dest="src_repo",
-            help="Set the source repository to pull the contest code from")
     options, args = parser.parse_args(argv)
+    if options.interactive:
+        interactive_options(options)
+        confirm = raw_input("Run setup as configured above (yes/no)? [no] ")
+        if confirm != "yes":
+            sys.exit(1)
     return options
 
 def main(argv=["server_setup.py"]):
+    check_ubuntu_version()
     opts = get_options(argv)
     with Environ("DEBIAN_FRONTEND", "noninteractive"):
         for install in opts.installs:
             install()
     if opts.packages_only:
         return
-    if opts.create_user:
-        create_contest_user(opts.username)
-    root_dir = opts.root_dir.replace("$user", opts.username)
-    if not os.path.exists(root_dir):
-        os.makedirs(root_dir)
-    opts.root_dir = root_dir
-    if opts.update_local_repo:
-        setup_local_repo(opts)
     setup_base_files(opts)
     setup_database(opts)
     setup_website(opts)
 
 if __name__ == "__main__":
-    main(sys.argv)
-
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        print('Setup Aborted')

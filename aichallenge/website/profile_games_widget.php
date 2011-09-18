@@ -146,7 +146,7 @@ EOT;
     $table .= "<table class=\"submissions\"><thead><tr><th>Time</th><th>Opponent</th><th>Outcome</th><th>&nbsp;</th></tr></thead>";
     $table .= "<tbody>";
     for ($i = 1; $row = mysql_fetch_assoc($games_results); $i += 1) {
-        $opp_name = htmlspecialchars($row["opp_name"]);
+        $opp_name = htmlentities($row["opp_name"], ENT_COMPAT, "UTF-8");
         $opp_id = $row["opp_id"];
 	$game_id = $row["game_id"];
         $outcome = $row["outcome"];
@@ -167,7 +167,7 @@ EOT;
         $row_class = $i % 2 == 0 ? "even" : "odd";
         $table .= "  <tr class=\"$row_class\">";
         $table .= "    <td>$datetime</td>";
-        $table .= "    <td><a href=\"profile.php?user_id=$opp_id\">$opp_name</a></td>";
+        $table .= "    <td><a href=\"profile.php?user=$opp_id\">$opp_name</a></td>";
         $table .= "    <td class=\"$outcome_class\">$outcome</td>";
 	$table .= "    <td><a href=\"visualizer.php?game_id=$game_id\">View Game &gt;&gt;</a></td>";
         $table .= "  </tr>";

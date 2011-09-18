@@ -1,43 +1,43 @@
 <?php
 
-include 'header.php';
-include 'server_info.php';
+require_once 'header.php';
+require_once 'server_info.php';
 
 if($server_info["submissions_open"]) {
 
-include 'mysql_login.php';
-include 'bad_words.php';
-include 'web_util.php';
+require_once 'mysql_login.php';
+require_once 'bad_words.php';
+require_once 'web_util.php';
 
 function check_valid_user_status_code($code) {
-  $query = "SELECT * FROM user_status_code";
+  $query = "SELECT * FROM user_status_code WHERE status_id = ".(int)$code;
   $result = mysql_query($query);
-  while ($row = mysql_fetch_assoc($result)) {
-    $status_id = $row['status_id'];
-    if ($code == $status_id) {
-      return True;
-    }
-  }
-  return False;
+  return (boolean)mysql_num_rows($result);
 }
 
 function check_valid_organization($code) {
   if ($code == 999) {
     return False;
   }
-  $query = "SELECT * FROM organization";
+  $query = "SELECT * FROM organization WHERE org_id=".(int)$code;
   $result = mysql_query($query);
-  while ($row = mysql_fetch_assoc($result)) {
-    $org_id = $row['org_id'];
-    if ($code == $org_id) {
-      return True;
-    }
-  }
-  return False;
+  return (boolean)mysql_num_rows($result);
 }
 
 function valid_username($s) {
   return strspn($s, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") == strlen($s);
+}
+
+function create_new_organization( $org_name ) {
+    $query = "SELECT org_id FROM organization WHERE name='".$org_name."'";
+    $result = mysql_query($query);
+    if ( mysql_num_rows($result) > 0 ) {
+        return mysql_result($result, 0, 0);
+    } else {
+        $query = "INSERT INTO organization (`name`) VALUES('".$org_name."')";
+        $result = mysql_query($query);
+        return mysql_insert_id();
+    }
 }
 
 // By default, send account confirmation emails.
@@ -53,6 +53,7 @@ $user_org = mysql_real_escape_string(stripslashes($_POST['user_organization']));
 $bio = mysql_real_escape_string(stripslashes($_POST['bio']));
 $country_id = mysql_real_escape_string(stripslashes($_POST['user_country']));
 
+$errors = array();
 // Uncomment the following line to disable account creation
 //$errors[] = "Accounts can not be created at this time. Come back later, " .
 //      "once the contest opens.";
@@ -75,7 +76,7 @@ if (strcmp($server_info["mailer_address"], "donotsend") == 0) {
 }
 else
 {
-    require_once "gmail.php";
+    require_once "email.php";
 }
 
 // Check if the username already exists.
@@ -87,10 +88,14 @@ if (mysql_num_rows($result) > 0) {
 
 // Check if the email is already in use (except by an admin account or a donotsend account).
 if (strcmp($user_email, "donotsend") != 0) {
-  $sql="select u.email from user where u.email = '$user_email' and admin = 0";
+  $sql="select email from user where email = '$user_email' and admin = 0";
   $result = mysql_query($sql);
   if ($result && mysql_num_rows($result) > 0) {
-    $errors[] = "The email $user_email is already in use. You are only allowed to have one account! It is easy for us to tell if you have two accounts, and you will be disqualified if you have two accounts! If there is some problem with your existing account, get in touch with the contest organizers by dropping by the Computer Science Club office and we will help you get up-and-running again!  :-)";
+    $errors[] = "The email $user_email is already in use. You are only allowed to have one account! It is easy for us to tell if you have two accounts, and you will be disqualified if you have two accounts! If there is some problem with your existing account, get in touch with the contest organizers on irc.freenode.com channel #aichallenge and we will help you get up-and-running again!";
+  }
+  $edomain = substr(strrchr($user_email, '@'), 1);
+  if (strcmp(gethostbyname($edomain), $edomain) == 0) {
+    $errors[] = "Could not find the email address entered. Please enter a valid email address.";
   }
 }
 
@@ -99,7 +104,7 @@ if (!valid_username($username)) {
   $errors[] = "Invalid username. Your username must be longer than 6 characters and composed only of the characters a-z, A-Z, 0-9, '-', '_', and '.'";
 }
 
-// Check that the username is between 8 and 16 characters long
+// Check that the username is between 6 and 16 characters long
 if (strlen($username) < 6 || strlen($username) > 16) {
   $errors[] = "Your username must be between 6 and 16 characters long.";
 }
@@ -111,8 +116,8 @@ if ($password1 != $password2) {
 }
 
 // Check that the desired password is long enough.
-if (strlen($password1) < 8) {
-  $errors[] = "Your password must be at least 8 characters long.";
+if (strlen($password1) < 5) {
+  $errors[] = "Your password must be at least 5 characters long.";
 }
 
 // Check that the email address is not blank.
@@ -125,23 +130,33 @@ if (!check_valid_user_status_code($user_status)) {
   $errors[] = "The status you selected is invalid. Please contact the contest staff.";
 }
 
-// Check that the user organziation code is valid.
-if (!check_valid_organization($user_org)) {
-  $errors[] = "The organization you selected is invalid. Please contact the contest staff.";
-}
-
 // Check that the country code is not empty.
 if (strlen($country_id) <= 0) {
   $errors[] = "You did not select a valid country from the dropdown box.";
 }
 
+// Check that the user organziation code is valid.
+if( $user_org == '-1') {
+    $_POST['user_organization_other'] = trim($_POST['user_organization_other']);
+    if( $_POST['user_organization_other'] === '' ) {
+        //don't create empty organizations
+        $user_org = '0';
+    } else {
+        $user_org_other = mysql_real_escape_string(stripslashes($_POST['user_organization_other']));
+        $user_org = create_new_organization( $user_org_other );
+    }
+} elseif (!check_valid_organization($user_org)) {
+  $errors[] = "The organization you selected is invalid. Please contact the contest staff.";
+}
+
 if (count($errors) <= 0) {
   // Add the user to the database, with no permissions.
   $confirmation_code = md5(salt(64));
-  $query = "SELECT org.name AS name, COUNT(u.user_id) AS peers FROM " .
-    "organization org " .
-    "LEFT OUTER JOIN user u ON u.org_id = org.org_id GROUP BY " .
-    "org.org_id HAVING org.org_id = " . $user_org;
+  $query = "
+      SELECT org.name AS name, COUNT(u.user_id) AS peers
+      FROM organization org
+      LEFT OUTER JOIN user u ON u.org_id = org.org_id
+      WHERE org.org_id = " . $user_org;
   $result = mysql_query($query);
   $peer_message = "";
   $org_name = "";
@@ -151,23 +166,26 @@ if (count($errors) <= 0) {
       $org_name = $row['name'];
       $num_peers = $row['peers'];
       if ($num_peers == 0) {
-        $peer_message = "You are the first person from your school to sign up " .
+        $peer_message = "You are the first person from your organization to sign up " .
           "for the Google AI Challenge. We would really appreciate it if you would " .
           "encourage your friends to sign up for the Challenge as well. The more, " .
           "the merrier!\n\n";
+      } else if (strcmp($org_name, "Other") == 0) {
+          $peer_message = "You didn't associate yourself with an organization ".
+              "when you signed up. You might want to change this in your ".
+              "profile so you can compare how you're doing with others in ".
+              "your school or company.\n\n";
       } else {
         $peer_message = "" . $num_peers . " other people from " . $org_name .
           " have already signed up for the Google AI Challenge. When you look " .
-          "at the rankings, you can see the global rankings for all schools, or " .
-          "you can filter the list to only show other contestants from your school!\n\n";
+          "at the rankings, you can see the global rankings, or " .
+          "you can filter the list to only show other contestants from your organization!\n\n";
       }
     }
   }
-  $query = "INSERT INTO user " .
-    "(username,password,email,status_id,activation_code,org_id,bio," .
-    "country_id,created,activated,admin) VALUES " .
-    "('$username','" . crypt($password1, '$6$rounds=54321$' . salt() . '$') . "','$user_email',$user_status," .
-    "'$confirmation_code',$user_org,'$bio',$country_id,CURRENT_TIMESTAMP,0,0)";
+  $query = "
+      INSERT INTO user (username,`password`,email,status_id,activation_code,org_id,bio,country_id,created,activated,admin)
+      VALUES ('$username','" . mysql_real_escape_string(crypt($password1, '$6$rounds=54321$' . salt() . '$')) . "','$user_email',$user_status,'$confirmation_code',$user_org,'$bio',$country_id,CURRENT_TIMESTAMP,0,0)";
   if (mysql_query($query)) {
     // Send confirmation mail to user.
     $mail_subject = "Google AI Challenge!";
@@ -184,9 +202,9 @@ if (count($errors) <= 0) {
       "?confirmation_code=" . $confirmation_code . "\n\n" .
       "After you activate your account by clicking the link above, you will " .
       "be able to sign in and start competing. Good luck!\n\n" .
-      $peer_message . "Contest Staff\nUniversity of Waterloo Computer Science Club";
-    if ($send_email == 1) {
-      $mail_accepted = send_gmail($user_email, $mail_subject, $mail_content);
+      $peer_message . "Thanks for participating and have fun,\nContest Staff\n";
+    if ($send_email == 1 && strcmp($user_email, "donotsend") != 0) {
+      $mail_accepted = send_email($user_email, $mail_subject, $mail_content);
     } else {
       $mail_accepted = true;
     }
@@ -194,7 +212,7 @@ if (count($errors) <= 0) {
       $errors[] = "Failed to send confirmation email. Try again in a few " .
         "minutes.";
       $query = "DELETE FROM user WHERE username='$username' and " .
-        "password='" . md5($password1) . "'";
+        "activation_code='" . $confirmation_code . "'";
       mysql_query($query);
     } else {
       // Send notification mail to contest admin.
@@ -223,22 +241,7 @@ if (count($errors) <= 0) {
   }
 }
 if (count($errors) > 0) {
-?>
-
-<h1>Registration Failed</h1>
-<p>There was a problem with the information that you gave.</p>
-<ul>
-
-<?php
-foreach ($errors as $key => $error) {
-  print "<li>$error</li>";
-}
-?>
-
-</ul>
-<p>Go <a href="register.php">back to the signup page</a> and try again.</p>
-
-<?php
+    require 'register.php';
 } else {
 ?>
 
@@ -273,4 +276,4 @@ if ($send_email == 0) {
 
 <?php } ?>
 
-<?php include 'footer.php'; ?>
+<?php require_once 'footer.php'; ?>

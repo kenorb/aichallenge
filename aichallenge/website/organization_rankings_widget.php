@@ -1,5 +1,8 @@
 <?php
 
+require_once('mysql_login.php');
+require_once('session.php');
+
 /*
  * getOrganizationRankingsTableString
  *
@@ -13,7 +16,7 @@
 function getOrganizationRankingsTableString($top)
 {
 
-    $username = $_SESSION['username'];
+    $username = current_username();
 
     if ($username != null) {
     // Fetch Org ID for logged in user
@@ -74,7 +77,7 @@ $table .= <<<EOT
 EOT;
     for ($i = 1; $row = mysql_fetch_assoc($rankings_results); $i += 1) {
         $num_leaders = $row["num_leaders"];
-        $org_name = htmlentities($row["org_name"]);
+        $org_name = htmlentities($row["org_name"], ENT_COMPAT, 'UTF-8');
         $org_id = $row["org_id"];
         $row_class = $i % 2 == 0 ? "even" : "odd";
         if ($org_id == $user_org_id) {

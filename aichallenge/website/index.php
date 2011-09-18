@@ -1,22 +1,46 @@
-<?php include 'header.php';
+<?php
+include('header.php');
+require_once('memcache.php');
+
+if(file_exists('server_message.html')) {
+    //Used to convey a message on the front page
+    include('server_message.html');
+}
+
 ?>
 
-<h2>Ants</h2>
-<p>TODO: Write something about the ants challenge.</p>
+<!--<MarkdownReplacement with="competition.md">--><h1>Introducing Ants</h1>
+
+<p>The Google AI Challenge is all about creating artificial intelligence, whether you are a beginning programmer or an expert. Using one of the easy-to-use starter kits, you will create a computer program (in any language) that controls a colony of ants which fight against other colonies for domination.</p>
+
+<p>It only takes 5 minutes to submit one of the starter kits to the website and watch your ant colony fight for domination against colonies created by other people from around the world. From there check out the tutorials on how to locally run your bot and begin programming!</p>
+<!--</MarkdownReplacement>-->
+
+<p>Computer Programs Duking it Out with Ants:</p>
+<?php
+    $last_game_id = 0;
+    if ($memcache)
+        $last_game_id = $memcache->get('last_game_id');
+    if (!$last_game_id) {
+        $last_game_id = 0;
+    }
+    include 'visualizer_widget.php';
+    visualize_game($game_id=strval($last_game_id),false,550,550);
+?>
 
 <h2>Planet Wars Final Rankings</h2>
 <p>Congratulations to this term's winner, <a href="http://quotenil.com/">
   Gábor Melis</a>! Whereas the Google AI Challenge has traditionally been
   dominated by entries written in languages like
-  <a href="http://ai-contest.com/language_profile.php?lang=C%2B%2B">C++</a>,
+  <a href="http://ai-contest.com/language_profile.php?language=C%2B%2B">C++</a>,
   Gábor has solidly taken the top spot with an innovative algorithm. His
   entry is one of just 33 submissions written in
-  <a href="http://ai-contest.com/language_profile.php?lang=Lisp">Lisp</a>,
-  and is entitled <a href="http://ai-contest.com/profile.php?user_id=8565">
+  <a href="http://ai-contest.com/language_profile.php?language=Lisp">Lisp</a>,
+  and is entitled <a href="http://ai-contest.com/profile.php?user=8565">
   bocsimacko</a>. Congratulations Gábor!</p>
 <p>A big congratulations also goes out to the runners up,
-  <a href="http://ai-contest.com/profile.php?user_id=7026">_iouri_</a> and
-  <a href="http://ai-contest.com/profile.php?user_id=11248">Slin-.-</a>,
+  <a href="http://ai-contest.com/profile.php?user=7026">_iouri_</a> and
+  <a href="http://ai-contest.com/profile.php?user=11248">Slin-.-</a>,
   as well as all the finalists in the top 100. With over 4600 submissions
   received, securing a spot in the top 100 was no easy task!</p>
 <p>On behalf of <a href="http://www.google.com">Google</a> and the

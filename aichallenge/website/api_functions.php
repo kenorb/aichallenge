@@ -1,6 +1,6 @@
 <?php
-// ini_set('error_reporting', E_ALL);
-// ini_set('display_errors', true);
+//ini_set('error_reporting', E_ALL);
+//ini_set('display_errors', true);
 
 require_once('memcache.php');
 require_once('mysql_login.php');
@@ -20,7 +20,7 @@ if (!isset($_GET['api_key'])) {
 /*
  * Functions
  */
- 
+
 function valid_worker($api_key,$ip_address) {
 	global $memcache;
 	if ($memcache) {
@@ -43,7 +43,7 @@ function valid_worker($api_key,$ip_address) {
 		}
 	} else {
 		// fallback for no memcache
-		$sql = "SELECT * FROM worker WHERE api_key = '".addslashes($api_key)."';";
+		$sql = "SELECT * FROM worker WHERE api_key = '".mysql_real_escape_string($api_key)."';";
 	    $result = mysql_query($sql);
 	    if(!$result || mysql_num_rows($result) == 0){
 	        return false;
@@ -53,7 +53,7 @@ function valid_worker($api_key,$ip_address) {
 	        return false;
 	    }
 	    return $worker;
-	}	
+	}
 }
 
 function api_log($message) {
@@ -63,4 +63,5 @@ function api_log($message) {
 	$message = sprintf("%s - %s", date(DATE_ATOM), $message) . "\n";
 	error_log($message, 3, $server_info["api_log"]);
 }
+
 ?>

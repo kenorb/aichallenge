@@ -1,42 +1,43 @@
 <?php
-include 'header.php';
-include_once 'profile_games_widget.php';
+require_once('header.php');
+require_once('game_list.php');
+require_once('lookup.php');
 
-$user_id = $_GET["user_id"];
-if(!filter_var($user_id, FILTER_VALIDATE_INT)) {
-    $user_id = NULL;
-} else {
-    $user_id = intval($user_id);
+$user_id = get_type_or_else('user', NULL);
+$submission_id = get_type_or_else('submission', NULL);
+
+if ($user_id !== NULL) {
+    $user_row = get_user_row($user_id);
+    $title = "'s Recent Games";
+} elseif ($submission_id !== NULL) {
+    $user_row = get_user_row($submission_id);
+    $title = "'s Games for Version ".$user_row['version'];
 }
+$user_id = $user_row['user_id'];
+$username = htmlentities($user_row['username'], ENT_COMPAT, "UTF-8");
 
-$page = $_GET["page"];
-if(!filter_var($page, FILTER_VALIDATE_INT)) {
-    $page = 1;
-} else {
-    $page = intval($page);
-}
+$page = get_type_or_else("page", FILTER_VALIDATE_INT, 1);
 
-// Fetch userid's username
-$username_query = <<<EOT
-select
-    u.username
-from
-    user u
-where
-    u.user_id = '$user_id'
-EOT;
+echo "<h2><a href=\"profile.php?user=$user_id\">$username</a>$title</h2>";
 
-$username_data = mysql_query($username_query);
-if ($username_data) {
-    list ($username) = mysql_fetch_row($username_data);
-} else {
-    $username = "";
-}
+echo get_game_list_table($page, ($submission_id ? NULL : $user_id), $submission_id);
 
-$username = htmlspecialchars($username);
+echo '
+<script>
+$(function () {
+    $(".games").tablesorter({
+        /*textExtraction: function (node) {
+            node = $(node);
+            if (node.attr("class") === "number") {
+                return parseFloat(node.text());
+            } else {
+                return node.text();
+            }
+        }*/
+    });
+});
+</script>
+';
 
-echo "<h2><a href=\"profile.php?user_id=$user_id\">$username</a>'s latest submission's games</h2>";
-echo getGamesTableString($user_id, false, 200, "?user_id=$user_id&page=", $page);
-
-include 'footer.php';
+require('footer.php');
 ?>
