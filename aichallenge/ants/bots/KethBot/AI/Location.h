@@ -114,6 +114,7 @@ struct SearchLocation
 
     int cost;
     double opened;
+    double distanceLeft;
 
     private:
         const Location* loc;

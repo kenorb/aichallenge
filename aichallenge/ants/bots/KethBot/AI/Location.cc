@@ -146,6 +146,9 @@ bool Location::isAround(const Location& loc) const
 
 bool funcSortSearchLocations(SearchLocation* loc1, SearchLocation* loc2)
 {
+    if (loc1->cost == loc2->cost) {
+        return loc1->distanceLeft < loc2->distanceLeft;
+    }
     return (loc1->cost) < (loc2->cost);
 }
 
@@ -182,6 +185,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
     vector<SearchLocation*> search_grid(MAX_GRID_INDEX);
     search_grid[index] = new SearchLocation(*this, 0);
+    search_grid[index]->distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
     opened.push_back(search_grid[index]);
 
     while (opened.size() > 0) {
@@ -207,6 +211,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             int currentCost = openedSquare->cost + locationCost;
 
             search_grid[index] = new SearchLocation(*currentLocation, currentCost);
+            search_grid[index]->distanceLeft = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
 
             #ifdef __DEBUG
             if (optimizer.distance_cost_table[LocToIndex(row, col)][index] == 0) {
