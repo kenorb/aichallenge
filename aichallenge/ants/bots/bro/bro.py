@@ -16,6 +16,13 @@ from optparse import OptionParser
 from ants import *
 from astar.astar import AStar
 
+# my imports
+from map import *
+from log import *
+
+turn_number = 0
+bot_version = 'v0.1'
+
 LAND = -1
 FOOD = -2
 WATER = -3
@@ -25,6 +32,12 @@ PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
     def __init__(self):
+        """Add our log filter so that botversion and turn number are output correctly"""
+        log_filter  = LogFilter()
+        getLogger().addFilter(log_filter)
+
+        getLogger().debug("START!")
+
         self.debug = BroDebug(opts)
         self.debug.msg('START')
         self.debug.obj(opts)
@@ -78,25 +91,6 @@ class BroBot():
       self.debug.msg('END')
       self.debug.end()
 
-class MyMap():
-  map = []
-  def __init__(self, width, height, map):
-    self.width = width
-    self.height = height
-    self.map = map
-    self.coverage = 0.0
-    self.symetric = 0
-
-class MyArea():
-  def __init__(self, x, y, size):
-    self.x = x
-    self.y = y
-    self.size = size
-    self.dangerous = False
-    self.enemy = False
-    self.food = False
-    self.unknown = False
-
 class MyAnt():
   actions = []
 
@@ -142,8 +136,8 @@ def BroStartupOptions(parser):
                      help="Run in debug mode.")
   parser.add_option("-D", "--debug-file", dest="debug_file", default='./debug.log',
                      help="Specify custom debug filename.")
-  parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
-                    help="Create debug json file in replay directory.")
+#  parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
+#                    help="Create debug json file in replay directory.")
   parser.add_option("-s", "--strategy", dest="strategy",
                     help="Choose strategy (five two digit numbers).")
   return parser
@@ -200,4 +194,5 @@ if __name__ == '__main__':
         Ants.run(BroBot())
     except KeyboardInterrupt:
         print('ctrl-c, leaving ...')
+        System.exit(-1);
 
