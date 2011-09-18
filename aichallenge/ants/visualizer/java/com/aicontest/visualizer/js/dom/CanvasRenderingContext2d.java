@@ -8,9 +8,13 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.TexturePaint;
+import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
+import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -31,6 +35,8 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 	private boolean fillChanged = true;
 	private boolean strokeChanged = true;
 	private boolean drawn = true;
+	private Color strokeColor;
+	private Color fillColor;
 
 	public CanvasRenderingContext2d(HTMLCanvasElement canvas, BufferedImage pixmap) {
 		this.canvas = canvas;
@@ -43,13 +49,13 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 	}
 
 	public void restore() {
-		setFrom((RenderingContext2dState) stack.removeLast());
+		setFrom(stack.removeLast());
 		fontChanged = true;
 		fillChanged = true;
 		strokeChanged = true;
 		gfx.setTransform(transform);
 		gfx.setClip(clip);
-		setGlobalAlpha(globalAlpha);
+		gfx.setComposite(globalCompositeOperation);
 	}
 
 	public void save() {
@@ -66,7 +72,7 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 		transform = gfx.getTransform();
 	}
 
-	private Object setStyle(Object style) throws Exception {
+	private Object parseStyle(Object style) throws Exception {
 		if ((style instanceof String)) {
 			String color = (String) style;
 			if (color.startsWith("rgb(")) {
@@ -95,7 +101,7 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 				int b = 17 * Character.digit(color.charAt(3), 16);
 				style = new Color(r, g, b);
 			} else {
-				throw new Exception("cannot parse paint style: " + style);
+				throw new Exception("cannot parse style: " + style);
 			}
 		}
 		return style;
@@ -103,29 +109,37 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 
 	private void setStrokeStyle() throws Exception {
 		if (strokeChanged) {
-			Object strokeObj = setStyle(strokeStyle);
-			if ((strokeObj instanceof Color)) {
-				gfx.setColor((Color) strokeObj);
+			Object strokeObj = parseStyle(strokeStyle);
+			if (strokeObj instanceof Color) {
+				strokeColor = (Color) strokeObj;
 				gfx.setStroke(new BasicStroke(lineWidth));
 			} else {
 				gfx.setStroke((Stroke) strokeObj);
 			}
 			strokeChanged = false;
 		}
+		if (strokeColor != null) {
+			gfx.setColor(strokeColor);
+		}
 	}
 
 	private void setFillStyle() throws Exception {
 		if (fillChanged) {
-			Object fillObj = setStyle(fillStyle);
-			if ((fillObj instanceof CanvasPattern)) {
+			Object fillObj = parseStyle(fillStyle);
+			if (fillObj instanceof CanvasPattern) {
 				BufferedImage cp = ((CanvasPattern) fillObj).getPattern();
 				Point2D p = transform.transform(ONE_PIXEL, null);
 				Rectangle2D.Double anchor = new Rectangle2D.Double(0.0D, p.getX(), cp.getWidth(), cp.getHeight());
 				gfx.setPaint(new TexturePaint(cp, anchor));
 			} else {
+				if (fillObj instanceof Color) {
+					fillColor = (Color) fillObj;
+				}
 				gfx.setPaint((Paint) fillObj);
 			}
 			fillChanged = false;
+		} else if (fillColor != gfx.getColor()) {
+			gfx.setColor(fillColor);
 		}
 	}
 
@@ -139,6 +153,16 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 
 	public void clearRect(double x, double y, double w, double h) {
 		gfx.clearRect((int) x, (int) y, (int) w, (int) h);
+		drawn = true;
+	}
+
+	public void strokeRect(double x, double y, double w, double h) throws Exception {
+		setStrokeStyle();
+		Path2D.Double oldPath = path;
+		beginPath();
+		rect(x, y, w, h);
+		gfx.draw(path);
+		path = oldPath;
 		drawn = true;
 	}
 
@@ -243,6 +267,32 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 		}
 	}
 
+	public void strokeText(String text, float x, float y) throws Exception {
+		setStrokeStyle();
+		setFont();
+		LineMetrics metrics = gfx.getFontMetrics().getLineMetrics(text, gfx);
+		if (textBaseline.equals("top"))
+			y += metrics.getAscent();
+		else if (textBaseline.equals("middle"))
+			y += metrics.getAscent() - metrics.getHeight() / 2.0F;
+		else if (textBaseline.equals("bottom")) {
+			y -= metrics.getDescent();
+		}
+		int w = gfx.getFontMetrics().stringWidth(text);
+		if ((textAlign.equals("end")) || (textAlign.equals("right")))
+			x -= w;
+		else if (textAlign.equals("center")) {
+			x = (float) (x - 0.5D * w);
+		}
+		FontRenderContext frc = gfx.getFontRenderContext();
+		TextLayout tl = new TextLayout(text, gfx.getFont(), frc);
+		AffineTransform transform = new AffineTransform();
+		transform.setToTranslation(x, y);
+		Shape shape = tl.getOutline(transform);
+		gfx.draw(shape);
+		drawn = true;
+	}
+
 	public void fillText(String text, float x, float y) throws Exception {
 		setFillStyle();
 		setFont();
@@ -297,6 +347,7 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 		gfx.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		gfx.setTransform(transform);
 		gfx.setClip(clip);
+		gfx.setComposite(globalCompositeOperation);
 		drawn = true;
 	}
 
@@ -365,13 +416,44 @@ public class CanvasRenderingContext2d extends RenderingContext2dState {
 		this.shadowColor = shadowColor;
 	}
 
-	public void setGlobalAlpha(double globalAlpha) {
-		this.globalAlpha = globalAlpha;
-		if (globalAlpha == 1.0) {
-			gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
-		} else {
-			gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) globalAlpha));
+	private void setComposite() {
+		if (gfx.getComposite() != globalCompositeOperation) {
+			gfx.setComposite(globalCompositeOperation);
 		}
+	}
+
+	public void setGlobalAlpha(double globalAlpha) {
+		globalCompositeOperation = globalCompositeOperation.derive((float) globalAlpha);
+		setComposite();
+	}
+
+	public void setGlobalCompositeOperation(String globalCompositeOperation) {
+		if ("source-over".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.SRC_OVER);
+		} else if ("source-in".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.SRC_IN);
+		} else if ("source-out".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.SRC_OUT);
+		} else if ("source-atop".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.SRC_ATOP);
+		} else if ("destination-over".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.DST_OVER);
+		} else if ("destination-in".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.DST_IN);
+		} else if ("destination-out".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.DST_OUT);
+		} else if ("destination-atop".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.DST_ATOP);
+		} else if ("lighter".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.CLEAR);
+		} else if ("darker".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.DST);
+		} else if ("copy".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.SRC);
+		} else if ("xor".equals(globalCompositeOperation)) {
+			this.globalCompositeOperation = this.globalCompositeOperation.derive(AlphaComposite.XOR);
+		}
+		setComposite();
 	}
 
 	public boolean isDrawn() {
