@@ -6,6 +6,7 @@ import json
 import urllib
 import logging.handlers
 import logging
+import pickle
 import shutil
 from hashlib import md5
 import time
@@ -137,7 +138,12 @@ class GameAPIClient:
     def post_result(self, method, result):
         # save result in case of failure
         with open('last_game.json', 'w') as f:
-            f.write(json.dumps(result))
+            try:
+                f.write(json.dumps(result))
+            except:
+                with open('bad_result', 'w') as br:
+                    pickle.dump(result, br)
+                raise
         # retry 10 times or until post is successful
         retry = 100
         wait_time = 2
@@ -549,6 +555,8 @@ class Worker:
                 else:
                     if not last:
                         time.sleep(20)
+                    # prevent worker from stopping on unknown tasks
+                    return True
             except:
                 log.error('Task Failure')
                 log.error(traceback.format_exc())
