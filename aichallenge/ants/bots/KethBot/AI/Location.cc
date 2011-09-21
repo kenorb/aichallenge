@@ -422,8 +422,8 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
     if (nearestFriendlyAnt) distanceToNearestAnt = distance_fast(row, col, nearestFriendlyAnt->getLocation().row, nearestFriendlyAnt->getLocation().col);
     if (nearestEnemyAnt.isValid()) distanceToNearestAntEnemy = distance_fast(row, col, nearestEnemyAnt.row, nearestEnemyAnt.col);
 
-    Ant* nearestAntNearFood  = NULL;
-    if (forAnt) {
+    Ant* nearestAntNearFood = NULL;
+    if (forAnt && nearestFood.isValid()) {
         //if (nearestFood.isValid()) nearestAntNearFood = nearestFood.nearestAnt(true); // 2
         nearestAntNearFood = nearestFood.nearestAnt(ANT_ISFRIEND).getAnt(); // 3
     }
