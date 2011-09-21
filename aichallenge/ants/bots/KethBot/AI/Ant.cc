@@ -477,11 +477,12 @@ int Ant::getNextMove(bool solveCollision /* = true */)
             if (locationTo.damageArea().enemy >= 1) {
                 const Location& nFood = locationTo.nearestFood();
                 if (nFood.isValid()) {
+                    const bool nCollision = locationTo.collisionLine(nFood);
                     double d = distance_fast(nFood.row, nFood.col, locationTo.row, locationTo.col);
                     if (
                         (
                             (d <= state.spawnradius) ||
-                            (d <= state.attackradius && !foodCollision)
+                            (d <= state.attackradius && !nCollision)
                         ) &&
                         (
                             (nFood.damageArea().enemy == 0) ||
@@ -490,7 +491,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                             //       we want to prevent enemy from picking it
                         ) &&
                         (
-                            (gameMap.findMany(nFood, state.attackradius + 2, ANT_FRIENDLY).size() > gameMap.findMany(nFood, state.attackradius + 2, ANT_ENEMY).size())
+                            (gameMap.findMany(nFood, state.viewradius, ANT_FRIENDLY).size() > gameMap.findMany(nFood, state.viewradius, ANT_ENEMY).size())
                         )
                     ) {
                     //if (d <= state.spawnradius) {
@@ -614,53 +615,10 @@ int Ant::getNextMove(bool solveCollision /* = true */)
                 #ifdef __DEBUG
                 logger.debugLog << "dir: " << dir << ", damage: " << locationTo.damageArea().enemy << " vs " << locationTo.damageArea().friendly << ", dist: " << locationTo.damageArea().enemyDistance << ", cost: " << move.cost << ", score: " << score << std::endl;
                 #endif
-            } else
-            if (dir != NO_MOVE && locationTo.damageArea().friendly >= 2 && distanceToNearestFood > 4) {
-                bool found = true;
-                for (int i = 0; i < locationTo.damageArea().friendlyAnts.size(); i++) {
-                    const Location& antLocation = *locationTo.damageArea().friendlyAnts[i];
-                    if (!antLocation.equals(Ant::getLocation()) && antLocation.damageArea().enemy >= 1) {
-                        double friendDistance = distance_fast(antLocation.row, antLocation.col, locationTo.row, locationTo.col);
-                        #ifdef __DEBUG
-                        logger.debugLog << " found close ant (dist: " << friendDistance << ") with enemy damage " << antLocation.damageArea().enemy << ", and friendly damage: " << antLocation.damageArea().friendly << std::endl;
-                        #endif
-
-                        move.cost = -1000 + friendDistance;
-                        found = true;
-
-                        break;
-                    }
-                }
-                if (found) {
-                    #ifdef __DEBUG
-                    logger.debugLog << "dir: " << dir << ", no damage but close ant, cost: " << move.cost << std::endl;
-                    #endif
-                } else {
-                    #ifdef __DEBUG
-                    logger.debugLog << "dir: " << dir << ", no damage, cost: " << move.cost << std::endl;
-                    #endif
-                }
-            } else {
-                #ifdef __DEBUG
-                logger.debugLog << "dir: " << dir << ", no damage, cost: " << move.cost << std::endl;
-                #endif
             }
-
 
             moves.push_back(move);
         }
-
-
-
-/*
-        if (!effectiveKill && noMove) {
-            #ifdef __DEBUG
-            profiler.endThinkTime("Ant::getNextMove()");
-            codeDepth--;
-            #endif
-            return NO_MOVE;
-        }
-        */
 
         if (moves.size() >= 1) {
             std::sort(moves.begin(), moves.end(), directionMove::sortMoves());
