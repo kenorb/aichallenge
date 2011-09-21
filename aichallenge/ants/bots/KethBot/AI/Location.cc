@@ -210,6 +210,20 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             int locationCost = 1;
             int currentCost = openedSquare->cost + locationCost;
 
+/* we can calculate approx distances if needed
+            if (costOnly) {
+                int cache = cachedNode(index, targetIndex);
+                if (cache > 0) {
+                    logger.debugLog << "path from " << LocationToString(*this) << " to " << LocationToString(endLocation) << std::endl;
+                    logger.debugLog << "currently from " << LocationToString(*this) << " to " << LocationToString(*currentLocation) << " = " << (int)currentCost << std::endl;
+                    logger.debugLog << "already found from " << LocationToString(*currentLocation) << " to " << LocationToString(endLocation) << " = " << (int)optimizer.distance_cost_table[index][targetIndex] << std::endl;
+                    logger.debugLog << "temp " << LocationToString(*currentLocation) << " to " << LocationToString(*this) << " = " << (int)cachedNode(index, startIndex) << std::endl;
+                    //path->totalCost = optimizer.distance_cost_table[index][targetIndex];
+                    //return path;
+                }
+            }
+*/
+
             search_grid[index] = new SearchLocation(*currentLocation, currentCost);
             search_grid[index]->distanceLeft = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
 
@@ -332,7 +346,7 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
         } else {
             ret = numeric_limits<double>::max();
         }
-        logger.debugLog << "result = " << ret << std::endl;
+
         delete path;
     }
 

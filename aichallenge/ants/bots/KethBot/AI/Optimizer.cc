@@ -163,18 +163,14 @@ void Optimizer::init() {
     for (int col = 0; col < state.cols; col++) {
         double distance = distance_real(0, 0, row, col);
 
-        logger.debugLog << " ADDING " << row << " x " << col << std::endl;
         radiusAreaMap.push_back(new relativeLocation(row, col, distance));
         if (row > 0) {
-            logger.debugLog << " ADDING " << -row << " x " << col << std::endl;
             radiusAreaMap.push_back(new relativeLocation(-row, col, distance));
         }
         if (col > 0) {
-            logger.debugLog << " ADDING " << row << " x " << -col << std::endl;
             radiusAreaMap.push_back(new relativeLocation(row, -col, distance));
         }
         if (row > 0 && col > 0) {
-            logger.debugLog << " ADDING " << -row << " x " << -col << std::endl;
             radiusAreaMap.push_back(new relativeLocation(-row, -col, distance));
         }
     }
