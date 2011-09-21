@@ -32,16 +32,15 @@ PLAYERS = ('1', '2', '3', '4')
 
 class BroBot():
     def __init__(self):
+
         """Add our log filter so that botversion and turn number are output correctly"""
-        log_filter  = LogFilter()
-        getLogger().addFilter(log_filter)
-
-        getLogger().debug("START!")
-
         self.debug = BroDebug(opts)
-        self.debug.msg('START')
+        self.debug.msg(__file__ + __name__)
         self.debug.obj(opts)
         self.map = None
+
+        if opts.test:
+          self.debug.test()
        
     def do_turn(self, ants):
         # self.debug.obj(ants.map_data)
@@ -134,12 +133,18 @@ def BroStartupOptions(parser):
   parser.add_option("-d", "--debug", dest="debug",
                      action="store_true", default=False,
                      help="Run in debug mode.")
+  parser.add_option("-e", "--debug-stderr", dest="debug_stderr",
+                     action="store_true", default=False,
+                     help="Print debug messages to standard error output (stderr).")
   parser.add_option("-D", "--debug-file", dest="debug_file", default='./debug.log',
                      help="Specify custom debug filename.")
 #  parser.add_option("-o", "--debug-json", dest="debug_file_json", default='debug.json.log',
 #                    help="Create debug json file in replay directory.")
   parser.add_option("-s", "--strategy", dest="strategy",
                     help="Choose strategy (five two digit numbers).")
+  parser.add_option("-t", "--test", dest="test",
+                     action="store_true", default=False,
+                     help="Run self-test and exit.")
   return parser
 
 def BroPathfinding():
@@ -194,5 +199,5 @@ if __name__ == '__main__':
         Ants.run(BroBot())
     except KeyboardInterrupt:
         print('ctrl-c, leaving ...')
-        System.exit(-1);
+        sys.exit(-1);
 
