@@ -34,11 +34,13 @@ PLAYERS = ('1', '2', '3', '4')
 class BroBot():
     def __init__(self):
 
-        """Add our log filter so that botversion and turn number are output correctly"""
+        """ Add our log filter so that botversion and turn number are output correctly """
         self.debug = Debug(opts)
-        self.ai = AI(self)
         self.debug.msg(__file__ + __name__)
         self.debug.obj(opts)
+        
+        """ Load AI """
+        self.ai = AI(self)
         self.map = None
 
         if opts.test:
