@@ -2,10 +2,9 @@
 
 # temp
 # from runner import *
-# sys.path.insert(0, "./")
+# sys.path.append("./")
 
 # debug
-from debug import *
 
 # libraries
 import sys
@@ -17,8 +16,10 @@ from ants import *
 from astar.astar import AStar
 
 # my imports
+from debug import *
 from map import *
 from log import *
+from AI.ai import *
 
 turn_number = 0
 bot_version = 'v0.1'
@@ -34,51 +35,33 @@ class BroBot():
     def __init__(self):
 
         """Add our log filter so that botversion and turn number are output correctly"""
-        self.debug = BroDebug(opts)
+        self.debug = Debug(opts)
+        self.ai = AI(self)
         self.debug.msg(__file__ + __name__)
         self.debug.obj(opts)
         self.map = None
 
         if opts.test:
+          # self.do_turn(None)
           self.debug.test()
        
     def do_turn(self, ants):
-        # self.debug.obj(ants.map_data)
-        self.debug.obj(vars(ants))
-        # print repr(ants.map_data)
-        self.debug.var('width', ants.width)
-        self.debug.var('height', ants.height)
-        self.debug.msg('turn 0')
+        debug = self.debug
+        ai = self.ai
+        
+        debug.msg('turn: ' + repr(ants.turn))
+        debug.msg('time remaining: ' + repr(ants.time_remaining()))
+        # debug.obj(vars(ants), 'ants')
 
         destinations = []
+        debug.msg("Starting Turn")
         for a_row, a_col in ants.my_ants():
-            # print ants.setup()
-            targets = ants.food() + [(row, col) for (row, col), owner in ants.enemy_ants()]
-            # find closest food or enemy ant
-            closest_target = None
-            closest_distance = 999999
-
-            for t_row, t_col in targets:
-                dist = ants.distance(a_row, a_col, t_row, t_col)
-                if dist < closest_distance:
-                    closest_distance = dist
-                    closest_target = (t_row, t_col)
-            if closest_target == None:
-                # no target found, mark ant as not moving so we don't run into it
-                destinations.append((a_row, a_col))
-                continue
-
-            directions = ants.direction(a_row, a_col, closest_target[0], closest_target[1])
-            shuffle(directions)
-            for direction in directions:
-                n_row, n_col = ants.destination(a_row, a_col, direction)
-                if ants.unoccupied(n_row, n_col) and not (n_row, n_col) in destinations:
-                    destinations.append((n_row, n_col))
-                    ants.issue_order((a_row, a_col, direction))
-                    break
-            else:
-                # mark ant as not moving so we don't run into it
-                destinations.append((a_row, a_col))
+            if not ai.hunt_food(ants,destinations,a_row,a_col):
+                if not ai.hunt_ants(ants,destinations,a_row,a_col):
+                    if not ai.random_move(ants,destinations,a_row,a_col):
+                        if not ai.random_move(ants,destinations,a_row,a_col,True):
+                            debug.msg("blocked:can't move:%d,%d" % (a_row,a_col))
+                            destinations.append((a_row,a_col))
 
     def pprint(self, obj):
       import pprint
@@ -87,7 +70,6 @@ class BroBot():
 
     def end_game(self, ants, err):
       self.debug.obj(err)
-      self.debug.msg('END')
       self.debug.end()
 
 class MyAnt():

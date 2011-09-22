@@ -3,7 +3,7 @@
 import os
 import sys
 
-class BroDebug():
+class Debug():
   debug = False
   log = []
   
@@ -16,24 +16,22 @@ class BroDebug():
   def msg(self, msg, ant = None):
     if self.debug:
       if ant:
-        _add_ant(msg, ant)
-      self.log.append(msg)
+        msg = self._add_ant(msg, ant)
+      else:
+        msg = self._add_log_prefix(msg, 'BroBot')
+
+    self.log.append(msg)
     if self.debug and self.debug_stderr:
       sys.stderr.write(msg)
       sys.stderr.write('\n')
 
   def var(self, name, value, ant = None):
-    if self.debug:
-      if ant:
-        _add_ant(msg, ant)
-      self.log.append({name: repr(value)})
-    if self.debug and self.debug_stderr:
-      sys.stderr.write({name: repr(value)})
-      sys.stderr.write('\n')
+    msg = repr(value)
+    self.msg(msg, ant)
 
-  def obj(self, obj, obj2 = None, obj3 = None):
+  def obj(self, obj, prefix = '', obj2 = None, obj3 = None):
     if self.debug:
-      self.log.append(repr(obj))
+      self.log.append(prefix + repr(obj))
     if self.debug and self.debug_stderr:
       sys.stderr.write(repr(obj))
       sys.stderr.write('\n')
@@ -45,7 +43,7 @@ class BroDebug():
       of = open(self.debug_file, 'w+')
       self.log.append('')
       self.msg('Writing log into: ' + self.debug_file)
-      of.write('\n' . join(self.log) + '\n')
+      of.write(('\n' . join(self.log)) + '\n')
       of.close()
       self.msg('Closing file.')
 
@@ -55,8 +53,10 @@ class BroDebug():
     sys.exit(0);
 
   def _add_ant(self, msg, ant):
-    if self.debug:
-      return "ant:%d[%dx%d]: " % (ant.id, ant.x, ant.y) + msg
+    return "ant:%d[%dx%d]: " % (ant.id, ant.x, ant.y) + msg
+
+  def _add_log_prefix(self, msg, prefix):
+    return "%s: " % (prefix) + msg
 
 if __name__ == "__main__":
     print "Hello World"

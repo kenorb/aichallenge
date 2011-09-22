@@ -13,8 +13,9 @@ LAND = -2
 FOOD = -3
 WATER = -4
 UNSEEN = -5
-
+MAX_INT=99999999
 MAP_RENDER = 'abcdefghijklmnopqrstuvwxyz?!%*.'
+
 
 AIM = {'n': (-1, 0),
        'e': (0, 1),
@@ -39,15 +40,9 @@ class Ants():
         self.height = None
         self.map = None
         self.ant_list = {}
-        self.food_list = {}
+        self.food_list = []
         self.dead_list = []
-        self.turntime = 0
-        self.loadtime = 0
         self.turn_start_time = None
-        self.vision = None
-        self.viewradius2 = 0
-        self.attackradius2 = 0
-        self.spawnradius2 = 0
 
     def setup(self, data):
         'parse initial input and setup starting game state'
@@ -58,9 +53,11 @@ class Ants():
                 key = tokens[0]
                 if key == 'cols':
                     self.width = int(tokens[1])
+                elif key == 'turn':
+                    self.turn = int(tokens[1])
                 elif key == 'rows':
                     self.height = int(tokens[1])
-                elif key == 'seed':
+                elif key == 'player_seed':
                     random.seed(int(tokens[1]))
                 elif key == 'turntime':
                     self.turntime = int(tokens[1])
@@ -79,21 +76,20 @@ class Ants():
         'parse engine input and update the game state'
         # start timer
         self.turn_start_time = time.clock()
-        
+
         # reset vision
         self.vision = None
-        
-        # clear ant data
+
+        # clear ant and food data
         for (row, col), owner in self.ant_list.items():
             self.map[row][col] = LAND
         self.ant_list = {}
+        for row, col in self.food_list:
+            self.map[row][col] = LAND
+        self.food_list = []
         for row, col in self.dead_list:
             self.map[row][col] = LAND
         self.dead_list = []
-        
-        # set all known food to unseen
-        for loc in self.food_list.keys():
-            self.food_list[loc] = False
 
         # update map and create new ant and food lists
         for line in data.split('\n'):
@@ -109,30 +105,17 @@ class Ants():
                         self.ant_list[(row, col)] = owner
                     elif tokens[0] == 'f':
                         self.map[row][col] = FOOD
-                        self.food_list[(row, col)] = True
-                    elif tokens[0] == 'r':
-                        self.map[row][col] = LAND
-                        try:
-                            del self.food_list[(row, col)]
-                        except:
-                            pass
+                        self.food_list.append((row, col))
                     elif tokens[0] == 'w':
                         self.map[row][col] = WATER
                     elif tokens[0] == 'd':
-                        # food could spawn on a spot where an ant just died
-                        # don't overwrite the space unless it is land
-                        if self.map[row][col] == LAND:
-                            self.map[row][col] = DEAD
-                        # but always add to the dead list
-                        self.dead_list.append((row, col))
+                        self.map[row][col] = DEAD
 
     def time_remaining(self):
         return self.turntime - int(1000 * (time.clock() - self.turn_start_time))
-    
+
     def issue_order(self, order):
-        'issue an order by writing the proper ant location and direction'
-        (row, col), direction = order
-        sys.stdout.write('o %s %s %s\n' % (row, col, direction))
+        sys.stdout.write('o %s %s %s\n' % (order[0], order[1], order[2]))
         sys.stdout.flush()
         
     def finish_turn(self):
@@ -146,104 +129,81 @@ class Ants():
                     if owner == MY_ANT]
 
     def enemy_ants(self):
-        'return a list of all visible enemy ants'
-        return [((row, col), owner)
-                    for (row, col), owner in self.ant_list.items()
+        return [((row, col), owner) for (row, col), owner in self.ant_list.items()
                     if owner != MY_ANT]
 
     def food(self):
-        'return a list of all food locations'
-        return self.food_list.keys()[:]
-        
-    def food_visible(self):
-        'return a list of all visible food locations'
-        return [loc for loc in self.food_list.keys()
-                    if self.food_list[loc] == True]
-        
-    def food_unseen(self):
-        'return a list of all unseen food locations'
-        return [loc for loc in self.food_list.keys()
-                    if self.food_list[loc] == False]
+        return self.food_list[:]
 
-    def passable(self, loc):
-        'true if not water'
-        row, col = loc
+    def passable(self, row, col):
         return self.map[row][col] > WATER
     
-    def unoccupied(self, loc):
-        'true if no ants are at the location'
-        row, col = loc
+    def unoccupied(self, row, col):
         return self.map[row][col] in (LAND, DEAD)
 
-    def destination(self, loc, direction):
-        'calculate a new location given the direction and wrap correctly'
-        row, col = loc
+    def destination(self, row, col, direction):
         d_row, d_col = AIM[direction]
         return ((row + d_row) % self.height, (col + d_col) % self.width)        
 
-    def distance(self, loc1, loc2):
-        'calculate the closest distance between to locations'
-        row1, col1 = loc1
-        row2, col2 = loc2
+    def distance(self, row1, col1, row2, col2):
+        row1 = row1 % self.height
+        row2 = row2 % self.height
+        col1 = col1 % self.width
+        col2 = col2 % self.width
         d_col = min(abs(col1 - col2), self.width - abs(col1 - col2))
         d_row = min(abs(row1 - row2), self.height - abs(row1 - row2))
         return d_row + d_col
 
-    def direction(self, loc1, loc2):
-        'determine the 1 or 2 fastest (closest) directions to reach a location'
-        row1, col1 = loc1
-        row2, col2 = loc2
-        height2 = self.height//2
-        width2 = self.width//2
+    def direction(self, row1, col1, row2, col2):
         d = []
+        row1 = row1 % self.height
+        row2 = row2 % self.height
+        col1 = col1 % self.width
+        col2 = col2 % self.width
         if row1 < row2:
-            if row2 - row1 >= height2:
+            if row2 - row1 >= self.height//2:
                 d.append('n')
-            if row2 - row1 <= height2:
+            if row2 - row1 <= self.height//2:
                 d.append('s')
         if row2 < row1:
-            if row1 - row2 >= height2:
+            if row1 - row2 >= self.height//2:
                 d.append('s')
-            if row1 - row2 <= height2:
+            if row1 - row2 <= self.height//2:
                 d.append('n')
         if col1 < col2:
-            if col2 - col1 >= width2:
+            if col2 - col1 >= self.width//2:
                 d.append('w')
-            if col2 - col1 <= width2:
+            if col2 - col1 <= self.width//2:
                 d.append('e')
         if col2 < col1:
-            if col1 - col2 >= width2:
+            if col1 - col2 >= self.width//2:
                 d.append('e')
-            if col1 - col2 <= width2:
+            if col1 - col2 <= self.width//2:
                 d.append('w')
         return d
 
-    def visible(self, loc):
-        ' determine which squares are visible to the given player '
+    def closest_food(self,row1,col1):
+        #find the closest food from this row/col
+        min_dist=MAX_INT
+        closest_food = None
+        for food in self.food_list:
+            dist = self.distance(row1,col1,food[0],food[1])
+            if dist<min_dist:
+                min_dist = dist
+                closest_food = food
+        return closest_food    
 
-        if self.vision == None:
-            if not hasattr(self, 'vision_offsets_2'):
-                # precalculate squares around an ant to set as visible
-                self.vision_offsets_2 = []
-                mx = int(sqrt(self.viewradius2))
-                for d_row in range(-mx,mx+1):
-                    for d_col in range(-mx,mx+1):
-                        d = d_row**2 + d_col**2
-                        if d <= self.viewradius2:
-                            self.vision_offsets_2.append((
-                                d_row%self.height-self.height,
-                                d_col%self.width-self.width
-                            ))
-            # set all spaces as not visible
-            # loop through ants and set all squares around ant as visible
-            self.vision = [[False]*self.width for row in range(self.height)]
-            for ant in self.my_ants():
-                a_row, a_col = ant.loc
-                for v_row, v_col in self.vision_offsets_2:
-                    self.vision[a_row+v_row][a_col+v_col] = True
-        row, col = loc
-        return self.vision[row][col]
-    
+    def closest_enemy_ant(self,row1,col1):
+        #find the closest enemy ant from this row/col
+        min_dist=MAX_INT
+        closest_ant = None
+        for ant in self.enemy_ants():
+            dist = self.distance(row1,col1,ant[0][0],ant[0][1])
+            if dist<min_dist:
+                min_dist = dist
+                closest_ant = ant[0]
+        return closest_ant    
+        
     def render_text_map(self):
         'return a pretty string representing the map'
         tmp = ''
@@ -278,6 +238,7 @@ class Ants():
             except EOFError:
                 bot.end_game(ants, sys.stderr);
                 break
-            except:
+            except Exception as e:
                 bot.end_game(ants, sys.stderr);
                 traceback.print_exc(file=sys.stderr)
+                break
