@@ -1,9 +1,13 @@
+#include <algorithm>
+#include <string.h>
+
 #include "Location.h"
 #include "Ant.h"
 #include "Bot.h"
-#include <algorithm>
+
 #include "globals.h"
 #include "Optimizer.h"
+
 
 
 Location::Location(int r, int c)
@@ -61,7 +65,7 @@ void Location::normalize()
 }
 
 Damage& Location::damageArea() const {
-    return state.grid_damage[row][col];
+    return state.gridDamage[this->index];
 }
 
 bool Location::think() const
@@ -152,48 +156,48 @@ bool funcSortSearchLocations(SearchLocation* loc1, SearchLocation* loc2)
     return (loc1->cost) < (loc2->cost);
 }
 
-SearchLocation::SearchLocation(const Location& _loc, int _cost)
-{
-    loc = &Loc(_loc);
-    cost = _cost;
-    opened = true;
-}
-
 Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false */) const
 {
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_ASTAR);
+    logger.astarTotalPaths++;
     #endif
 
     Path* path = new Path();
 
-    path->setSource(Loc(*this));
-    path->setTarget(Loc(endLocation));
+    const Location& startLocation = *this;
 
-    if (Location::isAround(path->targetLocation())) {
-        #ifdef __DEBUG
-        profiler.endThinkTime(TT_ASTAR);
-        #endif
+    path->setSource(startLocation);
+    path->setTarget(endLocation);
+
+    double distance = distance_fast(startLocation.row, startLocation.col, endLocation.row, endLocation.col);
+
+    if (distance <= state.spawnradius) {
+        path->totalCost = distance;
         return path;
     }
 
-    int index = LocToIndex(this->row, this->col);
-    int startIndex = LocToIndex(this->row, this->col);
-    int targetIndex = LocToIndex(endLocation.row, endLocation.col);
-
     list<SearchLocation*> opened;
 
-    vector<SearchLocation*> search_grid(MAX_GRID_INDEX);
-    search_grid[index] = new SearchLocation(*this, 0);
-    search_grid[index]->distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
-    opened.push_back(search_grid[index]);
+    for(int i = 0; i < state.rows; ++i) {
+        memset(gameMap.search_grid[i], 0, sizeof(SearchLocation) * state.cols);
+    }
+
+    SearchLocation& sl = gameMap.search_grid[row][col];
+
+    sl.loc = this;
+    sl.cost = 0;
+    sl.distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
+
+    opened.push_back(&sl);
 
     while (opened.size() > 0) {
         opened.sort(funcSortSearchLocations);
 
         SearchLocation* openedSquare = opened.front();
-        openedSquare->closeSquare();
-        opened.remove(openedSquare);
+        opened.pop_front();
+
+        openedSquare->opened = false;
 
         for (int x = -1; x <= 1; x++)
         for (int y = -1; y <= 1; y++)
@@ -202,93 +206,37 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             if (x != 0 && y != 0) continue;
             if (x == 0 && y == 0) continue;
 
-            const Location* currentLocation = &Loc(openedSquare->getLocation().row + y, openedSquare->getLocation().col + x);
-            index = LocToIndex(currentLocation->row, currentLocation->col);
+            const Location* currentLocation = &LocWrap(Row(openedSquare->loc) + y, Col(openedSquare->loc) + x);
+            if (!path->touchedFog && LocIsFog(currentLocation->row, currentLocation->col)) path->touchedFog = true;
 
-            if (search_grid[index] != NULL) continue;
+            SearchLocation& searchLocation = gameMap.search_grid[currentLocation->row][currentLocation->col];
+            if (searchLocation.loc != NULL) continue;
 
-            int locationCost = 1;
-            int currentCost = openedSquare->cost + locationCost;
+            searchLocation.loc = currentLocation;
+            searchLocation.cost = openedSquare->cost + 1;
+            searchLocation.distanceLeft = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
+            searchLocation.ref = openedSquare->loc;
 
-/* we can calculate approx distances if needed
-            if (costOnly) {
-                int cache = cachedNode(index, targetIndex);
-                if (cache > 0) {
-                    logger.debugLog << "path from " << LocationToString(*this) << " to " << LocationToString(endLocation) << std::endl;
-                    logger.debugLog << "currently from " << LocationToString(*this) << " to " << LocationToString(*currentLocation) << " = " << (int)currentCost << std::endl;
-                    logger.debugLog << "already found from " << LocationToString(*currentLocation) << " to " << LocationToString(endLocation) << " = " << (int)optimizer.distance_cost_table[index][targetIndex] << std::endl;
-                    logger.debugLog << "temp " << LocationToString(*currentLocation) << " to " << LocationToString(*this) << " = " << (int)cachedNode(index, startIndex) << std::endl;
-                    //path->totalCost = optimizer.distance_cost_table[index][targetIndex];
-                    //return path;
-                }
-            }
-*/
+            uint8& costCached = optimizer.distance_cost_table[startLocation.index][currentLocation->index];
 
-            search_grid[index] = new SearchLocation(*currentLocation, currentCost);
-            search_grid[index]->distanceLeft = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
-
-            #ifdef __DEBUG
-            if (optimizer.distance_cost_table[LocToIndex(row, col)][index] == 0) {
-                logger.astarNodesCreated++;
-                logger.astarDistanceComputed += currentCost;
-            }
-            #endif
-
-            optimizer.distance_cost_table[LocToIndex(row, col)][index] = currentCost;
-
-            search_grid[index]->setRef(Loc(openedSquare->getLocation()));
-
-            const Location* loopPrevious[2];
-            loopPrevious[0] = &Loc(openedSquare->getLocation());
-            loopPrevious[1] = loopPrevious[0];
-
-            int indexPrevious[2];
-            indexPrevious[0] = LocToIndex(loopPrevious[0]->row, loopPrevious[0]->col);
-            indexPrevious[1] = indexPrevious[0];
-
-            while (!loopPrevious[0]->equals(path->sourceLocation())) {
-                loopPrevious[0] = &search_grid[indexPrevious[0]]->getReference();
-
-                #ifdef __DEBUG
-                if (optimizer.distance_cost_table[LocToIndex(row, col)][indexPrevious[0]] == 0) {
-                    logger.astarNodesCreated++;
-                    logger.astarDistanceComputed += search_grid[indexPrevious[0]]->cost;
-                }
-                #endif
-
-                optimizer.distance_cost_table[LocToIndex(row, col)][indexPrevious[0]] = search_grid[indexPrevious[0]]->cost;
-
-                loopPrevious[1] = loopPrevious[0];
-                indexPrevious[1] = indexPrevious[0];
-                while (!loopPrevious[1]->equals(path->sourceLocation())) {
-                    loopPrevious[1] = &search_grid[indexPrevious[1]]->getReference();
-                    indexPrevious[1] = LocToIndex(loopPrevious[1]->row, loopPrevious[1]->col);
-
-                    int magicCost = abs(search_grid[indexPrevious[0]]->cost - search_grid[indexPrevious[1]]->cost);
-
-                    #ifdef __DEBUG
-                    if (optimizer.distance_cost_table[indexPrevious[0]][indexPrevious[1]] == 0) {
-                        logger.astarNodesCreated++;
-                        logger.astarDistanceComputed += magicCost;
-                    }
-                    #endif
-
-                    optimizer.distance_cost_table[indexPrevious[0]][indexPrevious[1]] = magicCost;
-                }
-
-                indexPrevious[0] = LocToIndex(loopPrevious[0]->row, loopPrevious[0]->col);
+            if (searchLocation.cost < costCached || costCached == 0) {
+                costCached = searchLocation.cost;
             }
 
-            if (currentLocation->row == path->targetLocation().row && currentLocation->col == path->targetLocation().col) {
-                path->totalCost = currentCost;
+            if (currentLocation->row == endLocation.row && currentLocation->col == endLocation.col) {
+                path->totalCost = searchLocation.cost;
 
-                while (!currentLocation->equals(path->sourceLocation())) {
+                while (not (currentLocation->row == startLocation.row && currentLocation->col == startLocation.col)) {
                     path->moves.push(*currentLocation);
-                    currentLocation = &search_grid[index]->getReference();
-                    index = LocToIndex(currentLocation->row, currentLocation->col);
-                }
+                    currentLocation = gameMap.search_grid[currentLocation->row][currentLocation->col].ref;
 
-                //path->moves.pop();
+                    const Location* loopLocation = currentLocation;
+                    while (not (loopLocation->row == startLocation.row && loopLocation->col == startLocation.col)) {
+                        loopLocation = gameMap.search_grid[loopLocation->row][loopLocation->col].ref;
+                        uint8& costCached = optimizer.distance_cost_table[currentLocation->index][loopLocation->index];
+                        costCached = gameMap.search_grid[currentLocation->row][currentLocation->col].cost - gameMap.search_grid[loopLocation->row][loopLocation->col].cost;
+                    }
+                }
 
                 #ifdef __DEBUG
                 profiler.endThinkTime(TT_ASTAR);
@@ -297,8 +245,8 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
                 return path;
             }
 
-            if (currentLocation->isBlocked()) continue;
-            opened.push_back(search_grid[LocToIndex(currentLocation->row, currentLocation->col)]);
+            if (LocIsWall(currentLocation->row, currentLocation->col)) continue;
+            opened.push_back(&searchLocation);
         }
     }
 
@@ -320,40 +268,51 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
     double ret;
     precise = true;
 
-    int computedCost = cachedNode(LocToIndex(row, col), LocToIndex(loc.row, loc.col));
+    int computedCost = cachedNode(this->index, loc.index);
+
+    #ifdef __ASSERT
+    logger.debugLog << "costFrom " << LocationToString(*this) << " to " << LocationToString(loc) << std::endl;
+    #endif
 
     if (computedCost > 0) {
-        #ifdef __DEBUG
+        #ifndef __ASSERT
         profiler.endThinkTime(TT_ASTAR);
         #endif
 
+        #ifdef __DEBUG
+        logger.astarNodesUsed++;
+        #endif
+
+        #ifndef __ASSERT
         return computedCost;
+        #else
+        logger.debugLog << "costTo cache = " << computedCost << std::endl;
+        #endif
     }
 
-    if (!precise) {
-        bool blocking = Location::collisionLine(loc);
-
-        ret = distance_fast((*this).row, (*this).col, loc.row, loc.col) - 1;
-        if (ret < 0) ret = 0;
-
-        if (blocking) ret *= 2.5;
-
-        return ceil(ret);
+    Path* path = Location::findPathTo(loc, true);
+    if (path) {
+        ret = path->totalCost;
     } else {
-        Path* path = Location::findPathTo(loc, true);
-        if (path) {
-            ret = path->totalCost;
-        } else {
-            ret = numeric_limits<double>::max();
-        }
-
-        delete path;
+        ret = numeric_limits<double>::max();
     }
-
 
     #ifdef __DEBUG
     profiler.endThinkTime(TT_ASTAR);
     #endif
+
+    #ifdef __ASSERT
+    logger.debugLog << "costTo result = " << ret << std::endl;
+    if (computedCost > 0 && computedCost != ret) {
+        if (path->touchedFog) {
+            logger.logWarning("WARNING: computedCost > 0 && computedCost != ret && touchedFog");
+        } else {
+            logger.logError("ERROR: computedCost > 0 && computedCost != ret");
+        }
+    }
+    #endif
+
+    delete path;
 
     return ret;
 }
@@ -424,22 +383,23 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
 
     Ant* nearestAntNearFood = NULL;
     if (forAnt && nearestFood.isValid()) {
-        //if (nearestFood.isValid()) nearestAntNearFood = nearestFood.nearestAnt(true); // 2
         nearestAntNearFood = nearestFood.nearestAnt(ANT_ISFRIEND).getAnt(); // 3
     }
+
     vector2f velocity(0,0);
-
-
-
-
 
     for(int row=0; row<state.rows; row++)
     for(int col=0; col<state.cols; col++)
     {
-        const Location& magnetLocation = Loc(row, col);
-        const Location* forceTowards = &Loc(row, col);
+        if (LocIsFog(row, col)) continue;
+        if (LocIsEmpty(row, col)) continue;
 
+        const Location& magnetLocation = Loc(row, col);
+
+        //if (magnetLocation.isType(EMPTY) || magnetLocation.isType(FOG)) continue;
         if ((*this).row == magnetLocation.row && (*this).col == magnetLocation.col) continue;
+
+        const Location* forceTowards = &Loc(row, col);
 
         bool magnetic = false;
         bool ignoreDistance = false;
@@ -457,13 +417,13 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             if (bot.hasAggressiveMode()) {
                 if (distance == -1)
                     distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
-
+/*
                 if (magnetLocation.damageArea().enemy >= 1 && distanceToNearestFood > state.viewradius && distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
                     forceTowards = magnetLocation.damageArea().enemyAnts.front();
                     magnetic = true;
                     ignoreDistance = true;
                     magnetPower = -100;
-                }
+                }*/
             }
 
 /*
@@ -551,6 +511,15 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                         magnetic = true;
                         ignoreDistance = true;
                     }
+                }
+            }
+
+            if (magnetic) {
+                if (distance == -1)
+                    distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
+
+                if (distance < state.viewradius) {
+                    distance = this->costTo(magnetLocation);
                 }
             }
         }
@@ -779,7 +748,7 @@ bool Location::collisionLine(const Location& loc, bool secondSolve /* = false */
         } else {
             currentPoint.y += relativeVector.y;
         }
-        currentLocation = &Loc(currentPoint);
+        currentLocation = &LocWrap(round(currentPoint.y), round(currentPoint.x));
         if (currentLocation->isWall()) {
             if (secondSolve) {
                 #ifdef __DEBUG

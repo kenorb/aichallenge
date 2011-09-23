@@ -34,24 +34,44 @@ int Bot::getCheckSum() {
 
 void Bot::playGame()
 {
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_TOTALLOADTIME);
+    #endif
+
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_GAMELOADTIME);
+    #endif
     cin >> state;
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_GAMELOADTIME);
+    #endif
 
     #ifdef __DEBUG
     logger.debugLog << "Optimizer init..." << std::endl;
+    profiler.beginThinkTime(TT_OPTIMIZERLOADTIME);
     #endif
     optimizer.init();
     #ifdef __DEBUG
+    profiler.endThinkTime(TT_OPTIMIZERLOADTIME);
     logger.debugLog << "Optimizer init done..." << std::endl;
 
     logger.logPreState(true);
 
     #endif
 
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_TOTALLOADTIME);
+    #endif
+
     while(cin >> state)
     {
+        if (state.gameover) break;
         onThink();
         endTurn();
     }
+
+    //logger.debugLog << "test3" << std::endl;
+    std::cout << "test4" << std::endl;
 }
 
 void Bot::endGame()
@@ -68,13 +88,11 @@ void Bot::endGame()
     " + Turns: " << (int)state.turns << endl
     << profiler.output() <<
     " + Locations created: " << (logger.locationsCreated) << endl <<
-    " + AStar nodes cached: " << (logger.astarNodesCreated) << " (" << (((double)logger.astarNodesCreated / (double)(sqr(state.rows*state.cols) / 2)) * 100) << "% of the map)" << endl <<
-    " + AStar computed distance: " << (logger.astarDistanceComputed) << endl <<
+    " + AStar cache used: " << (logger.astarNodesUsed) << endl <<
+    " + AStar paths made: " << (logger.astarTotalPaths) << endl <<
     " + Game checksum: " << bot.getCheckSum() << endl;
     //" + Game moves: " << state.moves.str() << endl;
     #endif
-
-    exit(1);
 }
 
 bool Bot::hasAggressiveMode()

@@ -20,4 +20,6 @@ const int DIRECTION[4] = {0, 1, 2, 3};
 #define DOWN 2
 #define LEFT 3
 
+#define NEAREST_LIMIT 5
+
 #endif // CONST_H_INCLUDED

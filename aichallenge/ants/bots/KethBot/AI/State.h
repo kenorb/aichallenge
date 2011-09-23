@@ -19,10 +19,8 @@
 #include "Map.h"
 #include "Ant.h"
 
-#include "globals.h"
 #include "Optimizer.h"
 #include "Damage.h"
-
 
 #ifdef __DEBUG
 #include "Logger.h"
@@ -36,6 +34,8 @@ void _updateLocation(const Location& loc, CallbackLocData data);
 void _addFriendlyDamage(const Location& loc, CallbackLocData data);
 void _addEnemyDamage(const Location& loc, CallbackLocData data);
 void _resetDamage(const Location& loc, CallbackLocData data);
+
+struct LocationRef;
 
 struct State
 {
@@ -64,17 +64,24 @@ struct State
 
     std::stringstream moves;
 
-    vector<vector<char> > grid;
+    char** grid;
+    int** ants_grid;
+    bool** grid_visible;
+
     vector<vector<bool> > grid_needsUpdate;
-    vector<vector<Damage> > grid_damage;
     vector<vector<int> > grid_prediction;
-    vector<vector<bool> > grid_visible;
-    vector<vector<int> > ants_grid;
+
     vector<Location> ants;
     std::list<int> priorityAnts;
     vector<Location> enemyAnts;
-    vector<const Location*> foodLocations;
+    //vector<const Location*> foodLocations;
     std::list<Ant*> structuralAnts;
+
+
+    Damage* gridDamage;
+    LocationRef** gridFriendlyAnts;
+    //const LocationReference*** gridEnemyAnts;
+
 
     Timer timer;
 
@@ -101,5 +108,6 @@ struct State
 
 ostream& operator<<(ostream &os, const State &state);
 istream& operator>>(istream &is, State &state);
+
 
 #endif //STATE_H_

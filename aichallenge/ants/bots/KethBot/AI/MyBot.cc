@@ -1,8 +1,8 @@
-#ifndef __DEBUG
-    #ifdef __ASSERT
-        #undef __ASSERT
-    #endif
+#ifdef __ASSERT
+    #define __DEBUG
+#endif
 
+#ifndef __DEBUG
     #ifdef __JSON
         #undef __JSON
     #endif
@@ -58,5 +58,5 @@ int main(int argc, char *argv[])
         }
     #endif
 
-    return 0;
+    return 1;
 }

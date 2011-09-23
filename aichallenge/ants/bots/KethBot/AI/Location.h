@@ -9,6 +9,7 @@
 #include "Ant.h"
 #include "Damage.h"
 #include "Map.h"
+#include "State.h"
 
 #include "const.h"
 #include "globals.h"
@@ -17,8 +18,40 @@
 #define LOCATION_UNDEFINED (*locNull);
 #define cachedNode(a,b) (optimizer.distance_cost_table[a][b] > 0 ? optimizer.distance_cost_table[a][b] : optimizer.distance_cost_table[b][a])
 
+#define RefSource(locationRef) (*locationRef->ref)
+#define RefLocation(locationRef) (*locationRef->loc)
+#define RefDistance(locationRef) (distance_fast(locationRef->loc->row, locationRef->loc->col, locationRef->ref->row, locationRef->ref->col))
+
+
+#define Loc(row, col) gameMap.locationGrid[row][col]
+#define LocCompare(loc1, loc2) (loc1.row == loc2.row && loc1.col == loc2.col)
+
+#define Row(loc) (loc->row)
+#define Col(loc) (loc->col)
+
+#define LocIsAround(a, b) (distance_fast(a.row, a.col, b.row, b.col) < state.spawnradius)
+
+#define LocIsFog(row, col) (state.grid[row][col] == '?')
+#define LocIsWall(row, col) (state.grid[row][col] == '%')
+#define LocIsEmpty(row, col) (state.grid[row][col] == '.' || state.grid[row][col] == 'o')
+
 class Ant;
 class Path;
+
+#include "State.h"
+
+
+struct LocationRef
+{
+    LocationRef() {};
+    LocationRef(const Location& _loc, const Location& _ref) {
+        loc = &_loc;
+        ref = &_ref;
+    };
+
+    const Location* loc;
+    const Location* ref;
+};
 
 struct Location
 {
@@ -80,11 +113,12 @@ struct Food
 
 struct Path
 {
-    Path() { iterations = totalCost = 0; };
+    Path() { iterations = totalCost = 0; touchedFog = false; };
     std::stack<Location> moves;
 
     int totalCost;
     int iterations;
+    bool touchedFog;
 
     inline int stepsLeft() { return moves.size(); };
 
@@ -97,28 +131,18 @@ struct Path
     inline void setTarget(const Location& loc) { target = &loc; };
     inline void setSource(const Location& loc) { source = &loc; };
 
-    private:
-        const Location* target;
-        const Location* source;
+    const Location* target;
+    const Location* source;
 };
 
 struct SearchLocation
 {
-    SearchLocation(const Location& _loc, int _cost);
-    void closeSquare() { opened = false; };
-    SearchLocation* setRef(const Location& location) { ref = &location; return this; };
-
-    inline void setLocation(const Location& location) { loc = &location; };
-    inline const Location& getLocation() { return *loc; };
-    inline const Location& getReference() { return *ref; };
-
     int cost;
     double opened;
     double distanceLeft;
 
-    private:
-        const Location* loc;
-        const Location* ref;
+    const Location* loc;
+    const Location* ref;
 };
 
 #endif //LOCATION_H_

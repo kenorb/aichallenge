@@ -11,9 +11,7 @@
 
 class Ant;
 
-const Location& Loc(int row, int col);
-const Location& Loc(const Location& loc);
-const Location& Loc(const int i);
+const Location& LocWrap(int row, int col);
 
 struct CallbackLocData
 {
@@ -46,6 +44,8 @@ struct MapSearch
 #define LocToIndex(row, col) ((row)*state.cols+(col))
 #define MAX_GRID_INDEX LocToIndex(state.rows-1, state.cols-1)
 
+struct SearchLocation;
+
 struct Map
 {
     public:
@@ -65,7 +65,8 @@ struct Map
         vector<const Location*> findMany(const Location& loc, double searchRadius, LocationType type);
         MapSearch find(const Location& loc, double searchRadius, LocationType type, MapSearch next = MapSearch());
 
-        vector<Location*> locationGrid;
+        Location** locationGrid;
+        SearchLocation** search_grid;
         std::list<Ant*>& getAnts();
         vector<Location>& getEnemyAnts();
 

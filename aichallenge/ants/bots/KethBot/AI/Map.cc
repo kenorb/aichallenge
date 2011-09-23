@@ -8,23 +8,15 @@
 #include "globals.h"
 #include "relativeLocation.h"
 
-const Location& Loc(int row, int col) {
-    while (row < 0) row += state.rows;
-    while (col < 0) col += state.cols;
+const Location& LocWrap(int row, int col)
+{
+    if (row < 0) row += state.rows; else
+    if (row >= state.rows) row -= state.rows;
 
-    while (row >= state.rows) row -= state.rows;
-    while (col >= state.cols) col -= state.cols;
+    if (col < 0) col += state.cols; else
+    if (col >= state.cols) col -= state.cols;
 
-    return *gameMap.locationGrid[LocToIndex(row, col)]; // loc to index inline?
-}
-
-const Location& Loc(const Location& loc) {
-    return *gameMap.locationGrid[LocToIndex(loc.row, loc.col)];
-}
-
-const Location& Loc(const int i) {
-    if (i == UNDEFINED) return LOCATION_UNDEFINED;
-    return *gameMap.locationGrid[i];
+    return Loc(row, col);
 }
 
 void Map::onInit() {
@@ -33,17 +25,23 @@ void Map::onInit() {
     #endif
 
     locNull = new Location();
+    locNull->index = -1;
     locNull->row = -1;
     locNull->col = -1;
 
-    locationGrid.resize(state.rows*state.cols);
-    for (int i = 0; i < state.rows*state.cols; i += 1) {
-        locationGrid[i] = new Location();
-        locationGrid[i]->row = IndexToRow(i);
-        locationGrid[i]->col = IndexToCol(i);
-        #ifdef __ASSERT
-        if (i != (*locationGrid[i]).getIndex()) logger.logError("Map::onInit(): Error while indexing grid");
-        #endif
+    locationGrid = new Location*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        locationGrid[i] = new Location[state.cols];
+        for(int j = 0; j < state.cols; ++j) {
+            locationGrid[i][j].index = LocToIndex(i, j);
+            locationGrid[i][j].row = i;
+            locationGrid[i][j].col = j;
+        }
+    }
+
+    search_grid = new SearchLocation*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        search_grid[i] = new SearchLocation[state.cols];
     }
 }
 
@@ -71,7 +69,7 @@ vector<const Location*> Map::findMany(const Location& loc, double searchRadius, 
 
         if (relLoc->distance > searchRadius) break;
 
-        const Location* l = &Loc(loc.row + relLoc->row, loc.col + relLoc->col);
+        const Location* l = &LocWrap(loc.row + relLoc->row, loc.col + relLoc->col);
         #ifdef __ASSERT
         if (!l->isValid()) {
             logger.logError("Map::find - !l->isValid()");
@@ -94,28 +92,48 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
 
     MapSearch ret;
 
-    for (int i = startFrom.index + 1; i < optimizer.radiusAreaMap.size(); i++) {
-        ret.index = i;
-        const relativeLocation* relLoc = optimizer.radiusAreaMap[i];
+    int locIndex = LocToIndex(loc.row, loc.col);
 
-        if (relLoc->distance > searchRadius) {
-            ret.reachedRadius = true;
-            break;
-        }
-
-        const Location* l = &Loc(loc.row + relLoc->row, loc.col + relLoc->col);
-
-        #ifdef __ASSERT
-        if (!l->isValid()) {
-            logger.logError("Map::find - !l->isValid()");
-            logger.debugLog << "DEBUG: " << LocationToString(*l) << std::endl;
-        }
+    if (!loc.isValid()) {
+        #ifdef __DEBUG
+        logger.logWarning("Map::find: !loc.isValid()");
         #endif
+        return ret;
+    }
 
-        if (l->isType(type)) {
-            ret.location = l;
-            ret.found = true;
-            break;
+    if (startFrom.index < 1 && optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] > 0) {
+        ret.index = (optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] - 1);
+        ret.location = &LocWrap(loc.row + optimizer.radiusAreaMap[ret.index]->row, loc.col + optimizer.radiusAreaMap[ret.index]->col);
+        ret.found = true;
+    } else {
+        for (int i = startFrom.index + 1; i < optimizer.radiusAreaMap.size(); i++) {
+            ret.index = i;
+            const relativeLocation* relLoc = optimizer.radiusAreaMap[i];
+
+            if (relLoc->distance > searchRadius) {
+                ret.reachedRadius = true;
+                break;
+            }
+
+            const Location* l = &LocWrap(loc.row + relLoc->row, loc.col + relLoc->col);
+
+            #ifdef __ASSERT
+            if (!l->isValid()) {
+                logger.logError("Map::find - !l->isValid()");
+                logger.debugLog << "DEBUG: " << LocationToString(*l) << std::endl;
+            }
+            #endif
+
+            if (l->isType(type)) {
+                ret.location = l;
+                ret.found = true;
+
+                if (startFrom.index < 1) {
+                    optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] = (i + 1);
+                }
+
+                break;
+            }
         }
     }
 
@@ -137,11 +155,9 @@ void Map::callbackArea(const Location& loc, double radius, CallbackLoc callback,
 
     int r = round(sqr(radius));
 
-    //logger.debugLog << "optimizer.radiusArea[" <<s r << "].size() = " << optimizer.radiusArea[r].size() << std::endl;
-
     for (int i = 0; i < optimizer.radiusArea[r].size(); i++) {
         const relativeLocation* relLoc = optimizer.radiusArea[r][i];
-        const Location& l = Loc(loc.row + relLoc->row, loc.col + relLoc->col);
+        const Location& l = LocWrap(loc.row + relLoc->row, loc.col + relLoc->col);
 
         CallbackLocData data;
         data.sender = sender;
@@ -292,9 +308,9 @@ double Map::distance_vector(const Location &loc1, vector2f loc2)
            dr = min(d1, (double)state.rows-d1),
            dc = min(d2, (double)state.cols-d2);
 
-    return sqrt(dr*dr + dc*dc);
-
     #ifdef __DEBUG
     profiler.endThinkTime(TT_DISTANCES);
     #endif
+
+    return sqrt(dr*dr + dc*dc);
 }

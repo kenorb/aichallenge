@@ -10,10 +10,28 @@ struct State;
 #include <iostream>
 #include <functional>
 
+#define AntRow(x) x->loc->row
+#define AntCol(x) x->loc->col
+#define AntLoc(x) (*x->loc)
+
 struct Location;
 struct Path;
 
 using namespace std;
+
+struct directionMove {
+    int direction;
+    double cost;
+
+    struct sortMoves: public binary_function<directionMove, directionMove, bool>
+    {
+        bool operator() (directionMove move1, directionMove move2)
+        {
+            return (move1.cost < move2.cost);
+        }
+    };
+
+};
 
 struct Ant
 {
@@ -50,7 +68,7 @@ struct Ant
         void deletePath();
 
 
-
+        int scoreMove(directionMove& move);
         const Location& getLocation() const { return *loc; }
 
 
@@ -73,34 +91,16 @@ struct Ant
         inline bool hasPath() { return path != NULL; };
         inline bool hasPartner() { return partner != NULL; };
 
+        void cancelPath();
+        bool needsCancelPath();
+
+        void updatePath();
+
         const Location* loc;
 };
 
-struct directionMove {
-    int direction;
-    double cost;
-/*
-    inline bool operator>(const directionMove& a)
-    {
-        return (*this).cost < a.cost;
-    }
-
-    inline bool operator<(const directionMove& a)
-    {
-        return (*this).cost > a.cost;
-    }
-*/
-    struct sortMoves: public binary_function<directionMove, directionMove, bool>
-    {
-        bool operator() (directionMove move1, directionMove move2)
-        {
-            return (move1.cost > move2.cost);
-        }
-    };
-
-};
 
 
-ostream& operator<<(ostream &out, const Ant &ant);
+ostream& operator<<(ostream &out, const Ant& ant);
 
 #endif // ANT_H

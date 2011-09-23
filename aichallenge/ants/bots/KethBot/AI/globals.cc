@@ -1,4 +1,6 @@
 #include "Bot.h"
+#include "State.h"
+#include "globals.h"
 
 #ifdef __DEBUG
 #include "Profiler.h"

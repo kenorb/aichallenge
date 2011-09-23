@@ -56,6 +56,12 @@ void incArea(char* area, int i)
     }
 }
 
+void Optimizer::onNewTurn() {
+    for(int i = 0; i < LOCATION_TYPE_MAX; ++i) {
+        memset(mapsearch_cache[i], 0, sizeof(SearchCache) * state.rows * state.cols);
+    }
+}
+
 void Optimizer::init() {
 
 /*
@@ -141,15 +147,19 @@ void Optimizer::init() {
     sqrt_table = new double[maxRoot];
     for (int i = 0; i < maxRoot; i++) optimizer.sqrt_table[i] = sqrt(i);
 
-    distance_table = new double[state.rows*state.cols];
-
+    mapsearch_cache = new SearchCache*[LOCATION_TYPE_MAX];
+    for(int i = 0; i < LOCATION_TYPE_MAX; ++i) {
+        mapsearch_cache[i] = new SearchCache[state.rows*state.cols];
+        memset(mapsearch_cache[i], 0, sizeof(SearchCache) * state.rows * state.cols);
+    }
 
     distance_cost_table = new uint8*[state.rows*state.cols];
     for(int i = 0; i < state.rows * state.cols; ++i) {
         distance_cost_table[i] = new uint8[state.rows*state.cols];
-        memset(distance_cost_table[i], 0, sizeof(uint8) * state.rows*state.cols);
+        memset(distance_cost_table[i], 0, sizeof(uint8) * state.rows * state.cols);
     }
 
+    distance_table = new double[state.rows*state.cols];
     for (int row=0;row<state.rows;row++) {
         for (int col=0;col<state.cols;col++) {
             Location loc1(0, 0);

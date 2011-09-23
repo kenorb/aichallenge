@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <algorithm>
 #include <vector>
@@ -18,12 +20,39 @@ State::State()
 
 void State::setup()
 {
-    grid = vector<vector<char> >(rows, vector<char>(cols, '?'));
-    ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
+
+    gridFriendlyAnts = new LocationRef*[state.rows*state.cols];
+    for(int i = 0; i < state.rows*state.cols; ++i) {
+        gridFriendlyAnts[i] = new LocationRef[NEAREST_LIMIT];
+        memset(gridFriendlyAnts[i], 0, sizeof(LocationRef) * NEAREST_LIMIT);
+    }
+
+    gridDamage = new Damage[state.rows * state.cols];
+    memset(gridDamage, 0, sizeof(Damage) * state.rows * state.cols);
+
+    grid = new char*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        grid[i] = new char[state.cols];
+        memset(grid[i], '?', sizeof(char) * state.cols);
+    }
+
+    ants_grid = new int*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        ants_grid[i] = new int[state.cols];
+        memset(ants_grid[i], 0, sizeof(int) * state.cols);
+    }
+
+    grid_visible = new bool*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        grid_visible[i] = new bool[state.cols];
+        memset(grid_visible[i], 0, sizeof(bool) * state.cols);
+    }
+
+
+    //ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
     grid_needsUpdate = vector<vector<bool> >(rows, vector<bool>(cols, false));
-    grid_damage = vector<vector<Damage> >(rows, vector<Damage>(cols, Damage()));
+    //grid_damage = vector<vector<Damage> >(rows, vector<Damage>(cols, Damage()));
     grid_prediction = vector<vector<int> >(rows, vector<int>(cols, 0));
-    grid_visible = vector<vector<bool> >(rows, vector<bool>(cols, false));
 
     approxPlayers = 2;
     visibleCells = 0;
@@ -39,11 +68,11 @@ void State::reset()
     enemyAnts.clear();
     for(int row=0; row<rows; row++)
     for(int col=0; col<cols; col++)
-        resetLocation(row, col);
+        if (grid[row][col] != '?') resetLocation(row, col);
 };
 
 bool State::isEnemy(char sq) {
-    return sq == 'b' || sq == 'c' || sq == 'd' || sq == 'e' || sq == 'f' || sq == 'g' || sq == 'h';
+    return sq == 'b';
 }
 
 void State::resetLocation(const int row, const int col)
@@ -160,7 +189,7 @@ void _addEnemyPrediction(const Location& loc, CallbackLocData data)
 void _addEnemyDamage(const Location& loc, CallbackLocData data)
 {
     //logger.debugLog << " +1 enemy at " << LocationToString(loc) << std::endl;
-
+/*
     const Location* senderLocation = (Location*)data.sender;
 
     if (state.grid_damage[loc.row][loc.col].enemy == 0) {
@@ -190,26 +219,29 @@ void _addEnemyDamage(const Location& loc, CallbackLocData data)
         if (state.grid_damage[loc.row][loc.col].prediction == false) {
             if (dist > state.attackradius) state.grid_damage[loc.row][loc.col].prediction = true;
         }
-    }
+    }*/
 }
 
 void _resetDamage(const Location& loc, CallbackLocData data)
 {
-    state.grid_damage[loc.row][loc.col].friendly = 0;
+    //memset(gridFriendlyAnts[i], 0, sizeof(LocationRef) * NEAREST_LIMIT);
+
+/*    state.grid_damage[loc.row][loc.col].friendly = 0;
     state.grid_damage[loc.row][loc.col].enemy = 0;
-    state.grid_damage[loc.row][loc.col].attacked = 0;
-    state.grid_damage[loc.row][loc.col].friendlyDistance = -1;
-    state.grid_damage[loc.row][loc.col].enemyDistance = -1;
     state.grid_damage[loc.row][loc.col].sideDamage[0] = 0;
     state.grid_damage[loc.row][loc.col].sideDamage[1] = 0;
     state.grid_damage[loc.row][loc.col].sideDamage[2] = 0;
-    state.grid_damage[loc.row][loc.col].sideDamage[3] = 0;
+    state.grid_damage[loc.row][loc.col].sideDamage[3] = 0;*/
+
+/*
     state.grid_damage[loc.row][loc.col].friendlyAnts.clear();
-    state.grid_damage[loc.row][loc.col].enemyAnts.clear();
+    state.grid_damage[loc.row][loc.col].enemyAnts.clear();*/
+
 }
 
 void _deleteFriendlyDamage(const Location& loc, CallbackLocData data)
 {
+    /*
     vector<const Location*>& friendlyAnts = state.grid_damage[loc.row][loc.col].friendlyAnts;
     friendlyAnts.erase(std::remove(friendlyAnts.begin(), friendlyAnts.end(), data.senderLocation), friendlyAnts.end());
     state.grid_damage[loc.row][loc.col].friendly--;
@@ -219,13 +251,13 @@ void _deleteFriendlyDamage(const Location& loc, CallbackLocData data)
         logger.logError("friendlyAnts.size() != state.grid_damage[loc.row][loc.col].friendly");
         logger.debugLog << "DEBUG: " << friendlyAnts.size() << " != " << state.grid_damage[loc.row][loc.col].friendly << std::endl;
     }
-    #endif
+    #endif*/
 }
 
 void _addFriendlyDamage(const Location& loc, CallbackLocData data)
 {
     //logger.debugLog << " +1 self at " << LocationToString(loc) << std::endl;
-
+/*
     state.grid_damage[loc.row][loc.col].friendly++;
 
     if (data.senderLocation) {
@@ -237,7 +269,7 @@ void _addFriendlyDamage(const Location& loc, CallbackLocData data)
         } else {
             state.grid_damage[loc.row][loc.col].friendlyDistance = dist;
         }
-    }
+    }*/
 }
 
 /*
@@ -304,7 +336,7 @@ void State::sortDamageGrid()
             gameMap.callbackArea(Loc(row, col+1), state.attackradius, &_addEnemyDamage, &Loc(row, col));
         }
     }*/
-
+/*
     for(int row=0; row<state.rows; row++)
     for(int col=0; col<state.cols; col++) {
         #ifdef __ASSERT
@@ -319,7 +351,7 @@ void State::sortDamageGrid()
         if (grid_damage[row][col].enemy >= 2) {
             std::sort(grid_damage[row][col].enemyAnts.begin(), grid_damage[row][col].enemyAnts.end(), sortLocationsFrom(Loc(row, col)));
         }
-    }
+    }*/
 
 /*
     for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++) {
@@ -430,7 +462,7 @@ const Location& State::getLocation(const Location &loc, int direction) const
 {
     if (direction <= NO_MOVE) return loc;
 
-    return Loc( (loc.row + DIRECTIONS[direction][0] + rows) % rows,
+    return LocWrap( (loc.row + DIRECTIONS[direction][0] + rows) % rows,
                      (loc.col + DIRECTIONS[direction][1] + cols) % cols );
 };
 
@@ -451,15 +483,15 @@ double State::timeLeft() {
 }
 
 void State::beforeInput() {
-    for(int row = 0; row < state.rows; row++)
-    for(int col = 0; col < state.cols; col++) {
-        _resetDamage(Loc(row, col), CallbackLocData());
-    }
+    optimizer.onNewTurn();
 
-    foodLocations.clear();
+    memset(gridDamage, 0, sizeof(Damage) * state.rows * state.cols);
+
+//    foodLocations.clear();
 }
 
 void State::afterInput() {
+    /*
     for(int row = 0; row < state.rows; row++)
     for(int col = 0; col < state.cols; col++) {
         if (state.grid[row][col] == '*' || state.grid[row][col] == '^') {
@@ -478,33 +510,22 @@ void State::afterInput() {
             }
         }
     }
-
+*/
 }
-
 
 istream& operator>>(istream &is, State &state)
 {
-    #ifdef __DEBUG
-    profiler.beginThinkTime(TT_INPUT);
-    #endif
-
     int row, col, player;
     string inputType, junk;
-
-
 
     //finds out which turn it is
     while(is >> inputType)
     {
         if(inputType == "end")
         {
-            #ifdef __DEBUG
-            profiler.endThinkTime(TT_INPUT);
-            #endif
-
             bot.endGame();
             state.gameover = 1;
-            exit(1);
+            return is;
             break;
         }
         else if(inputType == "turn")
@@ -515,11 +536,17 @@ istream& operator>>(istream &is, State &state)
         else //unknown line
             getline(is, junk);
     }
+
+
+
     #ifdef __DEBUG
     if (!state.gameover) {
         logger.debugLog << "[TURN #" << state.turn << "]:" << endl;
     }
     #endif
+
+
+
     if(state.turn == 0)
     {
         //reads game parameters
@@ -552,8 +579,16 @@ istream& operator>>(istream &is, State &state)
             }
             else if(inputType == "ready") //end of parameter input
             {
+                #ifdef __DEBUG
+                profiler.beginThinkTime(TT_GAMELOADTIME);
+                #endif
+
                 gameMap.onInit();
                 state.setup();
+
+                #ifdef __DEBUG
+                profiler.endThinkTime(TT_GAMELOADTIME);
+                #endif
                 break;
             }
             else    //unknown line
@@ -562,7 +597,10 @@ istream& operator>>(istream &is, State &state)
     }
     else
     {
-        //reads information about the current turn
+        #ifdef __DEBUG
+        profiler.beginThinkTime(TT_INPUT);
+        #endif
+
         state.beforeInput();
 
         while(is >> inputType)
@@ -573,6 +611,7 @@ istream& operator>>(istream &is, State &state)
                 state.grid[row][col] = '%';
 
                 const Location& loc = Loc(row, col);
+
                 gameMap.onWater(loc);
             }
             else if(inputType == "f") //food square
@@ -582,7 +621,7 @@ istream& operator>>(istream &is, State &state)
 
                 const Location& loc = Loc(row, col);
 
-                state.foodLocations.push_back(&Loc(row, col));
+                //state.foodLocations.push_back(&Loc(row, col));
                 gameMap.onFood(loc);
             }
             else if(inputType == "a") //live ant square
@@ -625,15 +664,16 @@ istream& operator>>(istream &is, State &state)
                 const Location& loc = Loc(row, col);
                 gameMap.onDeadAnt(player, loc);
 
-            }
+            }/*
             else if(inputType == "players") //player information
                 is >> state.players;
             else if(inputType == "scores") //score information
             {
+
                 state.scores = vector<double>(state.players, 0.0);
                 for(int p=0; p<state.players; p++)
                     is >> state.scores[p];
-            }
+            }*/
             else if(inputType == "go") //end of turn input
             {
                 state.lastGo = unix_time();
@@ -646,12 +686,14 @@ istream& operator>>(istream &is, State &state)
             else //unknown line
                 getline(is, junk);
         }
-        state.afterInput();
-    }
 
-    #ifdef __DEBUG
-    profiler.endThinkTime(TT_INPUT);
-    #endif
+
+        state.afterInput();
+
+        #ifdef __DEBUG
+        profiler.endThinkTime(TT_INPUT);
+        #endif
+    }
 
     return is;
 };
