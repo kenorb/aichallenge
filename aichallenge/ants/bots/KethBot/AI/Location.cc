@@ -276,7 +276,9 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
 
     if (computedCost > 0) {
         #ifndef __ASSERT
+        #ifdef __DEBUG
         profiler.endThinkTime(TT_ASTAR);
+        #endif
         #endif
 
         #ifdef __DEBUG
