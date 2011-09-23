@@ -6,20 +6,19 @@
 
 # debug
 
-# libraries
+# system libraries
 import sys
 from random import shuffle
 from optparse import OptionParser
 
-# imports
-from ants import *
-from astar.astar import AStar
-
 # my imports
-from debug import *
+from ants import *
 from map import *
 from log import *
 from AI.ai import *
+from astar.astar import AStar
+from cache import *
+from debug import *
 
 turn_number = 0
 bot_version = 'v0.1'
@@ -38,6 +37,9 @@ class BroBot():
         self.debug = Debug(opts)
         self.debug.msg(__file__ + __name__)
         self.debug.obj(opts)
+
+        """ Init cache """
+        self.cache = Cache()
         
         """ Load AI """
         self.ai = AI(self)
@@ -70,6 +72,10 @@ class BroBot():
       pp = pprint.PrettyPrinter (indent=2)
       pp.pprint(obj)
 
+    @classmethod
+    def debug_msg(self, msg):
+      self.debug.msg(msg)
+      
     def end_game(self, ants, err):
       self.debug.obj(err)
       self.debug.end()
@@ -173,12 +179,6 @@ if __name__ == '__main__':
     # if len(argv) == 1 and argv[0] == 'run':
       # runner.run_game()
 
-    try:
-        # import psyco
-        # psyco.full()
-        pass
-    except ImportError:
-        pass
     try:
         Ants.run(BroBot())
     except KeyboardInterrupt:

@@ -6,6 +6,10 @@ import time
 from collections import deque
 from math import sqrt
 
+# custom imports
+from astar.astar import *
+from debug import Debug
+
 MY_ANT = 0
 ANTS = 0
 DEAD = -1
@@ -146,6 +150,12 @@ class Ants():
         return ((row + d_row) % self.height, (col + d_col) % self.width)        
 
     def distance(self, row1, col1, row2, col2):
+        distance = AStar._euclidean(abs(row1 - row2), abs(col1 - col2))
+        # Debug.stderr("distance _euclidean: %d x %d : %d x %d = %d" % (row1, col1, row2, col2, distance))
+        # Debug.stderr("distance     normal: %d x %d : %d x %d = %d" % (row1, col1, row2, col2, self.distance_(row1, col1, row2, col2)))
+        return distance
+      
+    def distance_(self, row1, col1, row2, col2):
         row1 = row1 % self.height
         row2 = row2 % self.height
         col1 = col1 % self.width

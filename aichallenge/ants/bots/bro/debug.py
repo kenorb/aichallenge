@@ -25,6 +25,11 @@ class Debug():
       sys.stderr.write(msg)
       sys.stderr.write('\n')
 
+  @classmethod
+  def stderr(self, msg):
+      sys.stderr.write(msg)
+      sys.stderr.write('\n')
+
   def var(self, name, value, ant = None):
     msg = repr(value)
     self.msg(msg, ant)

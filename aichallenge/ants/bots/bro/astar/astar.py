@@ -283,12 +283,19 @@ class AStar(object):
         dy = abs(pos[1] - self.target[1])
         return self.h_func(dx, dy)
 
+    # static methods are not tied to a class and don't have self passed in
+    # this is a python decorator
+    @classmethod
     def _manhattan(self, dx, dy):
         return (dx + dy) * SCALE
 
+    # static methods are not tied to a class and don't have self passed in
+    # this is a python decorator
+    @classmethod
     def _euclidean(self, dx, dy):
         return int(hypot(dx, dy) * SCALE)
     
+    @classmethod
     def _chebyshev(self, dx, dy):
         return max(dx, dy) * SCALE
 
