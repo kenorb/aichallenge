@@ -6,9 +6,11 @@
 #include "const.h"
 #include "Bot.h"
 #include "Map.h"
+#include "enums.h"
 
 #include <algorithm>
 #include <functional>
+#include <string.h>
 
 // STRATEGY:
 // Calculate accurate percent of *discovered map*
@@ -268,9 +270,6 @@ void Ant::prepareMove()
     logger.debugLog << "Ant::prepareMove(): " << (*this) << endl;
     #endif
 
-    const Location& nearestFood = AntLoc(this).nearestFood();
-    double distanceToNearestFood = nearestFood.isValid() ? distance_fast(AntRow(this), AntCol(this), nearestFood.row, nearestFood.col) : MAX_DISTANCE;
-
     Ant::updatePath();
 
     if (!Ant::hasPath()) {
@@ -378,7 +377,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
             Ant::deletePath();
 
             if (solveCollision) {
-                Ant::prepareMove();
+                //Ant::prepareMove(); // we cant let this happen, this recalcualtes forces and ant positions are already changed
 
                 #ifdef __DEBUG
                 profiler.endThinkTime("Ant::getNextMove()");

@@ -66,6 +66,7 @@ struct State
 
     char** grid;
     int** ants_grid;
+    LocationCache** locCache;
     bool** grid_visible;
 
     vector<vector<bool> > grid_needsUpdate;
@@ -74,12 +75,15 @@ struct State
     vector<Location> ants;
     std::list<int> priorityAnts;
     vector<Location> enemyAnts;
-    //vector<const Location*> foodLocations;
+    vector<const Location*> foodLocations;
     std::list<Ant*> structuralAnts;
 
 
     Damage* gridDamage;
     LocationRef** gridFriendlyAnts;
+    const Location** magnets;
+
+    int magnetsCount;
     //const LocationReference*** gridEnemyAnts;
 
 

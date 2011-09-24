@@ -4,6 +4,7 @@
 #include "Location.h"
 #include "Ant.h"
 #include "Bot.h"
+#include "Magnets.h"
 
 #include "globals.h"
 #include "Optimizer.h"
@@ -121,7 +122,7 @@ bool Location::hasAnt() const
 
 bool Location::isType(const LocationType type) const
 {
-    char& s = state.grid[row][col];
+    char s = state.grid[row][col];
     switch (type) {
         case ANT: return s == 'a' || s == 'b';
         case ANT_FRIENDLY: return s == 'a';
@@ -150,10 +151,10 @@ bool Location::isAround(const Location& loc) const
 
 bool funcSortSearchLocations(SearchLocation* loc1, SearchLocation* loc2)
 {
-    if (loc1->cost == loc2->cost) {
-        return loc1->distanceLeft < loc2->distanceLeft;
-    }
-    return (loc1->cost) < (loc2->cost);
+    //if (loc1->cost == loc2->cost) {
+        //return loc1->distanceLeft < loc2->distanceLeft;
+    //}
+    return (loc1->cost) > (loc2->cost);
 }
 
 Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false */) const
@@ -174,28 +175,33 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
     if (distance <= state.spawnradius) {
         path->totalCost = distance;
+
+        #ifdef __DEBUG
+        profiler.endThinkTime(TT_ASTAR);
+        logger.astarTotalPaths--;
+        #endif
+
         return path;
     }
 
-    list<SearchLocation*> opened;
+    vector<SearchLocation*> opened;
 
     for(int i = 0; i < state.rows; ++i) {
         memset(gameMap.search_grid[i], 0, sizeof(SearchLocation) * state.cols);
     }
 
     SearchLocation& sl = gameMap.search_grid[row][col];
-
     sl.loc = this;
     sl.cost = 0;
-    sl.distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
+    //sl.distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
 
     opened.push_back(&sl);
 
     while (opened.size() > 0) {
-        opened.sort(funcSortSearchLocations);
+        std::sort(opened.begin(), opened.end(), funcSortSearchLocations);
 
-        SearchLocation* openedSquare = opened.front();
-        opened.pop_front();
+        SearchLocation* openedSquare = opened.back();
+        opened.pop_back();
 
         openedSquare->opened = false;
 
@@ -210,11 +216,15 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             if (!path->touchedFog && LocIsFog(currentLocation->row, currentLocation->col)) path->touchedFog = true;
 
             SearchLocation& searchLocation = gameMap.search_grid[currentLocation->row][currentLocation->col];
+
+
             if (searchLocation.loc != NULL) continue;
+
+            //int distance = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
 
             searchLocation.loc = currentLocation;
             searchLocation.cost = openedSquare->cost + 1;
-            searchLocation.distanceLeft = distance_fast(currentLocation->row, currentLocation->col, endLocation.row, endLocation.col);
+            //searchLocation.distanceLeft = distance;
             searchLocation.ref = openedSquare->loc;
 
             uint8& costCached = optimizer.distance_cost_table[startLocation.index][currentLocation->index];
@@ -247,6 +257,10 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
             if (LocIsWall(currentLocation->row, currentLocation->col)) continue;
             opened.push_back(&searchLocation);
+
+            #ifdef __DEBUG
+            logger.astarIterations++;
+            #endif
         }
     }
 
@@ -356,6 +370,139 @@ foodList Location::foodInRadius(double radius) const
     return list;
 }*/
 
+bool Location::cacheElement(LocationRef& cache, const Location& element, const Location& loc) const {
+    if (cache.location) return false;
+    if (loc.equals(element)) return false;
+
+    cache.location = &element;
+    cache.ref = &loc;
+    cache.distance = distance_fast(loc.row, loc.col, element.row, element.col);
+
+    return true;
+}
+
+void onTileCallback(const Location& loc, CallbackLocData data)
+{
+    const Location& senderLocation = *data.senderLocation;
+
+    char locType = LocType(loc);
+
+    if (locType == '*') {
+        LocationCache& cache = LocCache(senderLocation);
+
+        const uint8 _FOOD_TYPES_COUNT = 2;
+        const uint8 _FOOD_TYPE[2] = {ANY, BLURRED};
+
+        for (int i = 0; i < _FOOD_TYPES_COUNT; i++) {
+            uint8& size = cache.nearestFoodSize[_FOOD_TYPE[i]];
+            if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestFood[_FOOD_TYPE[i]][size], loc, senderLocation)) {
+                size++;
+            }
+        }
+    } else
+    if (locType == '^') {
+        LocationCache& cache = LocCache(senderLocation);
+
+        const uint8 _FOOD_TYPES_COUNT = 2;
+        const uint8 _FOOD_TYPE[2] = {ANY, FOCUSED};
+
+        for (int i = 0; i < _FOOD_TYPES_COUNT; i++) {
+            uint8& size = cache.nearestFoodSize[_FOOD_TYPE[i]];
+            if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestFood[_FOOD_TYPE[i]][size], loc, senderLocation)) {
+                size++;
+            }
+        }
+    } else
+    if (locType == 'b') {
+        LocationCache& cache = LocCache(senderLocation);
+
+        const uint8 _ANT_TYPES_COUNT = 2;
+        const uint8 _ANT_TYPE[2] = {ANY, ENEMY};
+
+        for (int i = 0; i < _ANT_TYPES_COUNT; i++) {
+            uint8& size = cache.nearestFoodSize[_ANT_TYPE[i]];
+            if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestAnt[_ANT_TYPE[i]][size], loc, senderLocation)) {
+                size++;
+            }
+        }
+    } else
+    if (locType == 'a') {
+        LocationCache& cache = LocCache(senderLocation);
+
+        const uint8 _ANT_TYPES_COUNT = 2;
+        const uint8 _ANT_TYPE[2] = {ANY, FRIEND};
+
+        for (int i = 0; i < _ANT_TYPES_COUNT; i++) {
+            uint8& size = cache.nearestFoodSize[_ANT_TYPE[i]];
+            if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestAnt[_ANT_TYPE[i]][size], loc, senderLocation)) {
+                size++;
+            }
+        }
+    }
+}
+
+void Location::cleanCache() const {
+    const Location& me = *this;
+    LocationCache& cache = LocCache(me);
+
+    memset(&cache, 0, sizeof(LocationCache));
+
+    for (int i = 0; i < ANT_TYPES_COUNT; i++) {
+        for (int j = 0; j < MAX_CACHE_DEPTH; j++) {
+            cache.nearestAnt[i][j].distance = 255;
+        }
+    }
+
+    for (int i = 0; i < FOOD_TYPES_COUNT; i++) {
+        for (int j = 0; j < MAX_CACHE_DEPTH; j++) {
+            cache.nearestFood[i][j].distance = 255;
+        }
+    }
+}
+
+#ifdef __ASSERT
+void Location::validateCache(std::string type, const Location* cacheLoc, const Location& foundLoc) const {
+    if (cacheLoc) {
+        if (!cacheLoc->equals(foundLoc)) {
+            logger.logError("cacheLoc != foundLoc");
+            logger.debugLog << "DEBUG: " << type << std::endl;
+            logger.debugLog << "DEBUG: cacheLoc: " << LocationToString(*cacheLoc) << std::endl;
+            logger.debugLog << "DEBUG: foundLoc: " << LocationToString(foundLoc) << std::endl;
+        }
+    }
+}
+#endif
+
+LocationCache& Location::updateCache() const
+{
+    const Location& me = *this;
+    LocationCache& cache = LocCache(me);
+    if (cache.turn == state.turn) return cache;
+
+    cache.turn = state.turn;
+    cleanCache();
+
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_MAP_SEARCH);
+    #endif
+
+    gameMap.callbackArea(*this, state.viewradius, onTileCallback, this);
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_MAP_SEARCH);
+    #endif
+
+    #ifdef __ASSERT
+    validateCache("ANY ANT", cache.nearestAnt[ANY][FIRST].location, this->nearestAnt(ANT_ISFRIEND + ANT_ISENEMY, *this));
+    validateCache("FRIEND ANT", cache.nearestAnt[FRIEND][FIRST].location, this->nearestAnt(ANT_ISFRIEND, *this));
+    validateCache("ENEMY ANT", cache.nearestAnt[ENEMY][FIRST].location, this->nearestAnt(ANT_ISENEMY));
+    //validateCache("ANY FOOD", cache.nearestFood[ANY][FIRST].loc, this->nearestFood(???));
+    validateCache("FOCUSED FOOD", cache.nearestFood[FOCUSED][FIRST].location, this->nearestFood(true));
+    validateCache("BLURRED FOOD", cache.nearestFood[BLURRED][FIRST].location, this->nearestFood(false));
+    #endif
+
+    return cache;
+}
 
 const Location& Location::nearestFood(bool focusedFood /*= false*/) const
 {
@@ -364,31 +511,63 @@ const Location& Location::nearestFood(bool focusedFood /*= false*/) const
 }
 
 vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repulsion /* = true*/) const
-// todo: use flags
 {
+    vector2f velocity(0,0);
+
     #ifdef __DEBUG
     profiler.beginThinkTime(TT_FORCES);
     #endif
 
     double expandForce = bot.getExpandForce();
-    const Location& nearestFood = Location::nearestFood();
-    Ant* nearestFriendlyAnt = Location::nearestAnt(ANT_ISFRIEND, *this).getAnt();
-    const Location& nearestEnemyAnt = Location::nearestAnt(ANT_ISENEMY, *this);
 
-    double distanceToNearestFood = MAX_DISTANCE;
-    double distanceToNearestAnt = MAX_DISTANCE;
-    double distanceToNearestAntEnemy = MAX_DISTANCE;
+    Location relLoc;
+    vector2f n;
+    double force;
 
-    if (nearestFood.isValid()) distanceToNearestFood = distance_fast(row, col, nearestFood.row, nearestFood.col);
-    if (nearestFriendlyAnt) distanceToNearestAnt = distance_fast(row, col, nearestFriendlyAnt->getLocation().row, nearestFriendlyAnt->getLocation().col);
-    if (nearestEnemyAnt.isValid()) distanceToNearestAntEnemy = distance_fast(row, col, nearestEnemyAnt.row, nearestEnemyAnt.col);
+    MagnetData magnetData;
+    magnetData.power = 0;
 
-    Ant* nearestAntNearFood = NULL;
-    if (forAnt && nearestFood.isValid()) {
-        nearestAntNearFood = nearestFood.nearestAnt(ANT_ISFRIEND).getAnt(); // 3
+    for (int magnetId = 0; magnetId < state.magnetsCount; magnetId++)
+    {
+        const Location* magnetLocation = state.magnets[magnetId];
+        if (Row(this) == Row(magnetLocation) && Col(this) == Col(magnetLocation)) continue;
+
+        magnetData.distance = gameMap.distance(Row(magnetLocation), Col(magnetLocation), Row(this), Col(this));
+
+        char& magnetType = state.grid[magnetLocation->row][magnetLocation->col];
+        applyMagnetData(magnetData, magnetType, *magnetLocation, forAnt);
+
+        if (magnetData.power != 0) {
+            relLoc = Location::relativeLocationTo(*magnetLocation);
+            n = -vector2f(relLoc.col, relLoc.row).normalized();
+
+            if (magnetData.ignoreDistance) {
+                force = magnetData.power;
+            } else {
+                force = (magnetData.power / (4 * 3.14 * sqr(magnetData.distance / magnetData.div)));
+            }
+
+            n *= force;
+            if (state.grid[row][col] == 'a') n *= expandForce;
+
+            velocity += n;
+        }
+
     }
 
-    vector2f velocity(0,0);
+    if (velocity.length() > 5) {
+        velocity.normalize();
+        velocity *= 5;
+    }
+
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_FORCES);
+    #endif
+
+
+    return velocity;
+
 
     for(int row=0; row<state.rows; row++)
     for(int col=0; col<state.cols; col++)
@@ -398,35 +577,38 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
 
         const Location& magnetLocation = Loc(row, col);
 
+
+
         //if (magnetLocation.isType(EMPTY) || magnetLocation.isType(FOG)) continue;
         if ((*this).row == magnetLocation.row && (*this).col == magnetLocation.col) continue;
 
         const Location* forceTowards = &Loc(row, col);
 
+        char& magnetType = state.grid[row][col];
         bool magnetic = false;
         bool ignoreDistance = false;
-        double distance = -1;
+        double distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
         double magnetPower = 0;
         double extraDistance = 0.0f;
         double distanceDivision = 5.0f;
 
-
-        if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
+        //if(state.grid[row][col] == 'a' && (!forAnt || forAnt != gameMap.getAntAt(magnetLocation))) {
+        if (magnetType == 'a') {
             magnetic = true;
             magnetPower = 5;
             distanceDivision = 15;
-
+/*
             if (bot.hasAggressiveMode()) {
                 if (distance == -1)
                     distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
-/*
+
                 if (magnetLocation.damageArea().enemy >= 1 && distanceToNearestFood > state.viewradius && distance < (state.viewradius + ((magnetLocation.damageArea().enemy - 1) * 2))) {
                     forceTowards = magnetLocation.damageArea().enemyAnts.front();
                     magnetic = true;
                     ignoreDistance = true;
                     magnetPower = -100;
-                }*/
-            }
+                }
+            }*/
 
 /*
             if (distance > state.viewradius + 3) {
@@ -442,8 +624,8 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             }*/
         }
 
-
-        if (state.grid[row][col] == 'b') {
+/*
+        if (magnetType == 'b') {
             bool attack = false;
             if (bot.hasAggressiveMode()) attack = true;
 
@@ -453,29 +635,24 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                 distanceDivision = 50;
             } else {
                 if (forAnt) {
-                    bool nearestFriendly = Location::nearestAnt(ANT, *this).isType(ANT_FRIENDLY);
+                    //bool nearestFriendly = Location::nearestAnt(ANT, *this).isType(ANT_FRIENDLY);
 
-                    if (!nearestFriendly) {
+                    if (distanceToNearestAnt > distanceToNearestAntEnemy) {
                         magnetic = true;
                         magnetPower = 1;
                         distanceDivision = 15;
                     }
                 }
             }
-        }
+        }*/
 
-        if(state.grid[row][col] == '%' && (!forAnt || (forAnt && nearestAntNearFood != forAnt))) {
+        if (magnetType == '%' && distance <= 4 /* && (!forAnt || (forAnt && nearestAntNearFood != forAnt))*/) {
             magnetic = true;
             magnetPower = 0.5;
             distanceDivision = 5;
-
-            if (distance == -1)
-                distance = gameMap.distance(magnetLocation.row, magnetLocation.col, (*this).row, (*this).col);
-
-            if (distance > 4) magnetic = false;
         }
 
-        if (state.grid[row][col] == '*') {
+        if (magnetType == '*') {
 
            // OR rather than checking nearest ant, how about attract only if enemydistance to the food is larger than us to the food
         //if(state.grid[row][col] == '*') {
@@ -485,7 +662,7 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             magnetPower = -100;
             distanceDivision = 15;
 
-
+/*
             Ant* nAnt = magnetLocation.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).getAnt();
 
             if (magnetic && forAnt && nAnt && nAnt != forAnt && !magnetLocation.collisionLine(nAnt->getLocation())) {
@@ -523,21 +700,22 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
                 if (distance < state.viewradius) {
                     distance = this->costTo(magnetLocation);
                 }
-            }
+            }*/
         }
 
 
         if (magnetic) {
-            if (!repulsion && magnetPower > 0) continue;
-            if (!attraction && magnetPower < 0) continue;
-            if (magnetPower > 0) magnetPower *= (((double)(state.rows+state.cols) / 2.0f) / 100.0f); // Expand the force according to map size
-            if (magnetPower == 0) continue;
+            //if (!repulsion && magnetPower > 0) continue;
+            //if (!attraction && magnetPower < 0) continue;
+            //if (magnetPower > 0) magnetPower *= (((double)(state.rows+state.cols) / 2.0f) / 100.0f); // Expand the force according to map size
+            //if (magnetPower == 0) continue;
 
-            if (distance == -1)
-                distance = distance_fast(forceTowards->row, forceTowards->col, (*this).row, (*this).col) + extraDistance;
+
+            distance = distance_fast(forceTowards->row, forceTowards->col, (*this).row, (*this).col) + extraDistance;
 
             Location relLoc = Location::relativeLocationTo(*forceTowards);
             vector2f n = -vector2f(relLoc.col, relLoc.row).normalized();
+
 
             double magnetForce;
 
@@ -548,8 +726,8 @@ vector2f Location::getForce(Ant* forAnt, bool attraction /* = true*/, bool repul
             }
 
             n *= magnetForce;
-
             if (state.grid[row][col] == 'a') n *= expandForce;
+
             velocity += n;
         }
     }
@@ -606,15 +784,25 @@ const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Loc
     const Location* ret = locNull;
     int locationType;
 
-    bool findFriend, findEnemy;
+    bool findFriend = false;
+    bool findEnemy = false;
 
-    if ((ANT & antFlags) == ANT) {
+    if ((ANT & antFlags)) {
         findFriend = findEnemy = true;
     } else {
-        findFriend = (ANT_ISFRIEND & antFlags) == ANT_ISFRIEND;
-        findEnemy = (ANT_ISENEMY & antFlags) == ANT_ISENEMY;
+        if (ANT_ISFRIEND & antFlags) {
+            findFriend = true;
+        }
+        if (ANT_ISENEMY & antFlags) {
+            findEnemy = true;
+        }
     }
 
+/*
+    logger.debugLog << "antFlags = " << antFlags << std::endl;
+    logger.debugLog << "findFriend = " << findFriend << std::endl;
+    logger.debugLog << "findEnemy = " << findEnemy << std::endl;
+*/
     if (findFriend && findEnemy) {
         locationType = ANT;
     } else
@@ -635,6 +823,10 @@ const Location& Location::nearestAnt(int antFlags /* = ANT_NOFLAGS */, const Loc
 
         return *ret;
     }
+
+    //logger.debugLog << "locationType: " << locationType << std::endl;
+
+
 
     Ant* foundAnt;
 

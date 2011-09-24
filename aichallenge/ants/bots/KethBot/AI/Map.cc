@@ -65,11 +65,11 @@ vector<const Location*> Map::findMany(const Location& loc, double searchRadius, 
     vector<const Location*> ret;
 
     for (int i = 0; i < optimizer.radiusAreaMap.size(); i++) {
-        const relativeLocation* relLoc = optimizer.radiusAreaMap[i];
+        const relativeLocation& relLoc = *optimizer.radiusAreaMap[i];
 
-        if (relLoc->distance > searchRadius) break;
+        if (relLoc.distance > searchRadius) break;
 
-        const Location* l = &LocWrap(loc.row + relLoc->row, loc.col + relLoc->col);
+        const Location* l = &LocWrap(loc.row + relLoc.row, loc.col + relLoc.col);
         #ifdef __ASSERT
         if (!l->isValid()) {
             logger.logError("Map::find - !l->isValid()");
@@ -97,18 +97,22 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
     if (!loc.isValid()) {
         #ifdef __DEBUG
         logger.logWarning("Map::find: !loc.isValid()");
+        profiler.endThinkTime(TT_MAP_SEARCH);
         #endif
+
         return ret;
     }
 
+/*
     if (startFrom.index < 1 && optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] > 0) {
         ret.index = (optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] - 1);
         ret.location = &LocWrap(loc.row + optimizer.radiusAreaMap[ret.index]->row, loc.col + optimizer.radiusAreaMap[ret.index]->col);
         ret.found = true;
     } else {
-        for (int i = startFrom.index + 1; i < optimizer.radiusAreaMap.size(); i++) {
+*/
+        for (int i = startFrom.index + 1; i < optimizer.radiusAreaMapSize; i++) {
             ret.index = i;
-            const relativeLocation* relLoc = optimizer.radiusAreaMap[i];
+            const relativeLocation* relLoc = optimizer.radiusAreaMapArr[i];
 
             if (relLoc->distance > searchRadius) {
                 ret.reachedRadius = true;
@@ -127,15 +131,17 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
             if (l->isType(type)) {
                 ret.location = l;
                 ret.found = true;
-
+/*
                 if (startFrom.index < 1) {
                     optimizer.mapsearch_cache[type][locIndex].index[startFrom.index + 1] = (i + 1);
-                }
+                }*/
 
                 break;
             }
         }
-    }
+    //}
+
+    //logger.debugLog << "Map::find near loc " << LocationToString(loc) << " with type " << type << " at " << LocationToString(*ret.location) << std::endl;
 
     #ifdef __DEBUG
     profiler.endThinkTime(TT_MAP_SEARCH);
@@ -146,25 +152,17 @@ MapSearch Map::find(const Location& loc, double searchRadius, LocationType type,
 
 void Map::callbackArea(const Location& loc, double radius, CallbackLoc callback, const void* sender /* = NULL */)
 {
-    if (radius > OPTIMIZER_MAX_RADIUS) {
-        #ifdef __ASSERT
-        logger.logError("Map::callbackArea(): Radius not computed");
-        #endif
-        return;
-    }
+    CallbackLocData data;
+    data.sender = sender;
+    data.senderLocation = &loc;
 
-    int r = round(sqr(radius));
+    const relativeLocation** relLoc = &optimizer.radiusAreaMapArr[0];
+    for (int i = 0; i < optimizer.radiusAreaMapSize; i++) {
+        if ((*relLoc)->distance > radius) break;
 
-    for (int i = 0; i < optimizer.radiusArea[r].size(); i++) {
-        const relativeLocation* relLoc = optimizer.radiusArea[r][i];
-        const Location& l = LocWrap(loc.row + relLoc->row, loc.col + relLoc->col);
-
-        CallbackLocData data;
-        data.sender = sender;
-        data.senderLocation = &loc;
-        data.relLoc = relLoc;
-
-        callback(l, data);
+        data.relLoc = *relLoc;
+        callback(LocWrap(loc.row + (*relLoc)->row, loc.col + (*relLoc)->col), data);
+        relLoc++;
     }
 }
 

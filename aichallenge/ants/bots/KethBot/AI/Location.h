@@ -34,24 +34,22 @@
 #define LocIsFog(row, col) (state.grid[row][col] == '?')
 #define LocIsWall(row, col) (state.grid[row][col] == '%')
 #define LocIsEmpty(row, col) (state.grid[row][col] == '.' || state.grid[row][col] == 'o')
+#define LocType(loc) state.grid[loc.row][loc.col]
+#define LocCache(loc) state.locCache[loc.row][loc.col]
+
+#define LocFindFood(loc, type, index) (LocCache(loc).nearestFood[type][index])
+#define LocFindAnt(loc, type, index) (LocCache(loc).nearestAnt[type][index])
+
+#define didFind(x) (x.location != NULL)
 
 class Ant;
 class Path;
 
 #include "State.h"
 
+struct CallbackLocData;
 
-struct LocationRef
-{
-    LocationRef() {};
-    LocationRef(const Location& _loc, const Location& _ref) {
-        loc = &_loc;
-        ref = &_ref;
-    };
-
-    const Location* loc;
-    const Location* ref;
-};
+void onTileCallback(const Location& loc, CallbackLocData data);
 
 struct Location
 {
@@ -71,9 +69,17 @@ struct Location
     void normalize();
     DamageSolve solveAttack();
 
+    bool cacheElement(LocationRef& cache, const Location& element, const Location& loc) const;
+    void cleanCache() const;
+    LocationCache& updateCache() const;
+    #ifdef __ASSERT
+    void validateCache(std::string type, const Location* cacheLoc, const Location& foundLoc) const;
+    #endif
+
 
     int countAnts(double radius, bool predict = false) const;
     Damage& damageArea() const;
+
 
     vector2f getForce(Ant* forAnt, bool attraction = true, bool repulsion = true) const;
     Path* findPathTo(const Location& endLocation, bool costOnly = false) const;

@@ -203,6 +203,14 @@ void Optimizer::init() {
     radiusAreaMap.erase(unique(radiusAreaMap.begin(), radiusAreaMap.end(), sorterLocationCompare), radiusAreaMap.end());
     std::sort(radiusAreaMap.begin(), radiusAreaMap.end(), sortLocationsFrom(relativeLocation(0, 0), false));
 
+    radiusAreaMapArr = new const relativeLocation*[radiusAreaMap.size()];
+
+    radiusAreaMapSize = radiusAreaMap.size();
+    for (int i = 0; i < radiusAreaMapSize; i++) {
+        radiusAreaMapArr[i] = optimizer.radiusAreaMap[i];
+    }
+
+
     for (int r = 1; r <= sqr(OPTIMIZER_MAX_RADIUS); r++) {
         sort(radiusArea[r].begin(), radiusArea[r].end());
         radiusArea[r].erase(unique(radiusArea[r].begin(), radiusArea[r].end(), sorterLocationCompare), radiusArea[r].end());

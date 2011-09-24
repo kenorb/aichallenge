@@ -14,6 +14,9 @@ struct State;
 #define AntCol(x) x->loc->col
 #define AntLoc(x) (*x->loc)
 
+#define AntFindFood(ant, type, index) (LocCache(AntLoc(ant)).nearestFood[type][index])
+#define AntFindAnt(ant, type, index) (LocCache(AntLoc(ant)).nearestAnt[type][index])
+
 struct Location;
 struct Path;
 
@@ -33,6 +36,9 @@ struct directionMove {
 
 };
 
+
+struct LocationCache;
+
 struct Ant
 {
     public:
@@ -47,6 +53,15 @@ struct Ant
 
         void onThink();
         void onNewTurn();
+
+        void cleanCache();
+        void updateCache();
+        void cacheElement(LocationRef& cache, const Location& element, const Location& loc);
+        #ifdef __ASSERT
+        void validateCache(std::string type, const Location* cacheLoc, const Location& foundLoc);
+        #endif
+
+
         bool isEnemyInRange(const double radius);
         void onMove(const Location& toLoc);
         bool canBePlacedAt(const Location& loc);

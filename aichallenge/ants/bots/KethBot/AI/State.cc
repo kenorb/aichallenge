@@ -20,12 +20,12 @@ State::State()
 
 void State::setup()
 {
-
     gridFriendlyAnts = new LocationRef*[state.rows*state.cols];
     for(int i = 0; i < state.rows*state.cols; ++i) {
         gridFriendlyAnts[i] = new LocationRef[NEAREST_LIMIT];
         memset(gridFriendlyAnts[i], 0, sizeof(LocationRef) * NEAREST_LIMIT);
     }
+
 
     gridDamage = new Damage[state.rows * state.cols];
     memset(gridDamage, 0, sizeof(Damage) * state.rows * state.cols);
@@ -35,6 +35,13 @@ void State::setup()
         grid[i] = new char[state.cols];
         memset(grid[i], '?', sizeof(char) * state.cols);
     }
+
+    locCache = new LocationCache*[state.rows];
+    for(int i = 0; i < state.rows; ++i) {
+        locCache[i] = new LocationCache[state.cols];
+        memset(locCache[i], 0, sizeof(LocationCache) * state.cols);
+    }
+
 
     ants_grid = new int*[state.rows];
     for(int i = 0; i < state.rows; ++i) {
@@ -47,6 +54,11 @@ void State::setup()
         grid_visible[i] = new bool[state.cols];
         memset(grid_visible[i], 0, sizeof(bool) * state.cols);
     }
+
+    magnets = new const Location*[MAX_MAGNETS];
+    memset(magnets, 0, sizeof(Location*) * MAX_MAGNETS);
+
+
 
 
     //ants_grid = vector<vector<int> >(rows, vector<int>(cols, 0));
@@ -88,13 +100,14 @@ void State::updateLocation(const Location& loc, CallbackLocData data) {
 
 void State::updateLocation(const int row, const int col, CallbackLocData data)
 {
+    return;
     const Location& loc = Loc(row, col);
 
     bool _isFog = grid[row][col] == '?';
     bool _isWall = grid[row][col] == '%';
     bool _isMe = grid[row][col] == 'a';
     bool _isEnemy = grid[row][col] == 'b';
-    bool _emptyCell = !_isWall && grid[row][col] != 'a' && grid[row][col] != 'b' && grid[row][col] != '*' && grid[row][col] != '^';
+    bool _emptyCell = !_isWall && grid[row][col] != 'a' && grid[row][col] != 'b' && grid[row][col] != '*' && grid[row][col] != '^' && grid[row][col] != 'x';
     bool flagVisible = false;
     bool flagClose = false;
 
@@ -170,14 +183,94 @@ void State::updateLocation(const int row, const int col, CallbackLocData data)
 
 void _updateLocation(const Location& loc, CallbackLocData data)
 {
-    state.updateLocation(loc.row, loc.col, data);
+    char& s = state.grid[loc.row][loc.col];
+
+    bool _isFog = s == '?';
+    bool _isEnemy = s == 'b';
+    bool _emptyCell = s == '.' || s == 'o';
+
+    if (data.sender) {
+        if (Ant* ant = (Ant*)data.sender) {
+            const double* distance = &data.relLoc->distance;
+
+            #ifdef __ASSERT
+            double distance2 = distance_fast(ant->getLocation().row, ant->getLocation().col, loc.row, loc.col);
+            if (*distance != distance2) logger.logError("*distance != distance2");
+            #endif
+
+            if (_isFog && *distance <= state.viewradius) {
+                _isFog = false;
+                _emptyCell = true;
+                s = '.';
+            }
+
+            if (_isEnemy) {
+                if (*distance <= state.viewradius) {
+                    ant->seenEnemy = true;
+                }
+            }
+
+            if (_emptyCell && *distance < 5 && s != 'o') {
+                s = 'o';
+                state.closeCells++;
+            }
+
+            //data.sender = &AntLoc(ant);
+            onTileCallback(loc, data);
+        }
+    }
+
+    bool& visible = state.grid_visible[loc.row][loc.col];
+
+    if (_isFog) {
+        /*
+        if (state.grid_visible[loc.row][loc.col] == true) {
+            loc.onDisappear();
+        }*/
+        visible = false;
+    } else {
+        if (visible == false) {
+            //loc.onAppear();
+            state.updatedCells++;
+            state.visibleCells++;
+            visible = true;
+        }
+    }
+
+
 }
 
 void State::updateLocations()
 {
     for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++) {
-        gameMap.callbackArea(Loc(ants[ant_id].row, ants[ant_id].col), state.viewradius, &_updateLocation, getAntById(ant_id));
+        const Location& antLocation = Loc(ants[ant_id].row, ants[ant_id].col);
+
+        antLocation.cleanCache();
+        gameMap.callbackArea(antLocation, state.viewradius, &_updateLocation, getAntById(ant_id));
     }
+
+    for (int magnetId = 0; magnetId < state.magnetsCount; magnetId++)
+    {
+        const Location& magnetLocation = *state.magnets[magnetId];
+
+        magnetLocation.cleanCache();
+        gameMap.callbackArea(magnetLocation, state.viewradius, &onTileCallback, NULL);
+    }
+/*
+    for(int ant_id = 0; ant_id < (int)ants.size(); ant_id++) {
+        const Location& antLocation = Loc(ants[ant_id].row, ants[ant_id].col);
+        for (int magnetId = 0; magnetId < state.magnetsCount; magnetId++)
+        {
+            const Location& magnetLocation = *state.magnets[magnetId];
+            magnetLocation.costTo(antLocation);
+            if (state.timeLeft() <= 1500) {
+                break;
+            }
+        }
+        if (state.timeLeft() <= 1500) {
+            break;
+        }
+    }*/
 }
 
 
@@ -484,17 +577,18 @@ double State::timeLeft() {
 
 void State::beforeInput() {
     optimizer.onNewTurn();
+    magnetsCount = 0;
 
     memset(gridDamage, 0, sizeof(Damage) * state.rows * state.cols);
 
-//    foodLocations.clear();
+    foodLocations.clear();
 }
 
-void State::afterInput() {
-    /*
+void State::afterInput()
+{
     for(int row = 0; row < state.rows; row++)
     for(int col = 0; col < state.cols; col++) {
-        if (state.grid[row][col] == '*' || state.grid[row][col] == '^') {
+        if (state.grid[row][col] == '^') {
             bool foodExists = false;
 
             for (int i = 0; i < foodLocations.size(); i++) {
@@ -510,7 +604,29 @@ void State::afterInput() {
             }
         }
     }
-*/
+
+    #ifdef __ASSERT
+    int countedMagnets = 0;
+    for(int row = 0; row < state.rows; row++)
+    for(int col = 0; col < state.cols; col++) {
+        if (state.grid[row][col] == '*' || state.grid[row][col] == 'a' || state.grid[row][col] == 'b' || state.grid[row][col] == '^') {
+            countedMagnets++;
+        }
+    }
+    if (magnetsCount != countedMagnets) {
+        logger.logError("magnetsCount != countedMagnets");
+        logger.debugLog << "DEBUG: " << magnetsCount << " != " << countedMagnets << std::endl;
+    }
+    #endif
+/*
+    for (int magnetId = 0; magnetId < state.magnetsCount; magnetId++)
+    {
+        const Location* magnetLocation = state.magnets[magnetId];
+
+    }*/
+
+
+
 }
 
 istream& operator>>(istream &is, State &state)
@@ -621,7 +737,10 @@ istream& operator>>(istream &is, State &state)
 
                 const Location& loc = Loc(row, col);
 
-                //state.foodLocations.push_back(&Loc(row, col));
+                state.magnets[state.magnetsCount] = &loc;
+                state.magnetsCount++;
+
+                state.foodLocations.push_back(&Loc(row, col));
                 gameMap.onFood(loc);
             }
             else if(inputType == "a") //live ant square
@@ -631,11 +750,14 @@ istream& operator>>(istream &is, State &state)
 
                 const Location& loc = Loc(row, col);
 
+                state.magnets[state.magnetsCount] = &loc;
+                state.magnetsCount++;
+
                 if (player == 0) {
                     state.grid[row][col] = 'a';
                     state.ants.push_back(Loc(row, col));
 
-                    gameMap.callbackArea(Loc(row, col), state.attackradius, &_addFriendlyDamage, &Loc(row, col));
+                    //gameMap.callbackArea(Loc(row, col), state.attackradius, &_addFriendlyDamage, &Loc(row, col));
                 } else {
                     state.grid[row][col] = 'b';
                     if ((player + 1) > state.approxPlayers) {
@@ -652,7 +774,7 @@ istream& operator>>(istream &is, State &state)
                     gameMap.callbackArea(Loc(row, col-1), state.attackradius, &_addEnemyDamage, &Loc(row, col));
                     gameMap.callbackArea(Loc(row, col+1), state.attackradius, &_addEnemyDamage, &Loc(row, col));
 */
-                    gameMap.callbackArea(Loc(row, col), sqrt(sqr(state.attackradius) + 5), &_addEnemyDamage, &Loc(row, col));
+                    //gameMap.callbackArea(Loc(row, col), sqrt(sqr(state.attackradius) + 5), &_addEnemyDamage, &Loc(row, col));
                 }
 
                 gameMap.onAnt(player, loc);

@@ -38,7 +38,7 @@ struct MapSearch
 };
 
 
-#define MAX_DISTANCE 256
+#define MAX_DISTANCE 255
 #define distance_fast(a,b,c,d) optimizer.distance_table[abs(a-c)*state.cols+abs(b-d)]
 #define distance_real(a,b,c,d) sqrt(sqr(abs(a-c))+sqr(abs(b-d)))
 #define LocToIndex(row, col) ((row)*state.cols+(col))

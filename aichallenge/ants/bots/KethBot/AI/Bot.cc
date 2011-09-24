@@ -90,6 +90,7 @@ void Bot::endGame()
     " + Locations created: " << (logger.locationsCreated) << endl <<
     " + AStar cache used: " << (logger.astarNodesUsed) << endl <<
     " + AStar paths made: " << (logger.astarTotalPaths) << endl <<
+    " + AStar iterations: " << (logger.astarIterations) << endl <<
     " + Game checksum: " << bot.getCheckSum() << endl;
     //" + Game moves: " << state.moves.str() << endl;
     #endif
@@ -215,7 +216,9 @@ void Bot::makeMoves()
         ant->prepareMove();
     }
 
-
+    #ifdef __DEBUG
+    logger.debugLog << "[prepareMove done]" << std::endl;
+    #endif
 
     #ifdef __JSON
     logger.logMapState();
@@ -243,6 +246,10 @@ void Bot::makeMoves()
         ant->onNewTurn();
         ant->onThink();
     }
+
+    #ifdef __DEBUG
+    logger.debugLog << "[onThink done]" << std::endl;
+    #endif
 
     #ifdef __ASSERT
     for (int ant_id = 0; ant_id < (int)state.ants.size(); ant_id++) {

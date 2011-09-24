@@ -30,6 +30,10 @@ struct Optimizer {
     double* distance_table;
     uint8** distance_cost_table;
     SearchCache** mapsearch_cache;
+
+    const relativeLocation** radiusAreaMapArr;
+    int radiusAreaMapSize;
+
     std::vector<const relativeLocation*> radiusArea[(OPTIMIZER_MAX_RADIUS*OPTIMIZER_MAX_RADIUS)+1];
     std::vector<const relativeLocation*> radiusAreaMap;
 
