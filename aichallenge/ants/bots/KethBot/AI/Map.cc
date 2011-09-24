@@ -7,6 +7,9 @@
 
 #include "globals.h"
 #include "relativeLocation.h"
+#include "allocator.h"
+
+using namespace utils;
 
 const Location& LocWrap(int row, int col)
 {
@@ -39,10 +42,15 @@ void Map::onInit() {
         }
     }
 
-    search_grid = new SearchLocation*[state.rows];
+
+
+    search_grid = new SearchLocation[state.rows*state.cols];
+    pathPool = new MemoryPool<Path>(20);
+
+    /*
     for(int i = 0; i < state.rows; ++i) {
         search_grid[i] = new SearchLocation[state.cols];
-    }
+    }*/
 }
 
 bool Map::isDeadEnd(const Location& loc, int dir)

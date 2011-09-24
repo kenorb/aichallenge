@@ -5,9 +5,10 @@
 #include "Ant.h"
 #include "Bot.h"
 #include "Magnets.h"
+#include "Optimizer.h"
 
 #include "globals.h"
-#include "Optimizer.h"
+#include "allocator.h"
 
 
 
@@ -164,7 +165,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
     logger.astarTotalPaths++;
     #endif
 
-    Path* path = new Path();
+    Path* path = new(gameMap.pathPool->Acquire())Path;
 
     const Location& startLocation = *this;
 
@@ -184,24 +185,21 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
         return path;
     }
 
-    vector<SearchLocation*> opened;
+    gameMap.opened.clear();
 
-    for(int i = 0; i < state.rows; ++i) {
-        memset(gameMap.search_grid[i], 0, sizeof(SearchLocation) * state.cols);
-    }
+    memset(gameMap.search_grid, 0, sizeof(SearchLocation) * state.rows * state.cols);
 
-    SearchLocation& sl = gameMap.search_grid[row][col];
+    SearchLocation& sl = gameMap.search_grid[this->index];
     sl.loc = this;
     sl.cost = 0;
     //sl.distanceLeft = distance_fast(row, col, endLocation.row, endLocation.col);
 
-    opened.push_back(&sl);
+    gameMap.opened.push_back(&sl);
 
-    while (opened.size() > 0) {
-        std::sort(opened.begin(), opened.end(), funcSortSearchLocations);
-
-        SearchLocation* openedSquare = opened.back();
-        opened.pop_back();
+    while (gameMap.opened.size() > 0) {
+        std::sort(gameMap.opened.begin(), gameMap.opened.end(), funcSortSearchLocations);
+        SearchLocation* openedSquare = gameMap.opened.back();
+        gameMap.opened.pop_back();
 
         openedSquare->opened = false;
 
@@ -213,9 +211,9 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             if (x == 0 && y == 0) continue;
 
             const Location* currentLocation = &LocWrap(Row(openedSquare->loc) + y, Col(openedSquare->loc) + x);
-            if (!path->touchedFog && LocIsFog(currentLocation->row, currentLocation->col)) path->touchedFog = true;
 
-            SearchLocation& searchLocation = gameMap.search_grid[currentLocation->row][currentLocation->col];
+            if (!path->touchedFog && LocIsFog(currentLocation->row, currentLocation->col)) path->touchedFog = true;
+            SearchLocation& searchLocation = gameMap.search_grid[currentLocation->index];
 
 
             if (searchLocation.loc != NULL) continue;
@@ -237,14 +235,14 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
                 path->totalCost = searchLocation.cost;
 
                 while (not (currentLocation->row == startLocation.row && currentLocation->col == startLocation.col)) {
-                    path->moves.push(*currentLocation);
-                    currentLocation = gameMap.search_grid[currentLocation->row][currentLocation->col].ref;
+                    path->moves.push(currentLocation);
+                    currentLocation = gameMap.search_grid[currentLocation->index].ref;
 
                     const Location* loopLocation = currentLocation;
                     while (not (loopLocation->row == startLocation.row && loopLocation->col == startLocation.col)) {
-                        loopLocation = gameMap.search_grid[loopLocation->row][loopLocation->col].ref;
+                        loopLocation = gameMap.search_grid[loopLocation->index].ref;
                         uint8& costCached = optimizer.distance_cost_table[currentLocation->index][loopLocation->index];
-                        costCached = gameMap.search_grid[currentLocation->row][currentLocation->col].cost - gameMap.search_grid[loopLocation->row][loopLocation->col].cost;
+                        costCached = gameMap.search_grid[currentLocation->index].cost - gameMap.search_grid[loopLocation->index].cost;
                     }
                 }
 
@@ -256,7 +254,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
             }
 
             if (LocIsWall(currentLocation->row, currentLocation->col)) continue;
-            opened.push_back(&searchLocation);
+            gameMap.opened.push_back(&searchLocation);
 
             #ifdef __DEBUG
             logger.astarIterations++;
@@ -264,7 +262,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
         }
     }
 
-    delete path;
+    gameMap.pathPool->Release(path);
 
     #ifdef __DEBUG
     profiler.endThinkTime(TT_ASTAR);
@@ -328,7 +326,7 @@ double Location::costTo(const Location& loc, bool precise /* = FALSE */) const
     }
     #endif
 
-    delete path;
+    gameMap.pathPool->Release(path);
 
     return ret;
 }
@@ -929,8 +927,6 @@ bool Location::collisionLine(const Location& loc, bool secondSolve /* = false */
 
     vector2f currentPoint(Location::col, Location::row);
 
-
-    //for (int i = 0; i < distance*2; i++) {
     int i = (relativeVector.x > relativeVector.y) ? 0 : 1;
     if (secondSolve) i++;
 
@@ -964,5 +960,4 @@ bool Location::collisionLine(const Location& loc, bool secondSolve /* = false */
     #endif
 
     return false;
-    // TODO:
 }

@@ -172,7 +172,7 @@ bool Ant::hasEnoughForceToMove()
 
 void Ant::deletePath()
 {
-    if (path) delete Ant::path;
+    if (path) gameMap.pathPool->Release(Ant::path);
     path = NULL;
 }
 
@@ -354,7 +354,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
     int ret = NO_MOVE;
 
     if (path && path->stepsLeft() > 0) {
-        Location& locationTo = path->moves.top();
+        const Location& locationTo = *path->moves.top();
 
         Location relLoc = AntLoc(this).relativeLocationTo(locationTo);
         locationTo.think();

@@ -8,7 +8,6 @@
 
 #include "Ant.h"
 #include "Damage.h"
-#include "Map.h"
 #include "State.h"
 
 #include "const.h"
@@ -115,40 +114,6 @@ struct Food
 {
     Location location;
     double attractionForce;
-};
-
-struct Path
-{
-    Path() { iterations = totalCost = 0; touchedFog = false; };
-    std::stack<Location> moves;
-
-    int totalCost;
-    int iterations;
-    bool touchedFog;
-
-    inline int stepsLeft() { return moves.size(); };
-
-    inline const Location& targetLocation() { return *target; };
-    inline const Location& sourceLocation() { return *source; };
-
-    inline bool hasTarget() { return target; };
-    inline bool hasSource() { return source; };
-
-    inline void setTarget(const Location& loc) { target = &loc; };
-    inline void setSource(const Location& loc) { source = &loc; };
-
-    const Location* target;
-    const Location* source;
-};
-
-struct SearchLocation
-{
-    int cost;
-    double opened;
-    double distanceLeft;
-
-    const Location* loc;
-    const Location* ref;
 };
 
 #endif //LOCATION_H_

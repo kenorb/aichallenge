@@ -3,11 +3,14 @@
 
 #include "Ant.h"
 #include "Optimizer.h"
-#include "Map.h"
 
 #include "globals.h"
 #include "const.h"
 #include "enums.h"
+#include "allocator.h"
+#include "Path.h"
+
+using namespace utils;
 
 class Ant;
 
@@ -44,8 +47,6 @@ struct MapSearch
 #define LocToIndex(row, col) ((row)*state.cols+(col))
 #define MAX_GRID_INDEX LocToIndex(state.rows-1, state.cols-1)
 
-struct SearchLocation;
-
 struct Map
 {
     public:
@@ -66,9 +67,12 @@ struct Map
         MapSearch find(const Location& loc, double searchRadius, LocationType type, MapSearch next = MapSearch());
 
         Location** locationGrid;
-        SearchLocation** search_grid;
+        SearchLocation* search_grid;
         std::list<Ant*>& getAnts();
         vector<Location>& getEnemyAnts();
+        vector<SearchLocation*> opened;
+
+        MemoryPool<Path>* pathPool;
 
         Ant* getAntAt(const Location &loc);
         Ant* setAntAt(const Location &loc, Ant* ant);
