@@ -177,6 +177,9 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
     if (distance <= state.spawnradius) {
         path->totalCost = distance;
 
+        uint8& costCached = optimizer.distance_cost_table[startLocation.index][endLocation.index];
+        costCached = state.spawnradius;
+
         #ifdef __DEBUG
         profiler.endThinkTime(TT_ASTAR);
         logger.astarTotalPaths--;
@@ -236,7 +239,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
                 while (not (currentLocation->row == startLocation.row && currentLocation->col == startLocation.col)) {
                     path->moves.push(currentLocation);
-                    currentLocation = gameMap.search_grid[currentLocation->index].ref;
+
 
                     const Location* loopLocation = currentLocation;
                     while (not (loopLocation->row == startLocation.row && loopLocation->col == startLocation.col)) {
@@ -244,6 +247,8 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
                         uint8& costCached = optimizer.distance_cost_table[currentLocation->index][loopLocation->index];
                         costCached = gameMap.search_grid[currentLocation->index].cost - gameMap.search_grid[loopLocation->index].cost;
                     }
+
+                    currentLocation = gameMap.search_grid[currentLocation->index].ref;
                 }
 
                 #ifdef __DEBUG
@@ -369,7 +374,9 @@ foodList Location::foodInRadius(double radius) const
 }*/
 
 bool Location::cacheElement(LocationRef& cache, const Location& element, const Location& loc) const {
-    if (cache.location) return false;
+    if (cache.location) {
+        return false;
+    }
     if (loc.equals(element)) return false;
 
     cache.location = &element;
@@ -418,7 +425,7 @@ void onTileCallback(const Location& loc, CallbackLocData data)
         const uint8 _ANT_TYPE[2] = {ANY, ENEMY};
 
         for (int i = 0; i < _ANT_TYPES_COUNT; i++) {
-            uint8& size = cache.nearestFoodSize[_ANT_TYPE[i]];
+            uint8& size = cache.nearestAntSize[_ANT_TYPE[i]];
             if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestAnt[_ANT_TYPE[i]][size], loc, senderLocation)) {
                 size++;
             }
@@ -431,7 +438,7 @@ void onTileCallback(const Location& loc, CallbackLocData data)
         const uint8 _ANT_TYPE[2] = {ANY, FRIEND};
 
         for (int i = 0; i < _ANT_TYPES_COUNT; i++) {
-            uint8& size = cache.nearestFoodSize[_ANT_TYPE[i]];
+            uint8& size = cache.nearestAntSize[_ANT_TYPE[i]];
             if (size < MAX_CACHE_DEPTH && senderLocation.cacheElement(cache.nearestAnt[_ANT_TYPE[i]][size], loc, senderLocation)) {
                 size++;
             }
@@ -443,7 +450,9 @@ void Location::cleanCache() const {
     const Location& me = *this;
     LocationCache& cache = LocCache(me);
 
-    memset(&cache, 0, sizeof(LocationCache));
+    //memset(&cache, 0, sizeof(LocationCache));
+    memset(&state.locCache[row][col], 0, sizeof(LocationCache));
+
 
     for (int i = 0; i < ANT_TYPES_COUNT; i++) {
         for (int j = 0; j < MAX_CACHE_DEPTH; j++) {
