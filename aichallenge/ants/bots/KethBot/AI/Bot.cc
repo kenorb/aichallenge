@@ -139,15 +139,15 @@ void Bot::validateAnts()
     while (true) {
         i = 0;
         std::list<Ant*>::iterator iter_ant;
-        for (iter_ant = gameMap.getAnts().begin(); iter_ant != gameMap.getAnts().end(); iter_ant++)
+        for (iter_ant = state.structuralAnts.begin(); iter_ant != state.structuralAnts.end(); iter_ant++)
         {
             Ant* ant = (*iter_ant);
             ant->hasMoved = false;
 
-            if (state.grid[ant->getLocation().row][ant->getLocation().col] != 'a') {
-                Ant* foundAnt = gameMap.getAntAt(ant->getLocation());
+            if (state.grid[AntRow(ant)][AntCol(ant)] != 'a') {
+                Ant* foundAnt = gameMap.getAntAt(AntLoc(ant));
                 if (foundAnt) {
-                    gameMap.setAntAt(foundAnt->getLocation(), NULL);
+                    gameMap.setAntAt(AntLoc(foundAnt), NULL);
                     delete foundAnt;
                     i++;
                 }
@@ -205,14 +205,8 @@ void Bot::makeMoves()
         #ifdef __DEBUG
         logger.debugLog << "OnBefore " << *ant << " prepareMove" << std::endl;
         #endif
-/*
-        if (state.timeLeft() <= 300) {
-            #ifdef __DEBUG
-            logger.logWarning("300ms of time left. Canceling think loop for this turn.");
-            #endif
-            break; // doesnt work?
-        }
-*/
+
+        ant->onNewTurn();
         ant->prepareMove();
     }
 
@@ -235,15 +229,7 @@ void Bot::makeMoves()
         #ifdef __DEBUG
         logger.debugLog << "OnBefore " << *ant << " think" << std::endl;
         #endif
-/*
-        if (state.timeLeft() <= 500) {
-            #ifdef __DEBUG
-            logger.logWarning("300ms of time left. Canceling think loop for this turn.");
-            #endif
-            break; // doesnt work?
-        }
-*/
-        ant->onNewTurn();
+
         ant->onThink();
     }
 

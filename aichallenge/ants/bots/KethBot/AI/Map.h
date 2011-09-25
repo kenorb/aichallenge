@@ -64,6 +64,8 @@ struct Map
         void callbackArea(const Location& loc, double radius, CallbackLoc callback, const void* sender = NULL);
 
         vector<const Location*> findMany(const Location& loc, double searchRadius, LocationType type);
+
+        int stepTowards(const Location& loc1, const Location& loc2, bool forceSearch = false);
         MapSearch find(const Location& loc, double searchRadius, LocationType type, MapSearch next = MapSearch());
 
         Location** locationGrid;

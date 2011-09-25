@@ -179,6 +179,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
         uint8& costCached = optimizer.distance_cost_table[startLocation.index][endLocation.index];
         costCached = state.spawnradius;
+        //logger.debugLog << "cacheing " << LocationToString(startLocation) << " -> " << LocationToString(endLocation) << " = " << (int)costCached << std::endl;
 
         #ifdef __DEBUG
         profiler.endThinkTime(TT_ASTAR);
@@ -232,6 +233,9 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
 
             if (searchLocation.cost < costCached || costCached == 0) {
                 costCached = searchLocation.cost;
+                //logger.debugLog << "cacheing " << LocationToString(startLocation) << " -> " << LocationToString(*currentLocation) << " = " << (int)costCached << std::endl;
+            } else {
+                //logger.debugLog << "skip cache" << std::endl;
             }
 
             if (currentLocation->row == endLocation.row && currentLocation->col == endLocation.col) {
@@ -246,6 +250,7 @@ Path* Location::findPathTo(const Location& endLocation, bool costOnly /* = false
                         loopLocation = gameMap.search_grid[loopLocation->index].ref;
                         uint8& costCached = optimizer.distance_cost_table[currentLocation->index][loopLocation->index];
                         costCached = gameMap.search_grid[currentLocation->index].cost - gameMap.search_grid[loopLocation->index].cost;
+                        //logger.debugLog << "cacheing " << LocationToString(*currentLocation) << " -> " << LocationToString(*loopLocation) << " = " << (int)costCached << std::endl;
                     }
 
                     currentLocation = gameMap.search_grid[currentLocation->index].ref;
@@ -389,7 +394,6 @@ bool Location::cacheElement(LocationRef& cache, const Location& element, const L
 void onTileCallback(const Location& loc, CallbackLocData data)
 {
     const Location& senderLocation = *data.senderLocation;
-
     char locType = LocType(loc);
 
     if (locType == '*') {
@@ -450,9 +454,7 @@ void Location::cleanCache() const {
     const Location& me = *this;
     LocationCache& cache = LocCache(me);
 
-    //memset(&cache, 0, sizeof(LocationCache));
-    memset(&state.locCache[row][col], 0, sizeof(LocationCache));
-
+    memset(&cache, 0, sizeof(LocationCache));
 
     for (int i = 0; i < ANT_TYPES_COUNT; i++) {
         for (int j = 0; j < MAX_CACHE_DEPTH; j++) {

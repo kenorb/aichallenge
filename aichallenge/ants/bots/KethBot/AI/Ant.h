@@ -69,15 +69,13 @@ struct Ant
         int getNextMove(bool solveCollision = true);
         int timeAlive;
         int lastThink;
+        int forceNextMove;
 
         const Location* nearestEnemyAnt;
 
         double distanceTo(const Location& loc2);
         double distanceTo(Ant* ant);
         bool hasEnoughForceToMove();
-        void updatePriority();
-        int movePriority;
-        double targetDistanceMul;
 
         void setPathTo(const Location& target);
         void deletePath();

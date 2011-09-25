@@ -29,8 +29,8 @@ Ant::Ant(State &_state, const Location &_loc)
     seenEnemy = false;
     timeAlive = 0;
     lastThink = 0;
-    movePriority = 0;
     predictionMove = MOVE_UNKNOWN;
+    forceNextMove = MOVE_UNKNOWN;
 
     partner = NULL;
 
@@ -44,8 +44,6 @@ Ant::Ant(State &_state, const Location &_loc)
     #ifdef __DEBUG
     logger.debugLog << "EVENT: New " << (*this) << " at " << LocationToString(getLocation()) << endl;
     #endif
-
-    Ant::updatePriority();
 }
 
 Ant::~Ant()
@@ -89,14 +87,10 @@ bool Ant::hasFlags(AntFlags flag)
     return true;
 }
 
-void Ant::updatePriority()
-{
-    movePriority = distance_fast((*loc).row, (*loc).col, bot.startLocation.row, bot.startLocation.col);
-}
-
 void Ant::onNewTurn()
 {
     moveIterations = 0;
+    forceNextMove = MOVE_UNKNOWN;
 }
 
 void Ant::onMove(const Location& toLoc)
@@ -110,6 +104,8 @@ void Ant::onMove(const Location& toLoc)
 
 bool Ant::canBePlacedAt(const Location& _loc)
 {
+    if (state.grid[_loc.row][_loc.col] == 'a' && _loc.getAnt() == this) return true;
+
     switch (state.grid[_loc.row][_loc.col]) {
         case '%': return false;
         case 'a': return false;
@@ -117,18 +113,11 @@ bool Ant::canBePlacedAt(const Location& _loc)
         case '^': return false;
     }
 
-    if (gameMap.getAntAt(_loc) && _loc.getAnt() != this) return false;
+    // if (gameMap.getAntAt(_loc) && _loc.getAnt() != this) return false;
+    // this solves bugs if we make a move before ant thinking
 
     return true;
 }
-
-double Ant::distanceTo(const Location& loc2) {
-    return distance_fast((*loc).row, (*loc).col, loc2.row, loc2.col);
-}
-
-double Ant::distanceTo(Ant* ant) {
-    return distance_fast((*ant->loc).row, (*ant->loc).col, (*loc).row, (*loc).col);
-};
 
 void Ant::onThink()
 {
@@ -152,7 +141,7 @@ void Ant::onThink()
 
     #ifdef __DEBUG
     bot.addChecksumValue(nextMove);
-    state.moves << (int)nextMove+2;
+    state.moves << (int)(nextMove + 2);
     #endif
 
     if (nextMove != NO_MOVE && nextMove != MOVE_DANAGEROUS) state.makeMove(getLocation(), nextMove);
@@ -194,72 +183,11 @@ bool Ant::needsCancelPath()
 {
     if (!path) return false;
 
-    if (path->stepsLeft() == 0) {
+    if (AntLoc(this).isAround(path->targetLocation())) {
         return true;
-    }
-
-    if (!path->targetLocation().hasFood()) {
-        return true;
-    }
-
-    const Location& nearestFood = AntLoc(this).nearestFood();
-    double distanceToNearestFood = nearestFood.isValid() ? distance_fast(AntRow(this), AntCol(this), nearestFood.row, nearestFood.col) : MAX_DISTANCE;
-
-    if (nearestFood.isValid() && !nearestFood.equals(path->targetLocation()) && AntLoc(this).costTo(nearestFood) < Ant::path->stepsLeft()) {
-        if (nearestFood.nearestAnt(ANT_ISFRIEND).equals(AntLoc(this))) {
-            #ifdef __DEBUG
-            logger.debugLog << "Canceled path food for " << (*this) << ", found closer new path with fewer steps at " << LocationToString(nearestFood) << endl;
-            #endif
-
-            return true;
-        }
-    }
-
-    const Location& antNearFood = path->targetLocation().nearestAnt(ANT_ISFRIEND + ANT_NOPATH);
-
-    if (antNearFood.isValid() && !antNearFood.collisionLine(path->targetLocation())) {
-        if (!antNearFood.equals(AntLoc(this)) && antNearFood.costTo(path->targetLocation()) < Ant::path->stepsLeft()) {
-            return true;
-        }
     }
 
     return false;
-}
-
-void Ant::cancelPath() {
-    if (path->hasTarget()) {
-        path->targetLocation().blurFood();
-
-        #ifdef __DEBUG
-        logger.debugLog << "Ant " << (*this) << " - blurring food at " << LocationToString(path->targetLocation()) << std::endl;
-        #endif
-    }
-    Ant::deletePath();
-}
-
-void Ant::updatePath() {
-    const Location& nearestFood = AntLoc(this).nearestFood();
-    double distanceToNearestFood = nearestFood.isValid() ? distance_fast(AntRow(this), AntCol(this), nearestFood.row, nearestFood.col) : MAX_DISTANCE;
-
-    if (needsCancelPath()) {
-        cancelPath();
-    }
-
-    if (!Ant::path && nearestFood.isValid() && nearestFood.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).equals(AntLoc(this)) && !nearestFood.isAround(AntLoc(this)) && (AntLoc(this).collisionLine(nearestFood) || distanceToNearestFood >= state.viewradius)) {
-    //if (!Ant::path && nearestFood.isValid() && nearestFood.nearestAnt(ANT_ISFRIEND + ANT_NOPATH).equals(*this->loc) && !nearestFood.isAround(AntLoc(this)) && (distanceToNearestFood >= state.viewradius)) {
-        #ifdef __DEBUG
-        logger.debugLog << "New path to food for " << (*this) << " through a wall at " << LocationToString(nearestFood) << endl;
-        #endif
-
-        Ant::setPathTo(nearestFood);
-
-        if (path && path->stepsLeft() >= 1) {
-            // figure out what to do if path is blocked
-            nearestFood.focusFood();
-        } else {
-            Ant::deletePath();
-        }
-    }
 }
 
 void Ant::prepareMove()
@@ -270,52 +198,37 @@ void Ant::prepareMove()
     logger.debugLog << "Ant::prepareMove(): " << (*this) << endl;
     #endif
 
-    Ant::updatePath();
+    int i = 0;
 
-    if (!Ant::hasPath()) {
-        velocity = AntLoc(this).getForce(this);
-    }
+    while (true) {
+        if (i >= MAX_CACHE_DEPTH) break;
 
-    physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
-/*
-    std::vector<directionMove> moves;
-    for(int dir = 0; dir < 4; dir++)
-    {
-        Location locationTo = state.getLocation(AntLoc(this), dir);
-        directionMove move;
-        move.direction = dir;
-        move.cost = gameMap.distance_vector(locationTo, physicalPosition);
-        moves.push_back(move);
-    }
+        // todo: use food priority to pick the best target
+        LocationRef& foodAny = AntFindFood(this, ANY, i);
+        if (!didFind(foodAny)) break;
 
-    std::sort(moves.begin(), moves.end(), directionMove::sortMoves());
+        const Location& foodLocation = *foodAny.location;
 
-    for (vector<directionMove>::iterator move = moves.begin(); move != moves.end(); ++move)
-    {
-        Location locationTo = state.getLocation(AntLoc(this), (*move).direction);
-
-        if (Ant::canBePlacedAt(locationTo)) {
-            if (locationTo.damageArea().enemy == 0) {
-                predictionMove = (*move).direction;
-            }
+        if (LocFindAnt(foodLocation, FRIEND, FIRST).location->equals(AntLoc(this))) {
+            forceNextMove = gameMap.stepTowards(AntLoc(this), *foodAny.location);
             break;
         }
-    }*/
 
-/*
-    std::list<Location*>::iterator iter_ant;
-    for (iter_ant = gameMap.getEnemyAnts().begin(); iter_ant != gameMap.getEnemyAnts().end(); iter_ant++)
-    {
-        Location* enemyAnt = (*iter_ant);
-    }*/
+        i++;
+    }
 
-    /*
-        if (enemy closer than 3 squares) {
-            try to do formation towards the enemy OR step away if opponent has better formation
-        }
-    */
+    #ifdef __ASSERT
+    LocationRef& foodAny = AntFindFood(this, ANY, FIRST);
+    LocationRef& foodBlurred = LocCache(AntLoc(this)).nearestFood[BLURRED][FIRST];
+    if ((didFind(foodAny) && !didFind(foodBlurred)) || (didFind(foodBlurred) && !didFind(foodAny))) {
+        logger.logError("foodAny exists && foodBlurred does not");
+    }
+    #endif
 
-    Ant::updatePriority();
+    if (forceNextMove == MOVE_UNKNOWN) {
+        velocity = AntLoc(this).getForce(this);
+        physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
+    }
 
     #ifdef __DEBUG
     profiler.endThinkTime("Ant::prepareMove()");
@@ -324,6 +237,9 @@ void Ant::prepareMove()
 }
 
 bool Ant::isEnemyInRange(const double radius) {
+    LocationRef& enemy = LocFindAnt(AntLoc(this), ENEMY, FIRST);
+    if (didFind(enemy) && enemy.distance <= radius) return true;
+
     const Location& nearestAnt = getLocation().nearestAnt(ANT_ISENEMY, *locNull, radius);
     if (nearestAnt.isValid()) {
         return nearestAnt.isType(ANT_ENEMY);
@@ -334,6 +250,7 @@ bool Ant::isEnemyInRange(const double radius) {
 int Ant::scoreMove(directionMove& move)
 {
     const Location& locationTo = state.getLocation(AntLoc(this), move.direction);
+    // todo: score moves accordingly to damage grid
     return 0;
 }
 
@@ -349,97 +266,24 @@ int Ant::getNextMove(bool solveCollision /* = true */)
     #endif
 
     moveIterations++;
-    //if (moveIterations > 4) return NO_MOVE;
 
     int ret = NO_MOVE;
 
-    if (path && path->stepsLeft() > 0) {
-        const Location& locationTo = *path->moves.top();
-
-        Location relLoc = AntLoc(this).relativeLocationTo(locationTo);
-        locationTo.think();
-
-        #ifdef __DEBUG
-        logger.debugLog << *this << " I have path, next location is " << LocationToString(locationTo) << ", canBePlaced: " << Ant::canBePlacedAt(locationTo) << endl;
-        logger.debugLog << state.grid[locationTo.row][locationTo.col] << endl;
-        #endif
-
-        if (!Ant::canBePlacedAt(locationTo)) {
-            #ifdef __DEBUG
-            logger.debugLog << *this << " My path got blocked at " << LocationToString(locationTo) << " while trying to make a path move" << endl;
-            #endif
-            if (path->hasTarget()) {
-                #ifdef __DEBUG
-                logger.debugLog << *this << " Blurring food at " << LocationToString(path->targetLocation()) << endl;
-                #endif
-                path->targetLocation().blurFood();
-            }
-            Ant::deletePath();
-
-            if (solveCollision) {
-                //Ant::prepareMove(); // we cant let this happen, this recalcualtes forces and ant positions are already changed
-
-                #ifdef __DEBUG
-                profiler.endThinkTime("Ant::getNextMove()");
-                codeDepth--;
-                #endif
-
-                return Ant::getNextMove(false);
-            }
-        }
-
+    if (forceNextMove != MOVE_UNKNOWN) {
+        Location relLoc = AntLoc(this).relativeLocationTo(state.getLocation(AntLoc(this), forceNextMove));
         velocity = vector2f(relLoc.col, relLoc.row);
-
-        if (path && path->stepsLeft() >= 1) path->moves.pop();
-        /* crashy?
-        if (path && path->stepsLeft() >= 1) {
-            if (path->stepsLeft() == 1 || locationTo.isAround(path->targetLocation()) || path->moves.top().damageArea().enemy >= 1) {
-                if (path->hasTarget()) path->targetLocation().blurFood();
-                Ant::deletePath();
-            }
-        }
-        */
     }
 
     physicalPosition = vector2f(getLocation().col + velocity.x, getLocation().row + velocity.y);
 
-    const Location& nearestFood = AntLoc(this).nearestFood();
-    double distanceToNearestFood = numeric_limits<double>::max();
-    bool foodCollision = false;
-
-    if (nearestFood.isValid()) {
-        distanceToNearestFood = distance_fast(AntLoc(this).row, AntLoc(this).col, nearestFood.row, nearestFood.col);
-        foodCollision = nearestFood.collisionLine(AntLoc(this));
-    }
-
     if (Ant::hasEnoughForceToMove())
     {
         std::vector<directionMove> moves;
-/*
-        if (AntLoc(this).damageArea().enemy >= 1 && AntLoc(this).damageArea().friendly > AntLoc(this).damageArea().enemy) {
-            // loop for multiple?
-            const Location& helpingAnt = *AntLoc(this).damageArea().friendlyAnts.front();
-            const Location& enemyAnt = *AntLoc(this).damageArea().enemyAnts.front();
 
-            double dist = distance_fast(helpingAnt.row, helpingAnt.col, enemyAnt.row, enemyAnt.col);
-
-            if (dist <= (state.attackradius + 1)) {
-                noMove = true;
-            }
-        }
-*/
-        // Make a list of directions
         for(int dir = -1; dir < 4; dir++)
         {
             const Location& locationTo = state.getLocation(AntLoc(this), dir);
-            if (locationTo.isType(WALL)) {
-                #ifdef __DEBUG
-                logger.debugLog << "dir: " << dir << ", blocked" << std::endl;
-                #endif
-                continue;
-            }
-
-            int score = 0;
+            if (LocIsWall(locationTo.row, locationTo.col)) continue;
 
             directionMove move;
             move.direction = dir;
@@ -473,19 +317,7 @@ int Ant::getNextMove(bool solveCollision /* = true */)
         }
     }
 
-
     const Location& locationTo = state.getLocation(AntLoc(this), ret);
-
-/*
-    if (path) {
-        if (path->stepsLeft() >= 1) path->moves.pop();
-
-        if (path->stepsLeft() == 0 || locationTo.isAround(path->targetLocation())) {
-            if (path->hasTarget()) path->targetLocation().blurFood();
-            Ant::deletePath();
-        }
-    }
-*/
 
     // Final solver
     if (ret != NO_MOVE && ret != MOVE_DANAGEROUS)
@@ -499,11 +331,9 @@ int Ant::getNextMove(bool solveCollision /* = true */)
         }
     }
 
-    // this should be replaced by genetic algorithm (if done)
-    if (nearestFood.isValid() && nearestFood.isAround(AntLoc(this)) && !nearestFood.isAround(locationTo)) {
+    if (AntFindFood(this, ANY, FIRST).distance <= state.spawnradius) {
         ret = NO_MOVE;
     }
-
 
     if (ret != NO_MOVE && ret != MOVE_DANAGEROUS) hasMoved = true;
 

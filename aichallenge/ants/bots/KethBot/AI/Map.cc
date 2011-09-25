@@ -92,6 +92,64 @@ vector<const Location*> Map::findMany(const Location& loc, double searchRadius, 
     return ret;
 }
 
+int Map::stepTowards(const Location& loc1, const Location& loc2, bool forceSearch /* = false */)
+{
+    #ifdef __DEBUG
+    profiler.beginThinkTime(TT_STEPTOWARDS);
+    #endif
+    uint8 initialCost = 0;
+
+    if (!forceSearch) {
+        initialCost = cachedNode(loc1.index, loc2.index);
+    } else
+    if (forceSearch) {
+        int cost = loc1.findPathTo(loc2)->totalCost;
+
+        #ifdef __ASSERT
+        if (loc1.costTo(loc2) != cost) {
+            logger.logError("a.costTo(b) != a.findPathTo(b).cost");
+        }
+        #endif
+    }
+
+    if (initialCost == 0) initialCost = loc1.costTo(loc2);
+
+    uint8 cachedCost;
+    for(int dir = 0; dir < 4; dir++)
+    {
+        const Location& dirLoc = state.getLocation(loc1, dir);
+        if (LocIsWall(dirLoc.row, dirLoc.col)) continue;
+
+        cachedCost = cachedNode(dirLoc.index, loc2.index);
+
+        if (cachedCost == 0 && dirLoc.equals(loc2)) return dir; else
+        if (cachedCost > 0 && cachedCost < initialCost) {
+            #ifdef __DEBUG
+            profiler.endThinkTime(TT_STEPTOWARDS);
+            #endif
+            //logger.debugLog << LocationToString(loc1) << " -> " << LocationToString(loc2) << " = dir(" << dir << ")" << std::endl;
+            return dir;
+        }
+    }
+
+    if (!forceSearch) {
+        #ifdef __DEBUG
+        profiler.endThinkTime(TT_STEPTOWARDS);
+        #endif
+        return stepTowards(loc1, loc2, true);
+    }
+
+    #ifdef __DEBUG
+    logger.logWarning("Step towards not found!");
+    logger.debugLog << "DEBUG: " << LocationToString(loc1) << " -> " << LocationToString(loc2) << std::endl;
+    #endif
+
+    #ifdef __DEBUG
+    profiler.endThinkTime(TT_STEPTOWARDS);
+    #endif
+    return NO_MOVE;
+}
+
 MapSearch Map::find(const Location& loc, double searchRadius, LocationType type, MapSearch startFrom /* = MapSearch() */)
 {
     #ifdef __DEBUG
